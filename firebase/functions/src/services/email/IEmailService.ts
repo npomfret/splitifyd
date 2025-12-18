@@ -6,6 +6,7 @@ export interface EmailMessage {
     subject: string;
     textBody: string;
     htmlBody?: string;
+    messageStream: string;
 }
 
 export interface IEmailService {

@@ -1620,5 +1620,17 @@
   "sharing": {
     "ogDescription": "Split expenses easily with friends and family",
     "joinTitle": "Join a group on {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Reset your password",
+      "ignoreNotice": "Ignore this email if you didn't request a password reset via {{domain}}.",
+      "greeting": "Hi there,",
+      "instruction": "We received a request to reset your password for your {{appName}} account.",
+      "buttonText": "Reset Password",
+      "linkLabel": "Or copy and paste this link into your browser:",
+      "expiryNotice": "This link will expire in 1 hour.",
+      "supportLine": "Need help? Contact us at {{supportEmail}}"
+    }
   }
 }

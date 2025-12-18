@@ -73,6 +73,19 @@ function isUniversalNotation(value: string): boolean {
 // i18next pluralization suffixes
 const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
 
+// Translation keys used by the backend (Firebase Functions) that read translation files directly
+// These won't be detected in webapp source code but are legitimately used
+const BACKEND_TRANSLATION_KEYS = new Set([
+    'email.passwordReset.subject',
+    'email.passwordReset.ignoreNotice',
+    'email.passwordReset.greeting',
+    'email.passwordReset.instruction',
+    'email.passwordReset.buttonText',
+    'email.passwordReset.linkLabel',
+    'email.passwordReset.expiryNotice',
+    'email.passwordReset.supportLine',
+]);
+
 // Extract base key from a pluralized key (e.g., 'foo.bar_one' -> 'foo.bar')
 function getPluralBaseKey(key: string): string | null {
     for (const suffix of PLURAL_SUFFIXES) {
@@ -460,6 +473,11 @@ describe('Translation Keys Validation', () => {
         const redundantKeys: string[] = [];
 
         for (const key of allTranslationKeys) {
+            // Skip keys used by the backend (Firebase Functions)
+            if (BACKEND_TRANSLATION_KEYS.has(key)) {
+                continue;
+            }
+
             // For pluralized keys (e.g., 'foo_one', 'foo_other'), check if the BASE key is used
             // i18next selects the pluralized variant at runtime based on the count parameter
             const baseKey = getPluralBaseKey(key);

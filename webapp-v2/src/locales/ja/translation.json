@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "友達や家族と簡単に費用を分割",
     "joinTitle": "{{appName}}でグループに参加"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: パスワードのリセット",
+      "ignoreNotice": "{{domain}}でパスワードリセットをリクエストしていない場合は、このメールを無視してください。",
+      "greeting": "こんにちは、",
+      "instruction": "{{appName}}アカウントのパスワードリセットリクエストを受け取りました。",
+      "buttonText": "パスワードをリセット",
+      "linkLabel": "または、このリンクをブラウザにコピー＆ペーストしてください：",
+      "expiryNotice": "このリンクは1時間後に期限切れになります。",
+      "supportLine": "お困りですか？{{supportEmail}}までお問い合わせください"
+    }
   }
 }

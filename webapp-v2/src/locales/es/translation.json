@@ -1620,5 +1620,17 @@
   "sharing": {
     "ogDescription": "Divide gastos fácilmente con amigos y familiares",
     "joinTitle": "Únete a un grupo en {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Restablecer contraseña",
+      "ignoreNotice": "Ignora este correo si no solicitaste restablecer tu contraseña en {{domain}}.",
+      "greeting": "Hola,",
+      "instruction": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de {{appName}}.",
+      "buttonText": "Restablecer contraseña",
+      "linkLabel": "O copia y pega este enlace en tu navegador:",
+      "expiryNotice": "Este enlace expirará en 1 hora.",
+      "supportLine": "¿Necesitas ayuda? Contáctanos en {{supportEmail}}"
+    }
   }
 }

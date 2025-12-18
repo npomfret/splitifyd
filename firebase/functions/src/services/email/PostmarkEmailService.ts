@@ -9,6 +9,7 @@ interface PostmarkSendEmailRequest {
     Subject: string;
     TextBody: string;
     HtmlBody?: string;
+    MessageStream: string;
 }
 
 interface PostmarkSendEmailResponse {
@@ -31,6 +32,7 @@ export class PostmarkEmailService implements IEmailService {
             Subject: message.subject,
             TextBody: message.textBody,
             HtmlBody: message.htmlBody,
+            MessageStream: message.messageStream,
         };
 
         const response = await fetch('https://api.postmarkapp.com/email', {
@@ -43,6 +45,18 @@ export class PostmarkEmailService implements IEmailService {
         });
 
         if (response.ok) {
+            let successBody: PostmarkSendEmailResponse | undefined;
+            try {
+                successBody = (await response.json()) as PostmarkSendEmailResponse;
+            } catch {
+                // ignore
+            }
+            logger.info('email-sent', {
+                to: message.to,
+                subject: message.subject,
+                messageId: successBody?.MessageID,
+                submittedAt: successBody?.SubmittedAt,
+            });
             return;
         }
 

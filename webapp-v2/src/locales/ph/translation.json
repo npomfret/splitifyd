@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "Hatiin ang mga gastos nang madali sa mga kaibigan at pamilya",
     "joinTitle": "Sumali sa isang grupo sa {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: I-reset ang password",
+      "ignoreNotice": "Balewalain ang email na ito kung hindi ka humiling ng pag-reset ng password sa pamamagitan ng {{domain}}.",
+      "greeting": "Kumusta,",
+      "instruction": "Nakatanggap kami ng kahilingan na i-reset ang password para sa iyong {{appName}} account.",
+      "buttonText": "I-reset ang Password",
+      "linkLabel": "O kopyahin at i-paste ang link na ito sa iyong browser:",
+      "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 1 oras.",
+      "supportLine": "Kailangan ng tulong? Makipag-ugnayan sa amin sa {{supportEmail}}"
+    }
   }
 }

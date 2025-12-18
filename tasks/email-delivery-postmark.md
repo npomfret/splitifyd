@@ -72,7 +72,7 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 ### Phase 3: Sending + Observability (medium)
 
 - [x] Integrate `IEmailService` into the first real email use-case (pick one: group invites or auth email flows)
-- [ ] Add targeted unit test(s) asserting expected email “send” via `FakeEmailService`
+- [x] Add integration test exercising password reset email via Postmark sandbox
 - [ ] Add delivery event tracking hooks (webhook ingestion) and persistence strategy (TBD)
 
 ### Password Reset Implementation Notes

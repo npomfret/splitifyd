@@ -1620,5 +1620,17 @@
   "sharing": {
     "ogDescription": "Del utgifter enkelt med venner og familie",
     "joinTitle": "Bli med i en gruppe på {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Tilbakestill passord",
+      "ignoreNotice": "Ignorer denne e-posten hvis du ikke ba om tilbakestilling av passord via {{domain}}.",
+      "greeting": "Hei,",
+      "instruction": "Vi mottok en forespørsel om å tilbakestille passordet for {{appName}}-kontoen din.",
+      "buttonText": "Tilbakestill passord",
+      "linkLabel": "Eller kopier og lim inn denne lenken i nettleseren din:",
+      "expiryNotice": "Denne lenken utløper om 1 time.",
+      "supportLine": "Trenger du hjelp? Kontakt oss på {{supportEmail}}"
+    }
   }
 }

@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "Dividi le spese facilmente con amici e familiari",
     "joinTitle": "Unisciti a un gruppo su {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Reimposta password",
+      "ignoreNotice": "Ignora questa email se non hai richiesto il ripristino della password tramite {{domain}}.",
+      "greeting": "Ciao,",
+      "instruction": "Abbiamo ricevuto una richiesta per reimpostare la password del tuo account {{appName}}.",
+      "buttonText": "Reimposta password",
+      "linkLabel": "Oppure copia e incolla questo link nel tuo browser:",
+      "expiryNotice": "Questo link scadrà tra 1 ora.",
+      "supportLine": "Hai bisogno di aiuto? Contattaci a {{supportEmail}}"
+    }
   }
 }

@@ -60,7 +60,7 @@ import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { LoggerContext } from '../../utils/logger-context';
-import type { EmailMessage, IEmailService } from '../email';
+import { EmailTemplateService, type EmailMessage, type IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 import type { PasswordResetEmailContext } from './IAuthService';
@@ -84,6 +84,9 @@ interface IdentityToolkitErrorResponse {
 }
 
 export class FirebaseAuthService implements IAuthService {
+    private readonly identityToolkitConfig: IdentityToolkitConfig;
+    private readonly emailTemplateService: EmailTemplateService;
+
     constructor(
         private readonly auth: Auth,
         identityToolkit: IdentityToolkitConfig,
@@ -95,9 +98,8 @@ export class FirebaseAuthService implements IAuthService {
             apiKey: identityToolkit.apiKey,
             baseUrl: identityToolkit.baseUrl.replace(/\/$/, ''),
         };
+        this.emailTemplateService = new EmailTemplateService();
     }
-
-    private readonly identityToolkitConfig: IdentityToolkitConfig;
 
     /**
      * Create operation context for logging
@@ -510,30 +512,28 @@ export class FirebaseAuthService implements IAuthService {
                 const oobCode = this.extractOobCode(firebaseLink);
                 const resetLink = this.buildTenantResetLink(resetContext.baseUrl, oobCode);
 
-                const subject = `${resetContext.appName}: Reset your password`;
-                const textBody = [
-                    `Reset your password for ${resetContext.appName}.`,
-                    '',
-                    `Reset link: ${resetLink}`,
-                    '',
-                    `If you didn't request this, you can ignore this email.`,
-                    '',
-                    `Need help? ${resetContext.supportEmail}`,
-                ].join('\n');
+                // Extract domain from baseUrl for the template
+                const domain = this.extractDomain(resetContext.baseUrl);
 
-                const htmlBody = [
-                    `<p>Reset your password for <strong>${escapeHtml(resetContext.appName)}</strong>.</p>`,
-                    `<p><a href="${escapeAttribute(resetLink)}">Click here to reset your password</a></p>`,
-                    `<p>If you didn't request this, you can ignore this email.</p>`,
-                    `<p>Need help? <a href="mailto:${escapeAttribute(resetContext.supportEmail)}">${escapeHtml(resetContext.supportEmail)}</a></p>`,
-                ].join('');
+                const emailContent = this.emailTemplateService.generatePasswordResetEmail({
+                    appName: resetContext.appName,
+                    domain,
+                    resetLink,
+                    supportEmail: resetContext.supportEmail,
+                });
+
+                const messageStream = process.env['__POSTMARK_MESSAGE_STREAM'];
+                if (!messageStream) {
+                    throw Errors.serviceError(ErrorDetail.EMAIL_SERVICE_ERROR);
+                }
 
                 const message: EmailMessage = {
                     to: email,
                     from: resetContext.supportEmail,
-                    subject,
-                    textBody,
-                    htmlBody,
+                    subject: emailContent.subject,
+                    textBody: emailContent.textBody,
+                    htmlBody: emailContent.htmlBody,
+                    messageStream,
                 };
 
                 await this.emailService.sendEmail(message);
@@ -560,17 +560,14 @@ export class FirebaseAuthService implements IAuthService {
         const params = new URLSearchParams({ mode: 'resetPassword', oobCode });
         return `${normalized}/__/auth/action?${params.toString()}`;
     }
-}
 
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function escapeAttribute(value: string): string {
-    return escapeHtml(value);
+    private extractDomain(baseUrl: string): string {
+        try {
+            const url = new URL(baseUrl);
+            return url.hostname;
+        } catch {
+            // Fallback to baseUrl if parsing fails
+            return baseUrl;
+        }
+    }
 }

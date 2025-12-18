@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "Deel uitgaven gemakkelijk met vrienden en familie",
     "joinTitle": "Word lid van een groep op {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Wachtwoord opnieuw instellen",
+      "ignoreNotice": "Negeer deze e-mail als u geen wachtwoordherstel heeft aangevraagd via {{domain}}.",
+      "greeting": "Hallo,",
+      "instruction": "We hebben een verzoek ontvangen om het wachtwoord van uw {{appName}}-account opnieuw in te stellen.",
+      "buttonText": "Wachtwoord opnieuw instellen",
+      "linkLabel": "Of kopieer en plak deze link in uw browser:",
+      "expiryNotice": "Deze link verloopt over 1 uur.",
+      "supportLine": "Hulp nodig? Neem contact met ons op via {{supportEmail}}"
+    }
   }
 }

@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "Dela utgifter enkelt med vänner och familj",
     "joinTitle": "Gå med i en grupp på {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Återställ lösenord",
+      "ignoreNotice": "Ignorera detta e-postmeddelande om du inte begärde en lösenordsåterställning via {{domain}}.",
+      "greeting": "Hej,",
+      "instruction": "Vi har fått en begäran om att återställa lösenordet för ditt {{appName}}-konto.",
+      "buttonText": "Återställ lösenord",
+      "linkLabel": "Eller kopiera och klistra in denna länk i din webbläsare:",
+      "expiryNotice": "Denna länk upphör att gälla om 1 timme.",
+      "supportLine": "Behöver du hjälp? Kontakta oss på {{supportEmail}}"
+    }
   }
 }

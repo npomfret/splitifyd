@@ -38,6 +38,10 @@ const ALL_VARS = [
     '__CACHE_PATH_API_CONFIG',
     '__CACHE_THEME_VERSIONED',
     '__CACHE_THEME_UNVERSIONED',
+
+    // POSTMARK CONFIG
+    '__POSTMARK_SERVERNAME',
+    '__POSTMARK_MESSAGE_STREAM',
 ];
 
 const CACHE_VARS = ALL_VARS.filter(v => v.startsWith('__CACHE_'));

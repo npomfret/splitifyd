@@ -225,4 +225,20 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             });
         });
     });
+
+    describe('Password Reset Email', () => {
+        test('should send password reset email via Postmark sandbox', async () => {
+            // Register a user with email matching sender domain
+            // Postmark sandbox requires recipient domain to match sender domain (sidebadger.me)
+            const testEmail = `test-${Date.now()}@sidebadger.me`;
+            const userData = new UserRegistrationBuilder().withEmail(testEmail).build();
+            await apiDriver.register(userData);
+
+            // Request password reset - this hits the real Postmark API (sandboxed via sidebadger-me-blackhole)
+            // Email is processed by Postmark but not actually delivered
+            await expect(
+                apiDriver.sendPasswordResetEmail({ email: userData.email }),
+            ).resolves.not.toThrow();
+        });
+    });
 });

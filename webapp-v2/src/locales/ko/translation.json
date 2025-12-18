@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "친구 및 가족과 쉽게 비용을 분할하세요",
     "joinTitle": "{{appName}}에서 그룹에 참여하세요"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: 비밀번호 재설정",
+      "ignoreNotice": "{{domain}}에서 비밀번호 재설정을 요청하지 않았다면 이 이메일을 무시하세요.",
+      "greeting": "안녕하세요,",
+      "instruction": "{{appName}} 계정의 비밀번호 재설정 요청을 받았습니다.",
+      "buttonText": "비밀번호 재설정",
+      "linkLabel": "또는 이 링크를 브라우저에 복사하여 붙여넣으세요:",
+      "expiryNotice": "이 링크는 1시간 후에 만료됩니다.",
+      "supportLine": "도움이 필요하신가요? {{supportEmail}}로 문의해 주세요"
+    }
   }
 }

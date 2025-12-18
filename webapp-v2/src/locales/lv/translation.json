@@ -1621,5 +1621,17 @@
   "sharing": {
     "ogDescription": "Viegli sadaliet izdevumus ar draugiem un ģimeni",
     "joinTitle": "Pievienojieties grupai {{appName}}"
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "{{appName}}: Paroles atiestatīšana",
+      "ignoreNotice": "Ignorējiet šo e-pastu, ja neesat pieprasījis paroles atiestatīšanu, izmantojot {{domain}}.",
+      "greeting": "Sveiki,",
+      "instruction": "Mēs saņēmām pieprasījumu atiestatīt jūsu {{appName}} konta paroli.",
+      "buttonText": "Atiestatīt paroli",
+      "linkLabel": "Vai kopējiet un ielīmējiet šo saiti savā pārlūkprogrammā:",
+      "expiryNotice": "Šī saite beigsies pēc 1 stundas.",
+      "supportLine": "Nepieciešama palīdzība? Sazinieties ar mums: {{supportEmail}}"
+    }
   }
 }
