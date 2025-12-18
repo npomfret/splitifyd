@@ -356,6 +356,63 @@ Full list of `getByTestId(...)` in this file (all unscoped unless explicitly wra
 - Decide whether Admin UI is expected to be translated; if yes, add missing translation keys and update affected page objects.
 - Refactor the highest-risk files first: `GroupSettingsModalPage.ts` (XPath), then `GroupDetailPage.ts` (heavy `.first()` usage), then `ExpenseFormPage.ts` (hardcoded placeholders + conditional regex).
 
+---
+
+## Implementation Plan
+
+### Phase 1: Clear-cut violations (explicit rule breaks)
+
+**1.1 XPath removal** (GroupSettingsModalPage.ts:1253)
+- Replace `xpath=ancestor::...` with scope-first pattern using `.locator('section, div').filter({ has: headingLocator })`
+
+**1.2 Conditional regex (`|`) removal**
+Files affected:
+- TenantEditorModalPage.ts:251, 281, 285
+- DashboardPage.ts:192
+- ExpenseFormPage.ts:280, 920
+- SettingsPage.ts:125
+
+For each:
+- Replace `/(A|B)/` with two separate checks, or
+- Use character class `[AP]M` where appropriate (AM/PM case)
+- Split success/error message assertions into separate methods
+
+### Phase 2: Hardcoded strings
+
+For admin pages (explicitly acknowledged as non-translated):
+- Add justification comments explaining admin pages use hardcoded English
+
+For non-admin pages:
+- TenantEditorModalPage.ts:260, 265, 290 - Replace with translation keys
+- ExpenseFormPage.ts:284, 455, 473, 485, 503, 524 - Replace with translation keys
+- ExpenseDetailPage.ts:133, 351 - Replace with translation keys
+- LeaveGroupDialogPage.ts:67 - Replace with translation keys
+
+### Phase 3: `.first()/.nth()/.last()` refactoring
+
+Priority order:
+1. GroupSettingsModalPage.ts (3 occurrences) - Already addressing for XPath
+2. ExpenseFormPage.ts (13 occurrences)
+3. GroupDetailPage.ts (27 occurrences) - Largest file, most impact
+4. Other files (DashboardPage, CreateGroupModalPage, AdminTenantsPage, SettingsPage, SettlementFormPage)
+
+For each: scope to container by heading/landmark first, then select within.
+
+### Phase 4: Unscoped selectors needing justification
+
+For selectors that cannot be practically scoped:
+- Add short inline comments explaining why the locator is stable/unique
+- Examples: unique landmarks (header/footer), single-instance dialogs, accessibility links
+
+### Progress Tracking
+
+- [ ] Phase 1.1: XPath removal
+- [ ] Phase 1.2: Conditional regex removal
+- [ ] Phase 2: Hardcoded strings
+- [ ] Phase 3: `.first()/.nth()/.last()` refactoring
+- [ ] Phase 4: Unscoped selector justifications
+- [ ] Run affected test files to verify no breakage
+
 ## Appendix: raw page-level selector inventory
 
 This is a mechanically extracted inventory of **all direct `this.page.*` / `this._page.*` selector calls** in `packages/test-support/src/page-objects/`.
