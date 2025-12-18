@@ -11,6 +11,7 @@ import { disableETags } from './middleware/cache-control';
 import { createRouteDefinitions } from './routes/route-config';
 import { logMetrics } from './scheduled/metrics-logger';
 import { applyStandardMiddleware } from './utils/middleware';
+import { POSTMARK_API_KEYS_JSON } from './params';
 
 let app: express.Application | null = null;
 
@@ -151,6 +152,7 @@ export const api = onRequest(
         timeoutSeconds: 15,
         region: 'us-central1',
         memory: '512MiB',
+        secrets: [POSTMARK_API_KEYS_JSON],
     },
     (req, res) => {
         const app = getApp();

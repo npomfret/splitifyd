@@ -8,6 +8,7 @@
 import { StubCloudTasksClient, StubFirestoreDatabase, StubStorage } from 'ts-firebase-simulator';
 import { describe, expect, test } from 'vitest';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
+import { FakeEmailService } from '../../services/email';
 import { FirestoreReader } from '../../services/firestore';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
@@ -19,6 +20,7 @@ describe('FirestoreReader', () => {
 
     const applicationBuilder = new ComponentBuilder(
         authService,
+        new FakeEmailService(),
         db,
         storage,
         new StubCloudTasksClient(),

@@ -4,6 +4,7 @@ import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { FakeEmailService } from '../../../services/email';
 import { UserHandlers } from '../../../user/UserHandlers';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
@@ -230,6 +231,7 @@ describe('UserHandlers - Integration Tests', () => {
             const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
+                new FakeEmailService(),
                 db,
                 storage,
                 new StubCloudTasksClient(),

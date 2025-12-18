@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../../../constants';
 import { ErrorCode } from '../../../errors';
 import { ApiError } from '../../../errors';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { FakeEmailService } from '../../../services/email';
 import type { IFirestoreReader, IFirestoreWriter } from '../../../services/firestore';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -211,6 +212,7 @@ describe('FirestoreWriter.upsertTenant - Default Tenant Enforcement', () => {
 
         const applicationBuilder = new ComponentBuilder(
             new StubAuthService(),
+            new FakeEmailService(),
             db,
             storage,
             new StubCloudTasksClient(),

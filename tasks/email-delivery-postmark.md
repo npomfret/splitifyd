@@ -41,15 +41,16 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 - **Secrets store:** Google Secret Manager (GCP).
 - **Secret strategy:** one single JSON secret map (recommended by Firebase Functions for Secrets, keeps names static).
   - Secret name (proposed): `POSTMARK_API_KEYS_JSON`
-  - Value: JSON object mapping our logical `postmark-servername` ➜ Postmark server token.
+  - Value: JSON object mapping our logical `__POSTMARK_SERVERNAME` ➜ Postmark server token.
     - Example: `{ "sidebadger-me-blackhole": "POSTMARK_SERVER_TOKEN", "prod": "POSTMARK_SERVER_TOKEN" }`
-- **Env convention:** each Firebase instance `.env.instance*` provides `postmark-servername=<postmarkServerName>` (the app uses this logical key to select from the JSON secret map).
+- **Env convention:** each Firebase instance `.env.instance*` provides `__POSTMARK_SERVERNAME=<postmarkServerName>` (the app uses this logical key to select from the JSON secret map).
 - **Current configured Postmark servername:** `sidebadger-me-blackhole` (sandbox/blackhole server; no real deliveries).
+- **Password reset UX:** App-hosted reset page using Firebase's standard action handler path (`/__/auth/action`) on our tenant domain.
 
 ## Secrets Management (Firebase Best Practice)
 
 - Prefer Firebase Functions Secrets integration (`defineSecret()` + function `secrets: [...]`) rather than calling Secret Manager at runtime.
-- Because `defineSecret()` requires static secret names known at deploy time, use `POSTMARK_API_KEYS_JSON` (a JSON map) and select the token via `postmark-servername` at runtime.
+- Because `defineSecret()` requires static secret names known at deploy time, use `POSTMARK_API_KEYS_JSON` (a JSON map) and select the token via `__POSTMARK_SERVERNAME` at runtime.
 - Emulator: override secrets via `.secret.local` when needed (otherwise the emulator may try to access deployed secrets).
 
 ## Plan (Incremental)
@@ -57,22 +58,28 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 ### Phase 1: Secrets + Instance Config (small)
 
 - [x] Choose single JSON secret map (`POSTMARK_API_KEYS_JSON`)
-- [x] Define env convention: `.env.instance*` contains `postmark-servername=<postmarkServerName>`
+- [x] Define env convention: `.env.instance*` contains `__POSTMARK_SERVERNAME=<postmarkServerName>`
 - [ ] Create/set Secret Manager secret `POSTMARK_API_KEYS_JSON` (via Firebase CLI `firebase functions:secrets:set POSTMARK_API_KEYS_JSON --format=json`).
 - [ ] Decide how instance selection affects secrets: demo/prod/staging mapping and whether each uses distinct projects or distinct secret values
 
 ### Phase 2: Backend Email Abstraction (medium)
 
-- [ ] Add `IEmailService` interface in `firebase/functions/src/services/email/IEmailService.ts`
-- [ ] Add `FakeEmailService` for unit tests
-- [ ] Add `PostmarkEmailService` (REST API) reading token from `POSTMARK_API_KEYS_JSON`
-- [ ] Wire `IEmailService` in `firebase/functions/src/services/ComponentBuilder.ts` (Fake in unit tests, Postmark otherwise)
+- [x] Add `IEmailService` interface in `firebase/functions/src/services/email/IEmailService.ts`
+- [x] Add `FakeEmailService` for unit tests
+- [x] Add `PostmarkEmailService` (REST API) reading token from `POSTMARK_API_KEYS_JSON`
+- [x] Wire `IEmailService` in `firebase/functions/src/services/ComponentBuilder.ts` (Fake in unit tests, Postmark otherwise)
 
 ### Phase 3: Sending + Observability (medium)
 
-- [ ] Integrate `IEmailService` into the first real email use-case (pick one: group invites or auth email flows)
+- [x] Integrate `IEmailService` into the first real email use-case (pick one: group invites or auth email flows)
 - [ ] Add targeted unit test(s) asserting expected email “send” via `FakeEmailService`
 - [ ] Add delivery event tracking hooks (webhook ingestion) and persistence strategy (TBD)
+
+### Password Reset Implementation Notes
+
+- Reset link in email targets the tenant domain using Firebase's standard action handler path:
+  - `https://<tenant-domain>/__/auth/action?mode=resetPassword&oobCode=<code>`
+- Webapp implements the confirm flow at `/__/auth/action` using Firebase client SDK (`verifyPasswordResetCode` + `confirmPasswordReset`)
 
 ## Implementation Plan (REST API Focused)
 
@@ -99,7 +106,7 @@ The primary integration method will be the Postmark REST API, focusing on a robu
     *   Define a single secret via `defineSecret('POSTMARK_API_KEYS_JSON')`.
     *   Bind the secret to the functions that need it using `secrets: [POSTMARK_API_KEYS_JSON]`.
     *   Access via `POSTMARK_API_KEYS_JSON.value()` (auto-parses JSON when `--format=json` is used when setting the secret).
-    *   Select the correct token by `postmark-servername` from instance config.
+    *   Select the correct token by `__POSTMARK_SERVERNAME` from instance config.
     *   **Caching:** keep the parsed JSON and the selected token in memory for the life of the function instance, and implement “single-flight” initialization to avoid concurrent parsing/selection while one is in-flight.
     *   **Local emulation:** override via `.secret.local` when needed; otherwise emulator may try to access deployed secrets.
 
@@ -124,8 +131,9 @@ The primary integration method will be the Postmark REST API, focusing on a robu
 
 *   **[In-Progress] Configure Environment & Secrets:**
     *   **DONE:** We have a sandbox/blackhole Postmark server token available (servername: `sidebadger-me-blackhole`).
-    *   **TODO:** Create/set `POSTMARK_API_KEYS_JSON` in Secret Manager containing `"sidebadger-me-blackhole": "<token>"`.
-    *   **TODO:** Add instance config entry to `firebase/functions/.env.instance*`: `postmark-servername=sidebadger-me-blackhole` (and later per-instance values like demo/prod).
+    *   **DONE:** Add instance config entry to `firebase/functions/.env.instance*`: `__POSTMARK_SERVERNAME=sidebadger-me-blackhole`.
+    *   **DONE:** Add `.secret.local` for local emulator development with pre-flight check on startup.
+    *   **TODO:** Create/set `POSTMARK_API_KEYS_JSON` in Secret Manager for staging/production deployment.
 
 ## Alternative Integration: SMTP
 

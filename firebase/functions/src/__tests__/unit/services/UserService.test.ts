@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { ApiError, ErrorCode } from '../../../errors';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { FakeEmailService } from '../../../services/email';
 import { UserService } from '../../../services/UserService2';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
@@ -26,6 +27,7 @@ describe('UserService - Consolidated Unit Tests', () => {
         const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
         userService = new ComponentBuilder(
             stubAuth,
+            new FakeEmailService(),
             db,
             storage,
             new StubCloudTasksClient(),
@@ -95,6 +97,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 const testStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
                 const testUserService = new ComponentBuilder(
                     stubAuth,
+                    new FakeEmailService(),
                     db,
                     testStorage,
                     new StubCloudTasksClient(),
@@ -445,6 +448,7 @@ describe('UserService - Consolidated Unit Tests', () => {
             const validationStorage = new StubStorage({ defaultBucketName: 'test-bucket' });
             validationUserService = new ComponentBuilder(
                 stubAuth,
+                new FakeEmailService(),
                 db,
                 validationStorage,
                 new StubCloudTasksClient(),

@@ -91,6 +91,7 @@ CORS: Allows credentialed requests from any origin (Firebase Hosting handles dom
 - Never commit secrets to git (`.env` files, API keys, service account keys)
 - Service account key location: `firebase/service-account-key.json` (gitignored)
 - Environment configs: `firebase/functions/.env.instance*` (gitignored)
+- Firebase Functions secrets live in Google Secret Manager (e.g. `POSTMARK_API_KEYS_JSON`) and are injected at runtime via `defineSecret(...)` + function `secrets: [...]`; code should cache secret-derived values in memory per warm instance to avoid repeated Secret Manager reads.
 
 ---
 

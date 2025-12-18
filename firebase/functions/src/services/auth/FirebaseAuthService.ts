@@ -60,8 +60,10 @@ import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { LoggerContext } from '../../utils/logger-context';
+import type { EmailMessage, IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
+import type { PasswordResetEmailContext } from './IAuthService';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -85,6 +87,7 @@ export class FirebaseAuthService implements IAuthService {
     constructor(
         private readonly auth: Auth,
         identityToolkit: IdentityToolkitConfig,
+        private readonly emailService: IEmailService,
         private readonly enableValidation: boolean = true, // todo: wtf is this?
         private readonly enableMetrics: boolean = true,
     ) {
@@ -477,79 +480,97 @@ export class FirebaseAuthService implements IAuthService {
         );
     }
 
-    async sendPasswordResetEmail(email: Email): Promise<void> {
+    async sendPasswordResetEmail(email: Email, resetContext: PasswordResetEmailContext): Promise<void> {
         const context = this.createContext('sendPasswordResetEmail', email);
 
         LoggerContext.update({
             operation: 'sendPasswordResetEmail',
             email,
+            baseUrl: resetContext.baseUrl,
         });
 
         return this.executeWithMetrics(
             'FirebaseAuthService.sendPasswordResetEmail',
             async () => {
-                const config = this.resolveIdentityToolkitConfig();
-                const requestUrl = `${config.baseUrl}${SEND_OOB_CODE_ENDPOINT}?key=${config.apiKey}`;
-
-                const payload = {
-                    email,
-                    requestType: 'PASSWORD_RESET',
-                };
-
-                let response: Response;
-
-                try {
-                    response = await fetch(requestUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(payload),
-                    });
-                } catch (error) {
-                    const errorMessage = error instanceof Error ? error.message : String(error);
-                    logger.error('Password reset email request failed', { ...context, errorMessage });
-                    throw Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
-                }
-
-                if (response.ok) {
-                    logger.info('Password reset email sent successfully', { ...context });
-                    return;
-                }
-
-                let errorBody: IdentityToolkitErrorResponse | undefined;
-
-                try {
-                    errorBody = await response.json();
-                } catch {
-                    // Ignore JSON parsing failures; we'll fall back to status code
-                }
-
-                const rawMessage = errorBody?.error?.message ?? `HTTP_${response.status}`;
-                const message = rawMessage.toUpperCase();
-
-                // Silently succeed for non-existent emails (prevent email enumeration)
-                if (message === 'EMAIL_NOT_FOUND') {
+                const user = await this.getUserByEmail(email);
+                if (!user) {
                     logger.info('Password reset email silently succeeded for non-existent email', { ...context });
                     return;
                 }
 
-                if (message === 'TOO_MANY_ATTEMPTS_TRY_LATER') {
-                    logger.warn('Password reset email rate limited', { ...context });
-                    throw Errors.rateLimited();
+                let firebaseLink: string;
+                try {
+                    firebaseLink = await this.auth.generatePasswordResetLink(email);
+                } catch (error) {
+                    const mappedError = this.mapFirebaseError(error, context);
+                    logger.error('Password reset link generation failed', mappedError, { ...context });
+                    throw mappedError;
                 }
 
-                logger.error('Password reset email failed with unexpected error', {
-                    ...context,
-                    status: response.status,
-                    message: rawMessage,
-                });
+                const oobCode = this.extractOobCode(firebaseLink);
+                const resetLink = this.buildTenantResetLink(resetContext.baseUrl, oobCode);
 
-                throw response.status >= 500
-                    ? Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR)
-                    : Errors.unavailable(ErrorDetail.AUTH_SERVICE_ERROR);
+                const subject = `${resetContext.appName}: Reset your password`;
+                const textBody = [
+                    `Reset your password for ${resetContext.appName}.`,
+                    '',
+                    `Reset link: ${resetLink}`,
+                    '',
+                    `If you didn't request this, you can ignore this email.`,
+                    '',
+                    `Need help? ${resetContext.supportEmail}`,
+                ].join('\n');
+
+                const htmlBody = [
+                    `<p>Reset your password for <strong>${escapeHtml(resetContext.appName)}</strong>.</p>`,
+                    `<p><a href="${escapeAttribute(resetLink)}">Click here to reset your password</a></p>`,
+                    `<p>If you didn't request this, you can ignore this email.</p>`,
+                    `<p>Need help? <a href="mailto:${escapeAttribute(resetContext.supportEmail)}">${escapeHtml(resetContext.supportEmail)}</a></p>`,
+                ].join('');
+
+                const message: EmailMessage = {
+                    to: email,
+                    from: resetContext.supportEmail,
+                    subject,
+                    textBody,
+                    htmlBody,
+                };
+
+                await this.emailService.sendEmail(message);
             },
             context,
         );
     }
+
+    private extractOobCode(firebaseLink: string): string {
+        try {
+            const parsed = new URL(firebaseLink);
+            const oobCode = parsed.searchParams.get('oobCode');
+            if (!oobCode) {
+                throw new Error('oobCode missing');
+            }
+            return oobCode;
+        } catch {
+            throw Errors.serviceError(ErrorDetail.AUTH_SERVICE_ERROR);
+        }
+    }
+
+    private buildTenantResetLink(baseUrl: string, oobCode: string): string {
+        const normalized = baseUrl.replace(/\/$/, '');
+        const params = new URLSearchParams({ mode: 'resetPassword', oobCode });
+        return `${normalized}/__/auth/action?${params.toString()}`;
+    }
+}
+
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttribute(value: string): string {
+    return escapeHtml(value);
 }

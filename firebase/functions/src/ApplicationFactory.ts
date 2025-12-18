@@ -86,7 +86,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
     const policyTextHandlers = new PolicyTextHandlers(policyService, tenantRegistryService);
-    const authHandlers = new AuthHandlers(authService);
+    const authHandlers = new AuthHandlers(authService, tenantRegistryService);
     const urlRedirectHandlers = new UrlRedirectHandlers();
     const sharingHandlers = componentBuilder.buildSharingHandlers();
 

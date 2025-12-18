@@ -206,6 +206,11 @@ export class TenantPayloadBuilder {
         return this;
     }
 
+    withSupportEmail(email: string): this {
+        this.payload.brandingTokens!.tokens.legal.supportEmail = email;
+        return this;
+    }
+
     withLogoUrl(logoUrl: string): this {
         this.payload.brandingTokens!.tokens.assets.logoUrl = logoUrl;
         return this;

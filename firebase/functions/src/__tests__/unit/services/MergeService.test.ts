@@ -6,6 +6,7 @@ import { FirestoreCollections } from '../../../constants';
 import { ErrorCode } from '../../../errors';
 import type { MergeService } from '../../../merge/MergeService';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { FakeEmailService } from '../../../services/email';
 import { StubAuthService } from '../mocks/StubAuthService';
 
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
@@ -42,6 +43,7 @@ describe('MergeService', () => {
         const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
         const componentBuilder = new ComponentBuilder(
             stubAuth,
+            new FakeEmailService(),
             db,
             storage,
             stubCloudTasks, // Pass stub directly to constructor

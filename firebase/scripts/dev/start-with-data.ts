@@ -4,11 +4,40 @@ import { PooledTestUser, toDisplayName, toEmail } from '@billsplit-wl/shared';
 import { ApiDriver, DEFAULT_ADMIN_EMAIL, DEFAULT_PASSWORD } from '@billsplit-wl/test-support';
 import { ChildProcess } from 'child_process';
 import assert from 'node:assert';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { logger } from '../lib/logger';
 import { loadRuntimeConfig } from '../lib/scripts-config';
 import { seedPolicies } from '../seed-policies';
 import { startEmulator } from './start-emulator';
 import { publishDemoThemes, syncDemoTenants } from './test-data-generator';
+
+/**
+ * Check that required secret files exist for local emulator development.
+ * Firebase Functions with `secrets: [...]` config require these secrets to be available.
+ */
+function checkRequiredSecrets(): void {
+    const functionsDir = path.join(process.cwd(), 'functions');
+    const secretLocalPath = path.join(functionsDir, '.secret.local');
+
+    if (!fs.existsSync(secretLocalPath)) {
+        logger.error('');
+        logger.error('════════════════════════════════════════════════════════════════════');
+        logger.error('❌ MISSING REQUIRED FILE: functions/.secret.local');
+        logger.error('════════════════════════════════════════════════════════════════════');
+        logger.error('');
+        logger.error('The Firebase emulator requires secrets to be defined locally.');
+        logger.error('');
+        logger.error('Create the file with:');
+        logger.error('');
+        logger.error('  echo \'POSTMARK_API_KEYS_JSON={"sidebadger-me-blackhole":"test-token"}\' > functions/.secret.local');
+        logger.error('');
+        logger.error('This file is gitignored and safe to create with test values.');
+        logger.error('════════════════════════════════════════════════════════════════════');
+        logger.error('');
+        process.exit(1);
+    }
+}
 
 /**
  * Ensure the default admin user exists.
@@ -122,6 +151,9 @@ async function runPublishDemoThemesStep(): Promise<void> {
 // Load and validate runtime configuration
 const runtimeConfig = loadRuntimeConfig();
 assert(runtimeConfig.__INSTANCE_NAME.startsWith('dev'), `__INSTANCE_NAME=${runtimeConfig.__INSTANCE_NAME} is not allowed when starting emulators`);
+
+// Check required secrets before starting emulator
+checkRequiredSecrets();
 
 let emulatorProcess: ChildProcess | null = null;
 

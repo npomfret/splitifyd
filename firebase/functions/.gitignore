@@ -19,6 +19,9 @@ firebase-debug.*.log
 # Allow example files to be checked in
 !.env.*.example
 
+# Firebase Functions secrets for local emulator
+.secret.local
+
 # IDE files
 .idea/
 .vscode/

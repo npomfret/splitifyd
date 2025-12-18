@@ -100,7 +100,7 @@ import {
     UserRegistration,
     VersionHash,
 } from '@billsplit-wl/shared';
-import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubStorage, UserRegistrationBuilder } from '@billsplit-wl/test-support';
+import { CreateGroupRequestBuilder, createStubRequest, createStubResponse, StubRequestOptions, StubStorage, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Timestamp } from 'firebase-admin/firestore';
 import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
@@ -108,10 +108,12 @@ import { expect } from 'vitest';
 import { ApiError, Errors } from '../../errors';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
+import { FakeEmailService } from '../../services/email';
 import { FirestoreReader } from '../../services/firestore';
 import { RegisterUserResult } from '../../services/UserService2';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../test-config';
 import { StubAuthService } from './mocks/StubAuthService';
+import { TenantPayloadBuilder } from './TenantPayloadBuilder';
 
 /**
  * Options for listing expenses in a group
@@ -148,6 +150,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const groupAttachmentStorage = new StubGroupAttachmentStorage(this.storage);
         this._componentBuilder = new ComponentBuilder(
             this.authService,
+            new FakeEmailService(),
             this.db,
             this.storage,
             this.cloudTasksClient,
@@ -157,6 +160,27 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
         // Create populated route definitions using the component builder
         this.routeDefinitions = createRouteDefinitions(this._componentBuilder);
+    }
+
+    /**
+     * Seeds a localhost tenant with branding config for tests that need tenant resolution.
+     * Call this explicitly in tests that require a tenant (e.g., password reset tests).
+     */
+    seedLocalhostTenant(): void {
+        const now = Timestamp.now();
+
+        const localhostTenant = new TenantPayloadBuilder('localhost-tenant')
+            .withDomains(['localhost'])
+            .withAppName('Localhost')
+            .withSupportEmail('support@localhost.test')
+            .withDefaultTenantFlag(true)
+            .build();
+
+        this.db.seed('tenants/localhost-tenant', {
+            ...localhostTenant,
+            createdAt: now,
+            updatedAt: now,
+        });
     }
 
     get componentBuilder() {
@@ -1141,7 +1165,13 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
-        const req = createStubRequest('', request);
+        const req = createStubRequest('', request, {}, {});
+        const res = await this.dispatchByHandler('sendPasswordResetEmail', req);
+        this.throwIfError(res);
+    }
+
+    async sendPasswordResetEmailWithOptions(request: PasswordResetRequest, options: Partial<StubRequestOptions>): Promise<void> {
+        const req = createStubRequest('', request, {}, options);
         const res = await this.dispatchByHandler('sendPasswordResetEmail', req);
         this.throwIfError(res);
     }

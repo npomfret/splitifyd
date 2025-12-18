@@ -5,6 +5,7 @@
 
 import { toEmail, toPassword } from '@billsplit-wl/shared';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { ErrorDetail } from '../../../errors';
 import { AppDriver } from '../AppDriver';
 
 describe('auth endpoints', () => {
@@ -92,6 +93,11 @@ describe('auth endpoints', () => {
     });
 
     describe('POST /password-reset', () => {
+        beforeEach(() => {
+            // Password reset requires a tenant with domain match for localhost
+            appDriver.seedLocalhostTenant();
+        });
+
         it('should return 204 for valid email (existing user)', async () => {
             // Create a test user with known email
             await appDriver.createTestUsers({
@@ -124,6 +130,27 @@ describe('auth endpoints', () => {
             )
                 .rejects
                 .toThrow();
+        });
+
+        it('should reject host header mismatches', async () => {
+            await expect(
+                appDriver.sendPasswordResetEmailWithOptions(
+                    { email: toEmail('user1@example.com') },
+                    {
+                        headers: {
+                            host: 'tenant-a.example.com',
+                            'x-forwarded-host': 'tenant-b.example.com',
+                        },
+                        hostname: 'tenant-a.example.com',
+                    },
+                ),
+            )
+                .rejects
+                .toMatchObject({
+                    statusCode: 400,
+                    code: 'INVALID_REQUEST',
+                    data: { detail: ErrorDetail.HOST_MISMATCH },
+                });
         });
     });
 });

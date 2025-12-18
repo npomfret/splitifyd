@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
 import { PolicyHandlers } from '../../../policies/PolicyHandlers';
 import { ComponentBuilder } from '../../../services/ComponentBuilder';
+import { FakeEmailService } from '../../../services/email';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
@@ -412,6 +413,7 @@ describe('PolicyHandlers - Unit Tests', () => {
             const storage = new StubStorage({ defaultBucketName: 'test-bucket' });
             const componentBuilder = new ComponentBuilder(
                 authService,
+                new FakeEmailService(),
                 db,
                 storage,
                 new StubCloudTasksClient(),

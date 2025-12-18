@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SIGN_IN_WITH_PASSWORD_ENDPOINT, toEmail } from '@billsplit-wl/shared';
 import { ApiError } from '../../../errors';
 import { FirebaseAuthService } from '../../../services/auth';
+import { FakeEmailService } from '../../../services/email';
 
 const noopAuth = {} as unknown as Auth;
 
@@ -19,7 +20,7 @@ function createService(overrides: Partial<IdentityToolkitConfig> = {}) {
         ...overrides,
     };
 
-    return new FirebaseAuthService(noopAuth, identityToolkit, true, false);
+    return new FirebaseAuthService(noopAuth, identityToolkit, new FakeEmailService(), true, false);
 }
 
 describe('FirebaseAuthService.verifyPassword', () => {
@@ -144,7 +145,13 @@ describe('FirebaseAuthService.verifyPassword', () => {
         const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
             throw new Error('fetch should not be called when API key is missing');
         });
-        const service = new FirebaseAuthService(noopAuth, { baseUrl: 'https://identitytoolkit.googleapis.com', apiKey: '' }, true, false);
+        const service = new FirebaseAuthService(
+            noopAuth,
+            { baseUrl: 'https://identitytoolkit.googleapis.com', apiKey: '' },
+            new FakeEmailService(),
+            true,
+            false,
+        );
 
         const error = await service.verifyPassword(toEmail('user@example.com'), 'Secret123!').catch((err) => err);
 

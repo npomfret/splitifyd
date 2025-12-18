@@ -16,6 +16,22 @@
 import type { Email, UserId } from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 
+export interface PasswordResetEmailContext {
+    /**
+     * Public base URL for the tenant domain (scheme + host, optional port).
+     * Example: https://demo.sidebadger.me or http://localhost:5002
+     */
+    baseUrl: string;
+    /**
+     * Tenant app name for email copy.
+     */
+    appName: string;
+    /**
+     * Support email for the tenant (also used as sender for now).
+     */
+    supportEmail: Email;
+}
+
 export interface IAuthService {
     // ========================================================================
     // User Management Operations
@@ -99,8 +115,9 @@ export interface IAuthService {
     /**
      * Send a password reset email to a user
      * @param email - User email address
+     * @param context - Tenant-aware email context (domain, app name, support email)
      * @returns Promise that resolves when email is sent (or silently succeeds for non-existent emails)
      * @throws ApiError if operation fails (excluding non-existent emails)
      */
-    sendPasswordResetEmail(email: Email): Promise<void>;
+    sendPasswordResetEmail(email: Email, context: PasswordResetEmailContext): Promise<void>;
 }

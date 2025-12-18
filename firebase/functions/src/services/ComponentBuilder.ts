@@ -13,7 +13,8 @@ import { ServiceConfig } from '../merge/ServiceConfig';
 import { SharingHandlers } from '../sharing/SharingHandlers';
 import { createStorage, type IStorage } from '../storage-wrapper';
 import { ActivityFeedService } from './ActivityFeedService';
-import { FirebaseAuthService, IAuthService, type IdentityToolkitConfig } from './auth';
+import { FirebaseAuthService, type IAuthService, type IdentityToolkitConfig } from './auth';
+import { FakeEmailService, PostmarkEmailService, PostmarkTokenProvider, type IEmailService } from './email';
 import { IncrementalBalanceService } from './balance/IncrementalBalanceService';
 import { CommentService } from './CommentService';
 import { ExpenseService } from './ExpenseService';
@@ -70,6 +71,7 @@ export class ComponentBuilder {
 
     constructor(
         private readonly authService: IAuthService,
+        private readonly emailService: IEmailService,
         readonly db: IFirestoreDatabase,
         private readonly storage: IStorage,
         private readonly cloudTasksClient: ICloudTasksClient,
@@ -91,9 +93,14 @@ export class ComponentBuilder {
         const wrappedDb = createFirestoreDatabase(firestore);
         const wrappedStorage = createStorage(storage);
 
+        const emailService: IEmailService = process.env.NODE_ENV === 'test'
+            ? new FakeEmailService()
+            : new PostmarkEmailService(new PostmarkTokenProvider());
+
         const firebaseAuthService = new FirebaseAuthService(
             auth,
             identityToolkit,
+            emailService,
             true, // enableValidation
             true, // enableMetrics
         );
@@ -106,6 +113,7 @@ export class ComponentBuilder {
 
         return new ComponentBuilder(
             firebaseAuthService,
+            emailService,
             wrappedDb,
             wrappedStorage,
             cloudTasksClient,
