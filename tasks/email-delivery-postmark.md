@@ -39,32 +39,33 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 ## Decisions (Secrets + Config)
 
 - **Secrets store:** Google Secret Manager (GCP).
-- **Secret ID convention:** `postmark_api_key_<postmarkServerNameNormalized>` (each key corresponds to a Postmark "Server").
-  - Normalization: project enforces Secret IDs matching `[a-zA-Z_0-9]+`, so non-matching characters in `<postmarkServerName>` are replaced with `_`.
-- **Env convention:** each Firebase instance `.env.instance*` provides `postmark-servername=<postmarkServerName>` (the app uses this logical name to locate the secret).
-- **Current configured Postmark server:** `blackhole` only (all emails should route to Postmark "blackhole" behavior).
-- **Open decision (Firebase secrets best practice):** Firebase `defineSecret()` prefers static secret names known at deploy time. If we need dynamic `postmark-servername` selection (demo/prod/multi-tenant), we likely want a single JSON secret map (e.g. `POSTMARK_API_KEYS_JSON`) rather than one secret per server.
+- **Secret strategy:** one single JSON secret map (recommended by Firebase Functions for Secrets, keeps names static).
+  - Secret name (proposed): `POSTMARK_API_KEYS_JSON`
+  - Value: JSON object mapping our logical `postmark-servername` ➜ Postmark server token.
+    - Example: `{ "sidebadger-me-blackhole": "POSTMARK_SERVER_TOKEN", "prod": "POSTMARK_SERVER_TOKEN" }`
+- **Env convention:** each Firebase instance `.env.instance*` provides `postmark-servername=<postmarkServerName>` (the app uses this logical key to select from the JSON secret map).
+- **Current configured Postmark servername:** `sidebadger-me-blackhole` (sandbox/blackhole server; no real deliveries).
 
-## Script: Add API key secret
+## Secrets Management (Firebase Best Practice)
 
-- Add/update a Postmark server token in Secret Manager:
-  - `firebase/scripts/firebase/add-postmark-api-key-secret.ts`
-  - Uses `firebase/service-account-key.json` to resolve `project_id` by default.
+- Prefer Firebase Functions Secrets integration (`defineSecret()` + function `secrets: [...]`) rather than calling Secret Manager at runtime.
+- Because `defineSecret()` requires static secret names known at deploy time, use `POSTMARK_API_KEYS_JSON` (a JSON map) and select the token via `postmark-servername` at runtime.
+- Emulator: override secrets via `.secret.local` when needed (otherwise the emulator may try to access deployed secrets).
 
 ## Plan (Incremental)
 
 ### Phase 1: Secrets + Instance Config (small)
 
-- [x] Define secret ID convention: `postmark_api_key_<postmarkServerNameNormalized>`
+- [x] Choose single JSON secret map (`POSTMARK_API_KEYS_JSON`)
 - [x] Define env convention: `.env.instance*` contains `postmark-servername=<postmarkServerName>`
-- [x] Add script to upsert secret + add new version: `firebase/scripts/firebase/add-postmark-api-key-secret.ts`
-- [ ] Decide how instance selection affects secrets: demo/prod/staging mapping and whether each uses distinct projects or distinct secret names
+- [ ] Create/set Secret Manager secret `POSTMARK_API_KEYS_JSON` (via Firebase CLI `firebase functions:secrets:set POSTMARK_API_KEYS_JSON --format=json`).
+- [ ] Decide how instance selection affects secrets: demo/prod/staging mapping and whether each uses distinct projects or distinct secret values
 
 ### Phase 2: Backend Email Abstraction (medium)
 
 - [ ] Add `IEmailService` interface in `firebase/functions/src/services/email/IEmailService.ts`
 - [ ] Add `FakeEmailService` for unit tests
-- [ ] Add `PostmarkEmailService` (REST API) reading token from Secret Manager
+- [ ] Add `PostmarkEmailService` (REST API) reading token from `POSTMARK_API_KEYS_JSON`
 - [ ] Wire `IEmailService` in `firebase/functions/src/services/ComponentBuilder.ts` (Fake in unit tests, Postmark otherwise)
 
 ### Phase 3: Sending + Observability (medium)
@@ -94,15 +95,13 @@ The primary integration method will be the Postmark REST API, focusing on a robu
     *   Instead of sending real emails, it will store the `Email` objects in an in-memory array, allowing unit tests to assert that emails were "sent" with the correct content.
 
 4.  **Secret Management (Google Secret Manager):**
-    *   The Postmark API token(s) will be stored in Google Secret Manager.
-    *   **Preferred Firebase approach:** use Firebase Functions secrets integration (`defineSecret()` / `secrets: [...]`) instead of calling Secret Manager at runtime.
-        *   This avoids repeated Secret Manager reads per request (and cost) and naturally caches per function instance.
-        *   Note: secrets referenced via `defineSecret()` must be known at deploy time (static secret names).
-    *   **Two viable patterns (pick one):**
-        *   **(A) Single JSON secret (recommended if we need dynamic servername selection):** store a secret like `POSTMARK_API_KEYS_JSON` whose value is a JSON map `{ "<postmark-servername>": "<token>", ... }`. Then `.env.instance*` continues to set `postmark-servername=...`, and the code selects from the parsed map.
-        *   **(B) One secret per server (works if the set is small/static):** define/bind each secret individually via `defineSecret('POSTMARK_API_KEY_SIDEBADGER_ME_BLACKHOLE')` etc and choose between them at runtime.
-    *   **If we do direct Secret Manager reads (fallback only):** implement an in-memory cache for the life of the function instance, and a “single-flight” Promise so concurrent requests don’t trigger multiple reads while one is in-flight.
-    *   **Local emulation:** Firebase Functions supports overriding secret values via a local `.secret.local` file; otherwise the emulator attempts to access deployed secrets.
+    *   Use Firebase Functions secrets integration so the runtime does not manually call Secret Manager.
+    *   Define a single secret via `defineSecret('POSTMARK_API_KEYS_JSON')`.
+    *   Bind the secret to the functions that need it using `secrets: [POSTMARK_API_KEYS_JSON]`.
+    *   Access via `POSTMARK_API_KEYS_JSON.value()` (auto-parses JSON when `--format=json` is used when setting the secret).
+    *   Select the correct token by `postmark-servername` from instance config.
+    *   **Caching:** keep the parsed JSON and the selected token in memory for the life of the function instance, and implement “single-flight” initialization to avoid concurrent parsing/selection while one is in-flight.
+    *   **Local emulation:** override via `.secret.local` when needed; otherwise emulator may try to access deployed secrets.
 
 5.  **Emulator Configuration ("Blackhole" for Integration Tests):**
     *   When running the Firebase emulator for integration testing (where email sending logic needs to be exercised), the `PostmarkEmailService` will be instantiated with the `POSTMARK_API_TEST` token.
@@ -124,9 +123,8 @@ The primary integration method will be the Postmark REST API, focusing on a robu
 **Action Items:**
 
 *   **[In-Progress] Configure Environment & Secrets:**
-    *   **DONE:** A Postmark "blackhole" server token has been stored in Secret Manager as `postmark_api_key_sidebadger_me_blackhole`.
-    *   **TODO:** Decide between secret patterns (single JSON secret vs per-server secrets) so we can integrate with Firebase Functions `defineSecret()` cleanly.
-    *   **TODO:** Add the selected secret(s) via Firebase CLI (`firebase functions:secrets:set ...`) or via the repo script (`firebase/scripts/firebase/add-postmark-api-key-secret.ts`) depending on the chosen management approach.
+    *   **DONE:** We have a sandbox/blackhole Postmark server token available (servername: `sidebadger-me-blackhole`).
+    *   **TODO:** Create/set `POSTMARK_API_KEYS_JSON` in Secret Manager containing `"sidebadger-me-blackhole": "<token>"`.
     *   **TODO:** Add instance config entry to `firebase/functions/.env.instance*`: `postmark-servername=sidebadger-me-blackhole` (and later per-instance values like demo/prod).
 
 ## Alternative Integration: SMTP
