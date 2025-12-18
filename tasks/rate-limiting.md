@@ -45,6 +45,8 @@ This approach is a valuable first step but is vulnerable to a **Sybil attack**. 
 
 To counter more sophisticated attacks, we need to move defenses to the infrastructure level, focusing on the nature of the *request* rather than the *user*.
 
+**Foundational Protection:** Underpinning all of these strategies is the inherent network-level DDoS protection provided by Google's global infrastructure. This shields Firebase services from many common volumetric attacks by default, forming a baseline defense.
+
 ### Bot Detection & "Proof of Humanity"
 Before we can effectively rate-limit traffic, we must have reasonable confidence that the traffic is from a legitimate source. This is where bot detection comes in.
 
@@ -84,6 +86,11 @@ This layered approach allows us to start simply and add more robust protections 
     *   Expose our critical HTTP Firebase Functions (e.g., `createUser`, `addExpense`) via a Google Cloud HTTP Load Balancer.
     *   Place **Google Cloud Armor** in front of the load balancer.
     *   Configure Cloud Armor with rate-limiting rules based on IP address to prevent volumetric attacks and rapid account creation.
+
+## Development Best Practices
+
+### Use the Firebase Emulator Suite
+To prevent accidental self-DDoS attacks on live services during development and testing of rate-limiting logic, it is critical to use the Firebase Local Emulator Suite. This provides a safe, local environment to trigger and observe the behavior of the implemented limits without affecting production resources or incurring costs.
 
 ## Research Findings and Recommendations
 
