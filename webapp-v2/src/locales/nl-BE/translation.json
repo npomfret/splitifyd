@@ -307,9 +307,6 @@
       "warning": "Het vergrendelen van deze groep voorkomt dat iemand uitgaven toevoegt, vereffent of instellingen wijzigt.",
       "unlockToggle": "Groep ontgrendelen",
       "unlockDescription": "Sta leden opnieuw toe om wijzigingen aan te brengen in deze groep.",
-      "lockSuccess": "Groep is vergrendeld.",
-      "unlockSuccess": "Groep is ontgrendeld.",
-      "toggleFailed": "Kon de vergrendelingsstatus van de groep niet bijwerken.",
       "sectionTitle": "Groepsvergrendeling"
     }
   },
@@ -867,6 +864,13 @@
       "general": "Algemeen",
       "security": "Beveiliging en machtigingen"
     },
+    "sections": {
+      "groupDetails": "Groepsdetails",
+      "dangerZone": "Gevarenzone"
+    },
+    "dangerZone": {
+      "description": "Het verwijderen van een groep is permanent en kan niet ongedaan gemaakt worden."
+    },
     "securityTab": {
       "successAriaLabel": "gelukt",
       "unsavedChangesAriaLabel": "niet-opgeslagen wijzigingen"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "Valuta's zoeken...",
       "noCurrenciesSelected": "Selecteer minstens één valuta",
       "defaultNotInPermitted": "Standaardvaluta moet een toegestane valuta zijn",
-      "allCurrenciesSelected": "Alle valuta's geselecteerd",
-      "saveButton": "Valuta-instellingen opslaan",
-      "saveSuccess": "Valuta-instellingen succesvol bijgewerkt.",
-      "saveFailed": "Valuta-instellingen opslaan mislukt. Probeer het opnieuw."
+      "allCurrenciesSelected": "Alle valuta's geselecteerd"
     }
   },
   "groupDisplayNameSettings": {

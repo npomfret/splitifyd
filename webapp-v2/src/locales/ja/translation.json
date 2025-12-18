@@ -307,9 +307,6 @@
       "warning": "このグループをロックすると、経費の追加、精算、設定の変更ができなくなります。",
       "unlockToggle": "グループのロックを解除",
       "unlockDescription": "メンバーがこのグループに再び変更を加えられるようにします。",
-      "lockSuccess": "グループがロックされました。",
-      "unlockSuccess": "グループのロックが解除されました。",
-      "toggleFailed": "グループのロック状態の更新に失敗しました。",
       "sectionTitle": "グループのロック"
     }
   },
@@ -867,6 +864,13 @@
       "general": "一般",
       "security": "セキュリティと権限"
     },
+    "sections": {
+      "groupDetails": "グループ詳細",
+      "dangerZone": "危険ゾーン"
+    },
+    "dangerZone": {
+      "description": "グループの削除は永続的であり、元に戻すことはできません。"
+    },
     "securityTab": {
       "successAriaLabel": "成功",
       "unsavedChangesAriaLabel": "未保存の変更"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "通貨を検索...",
       "noCurrenciesSelected": "少なくとも1つの通貨を選択してください",
       "defaultNotInPermitted": "デフォルトは許可された通貨である必要があります",
-      "allCurrenciesSelected": "すべての通貨が選択されています",
-      "saveButton": "通貨設定を保存",
-      "saveSuccess": "通貨設定が正常に更新されました。",
-      "saveFailed": "通貨設定の保存に失敗しました。もう一度お試しください。"
+      "allCurrenciesSelected": "すべての通貨が選択されています"
     }
   },
   "groupDisplayNameSettings": {

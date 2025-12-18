@@ -307,9 +307,6 @@
       "warning": "Locking this group will prevent anyone from adding expenses, settling up, or changing settings.",
       "unlockToggle": "Unlock Group",
       "unlockDescription": "Allow members to make changes to this group again.",
-      "lockSuccess": "Group has been locked.",
-      "unlockSuccess": "Group has been unlocked.",
-      "toggleFailed": "Failed to update group lock status.",
       "sectionTitle": "Group Locking"
     }
   },
@@ -866,6 +863,13 @@
       "general": "General",
       "security": "Security & Permissions"
     },
+    "sections": {
+      "groupDetails": "Group Details",
+      "dangerZone": "Danger Zone"
+    },
+    "dangerZone": {
+      "description": "Deleting a group is permanent and cannot be undone."
+    },
     "securityTab": {
       "successAriaLabel": "success",
       "unsavedChangesAriaLabel": "unsaved changes"
@@ -883,10 +887,7 @@
       "searchPlaceholder": "Search currencies...",
       "noCurrenciesSelected": "Select at least one currency",
       "defaultNotInPermitted": "Default must be a permitted currency",
-      "allCurrenciesSelected": "All currencies selected",
-      "saveButton": "Save Currency Settings",
-      "saveSuccess": "Currency settings updated successfully.",
-      "saveFailed": "Failed to save currency settings. Please try again."
+      "allCurrenciesSelected": "All currencies selected"
     }
   },
   "groupDisplayNameSettings": {

@@ -307,9 +307,6 @@
       "warning": "Att låsa denna grupp kommer att förhindra alla från att lägga till utgifter, reglera eller ändra inställningar.",
       "unlockToggle": "Lås upp grupp",
       "unlockDescription": "Tillåt medlemmar att göra ändringar i denna grupp igen.",
-      "lockSuccess": "Gruppen har låsts.",
-      "unlockSuccess": "Gruppen har låsts upp.",
-      "toggleFailed": "Kunde inte uppdatera gruppens låsstatus.",
       "sectionTitle": "Grupplåsning"
     }
   },
@@ -867,6 +864,13 @@
       "general": "Allmänt",
       "security": "Säkerhet och behörigheter"
     },
+    "sections": {
+      "groupDetails": "Gruppdetaljer",
+      "dangerZone": "Riskzon"
+    },
+    "dangerZone": {
+      "description": "Att radera en grupp är permanent och kan inte ångras."
+    },
     "securityTab": {
       "successAriaLabel": "lyckades",
       "unsavedChangesAriaLabel": "osparade ändringar"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "Sök valutor...",
       "noCurrenciesSelected": "Välj minst en valuta",
       "defaultNotInPermitted": "Standardvalutan måste vara en tillåten valuta",
-      "allCurrenciesSelected": "Alla valutor valda",
-      "saveButton": "Spara valutainställningar",
-      "saveSuccess": "Valutainställningarna uppdaterades.",
-      "saveFailed": "Kunde inte spara valutainställningarna. Försök igen."
+      "allCurrenciesSelected": "Alla valutor valda"
     }
   },
   "groupDisplayNameSettings": {

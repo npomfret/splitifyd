@@ -174,8 +174,16 @@ export class GroupSettingsModalPage extends BasePage {
         return this.getModalContainer().getByRole('button', { name: translation.editGroupModal.cancelButton });
     }
 
+    protected getDangerZoneSection(): Locator {
+        // The danger zone section contains the "Danger Zone" heading
+        return this.getModalContainer().locator('section').filter({
+            has: this.page.getByText(translation.groupSettingsModal.sections.dangerZone, { exact: true }),
+        });
+    }
+
     protected getDeleteButton(): Locator {
-        return this.getModalContainer().getByRole('button', { name: translation.editGroupModal.deleteGroupButton });
+        // Delete button is now in the Danger Zone section at the bottom
+        return this.getDangerZoneSection().getByRole('button', { name: translation.editGroupModal.deleteGroupButton });
     }
 
     protected getCloseButton(): Locator {
@@ -1103,12 +1111,13 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getCurrencySettingsSaveButton(): Locator {
-        // The save button specific to currency settings section
-        return this.getModalContainer().getByRole('button', { name: translation.groupSettings.currencySettings.saveButton });
+        // Currency settings now use the unified Save button for the entire General tab
+        return this.getSaveButton();
     }
 
     protected getCurrencySettingsSuccessAlert(): Locator {
-        return this.getModalContainer().getByText(translation.groupSettings.currencySettings.saveSuccess);
+        // Currency settings now use the unified success message for the entire General tab
+        return this.getGeneralSuccessAlert();
     }
 
     /**
@@ -1155,7 +1164,7 @@ export class GroupSettingsModalPage extends BasePage {
         await this.ensureGeneralTab();
         const saveButton = this.getCurrencySettingsSaveButton();
         await expect(saveButton).toBeEnabled();
-        await this.clickButton(saveButton, { buttonName: translation.groupSettings.currencySettings.saveButton });
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
     }
 
     /**
@@ -1254,12 +1263,13 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getGroupLockSuccessAlert(): Locator {
-        // Success message in the lock settings section
-        return this.getGroupLockSection().getByRole('status');
+        // Success message now uses the unified form success alert
+        return this.getGeneralSuccessAlert();
     }
 
     /**
      * Lock the group. Expects the group to be currently unlocked.
+     * Toggles the lock switch and saves the change.
      *
      * IMPORTANT: We click the visible label (switch track), not the sr-only input,
      * because sr-only elements are positioned off-screen and fail viewport checks.
@@ -1275,10 +1285,16 @@ export class GroupSettingsModalPage extends BasePage {
         await label.click();
         // Wait for the state change - now we expect the "Unlock" toggle to be checked
         await expect(this.getLockedGroupToggle()).toBeChecked();
+        // Save the change (unified save button)
+        const saveButton = this.getSaveButton();
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
+        // Wait for success
+        await expect(this.getGeneralSuccessAlert()).toBeVisible();
     }
 
     /**
      * Unlock the group. Expects the group to be currently locked.
+     * Toggles the lock switch and saves the change.
      *
      * IMPORTANT: We click the visible label (switch track), not the sr-only input,
      * because sr-only elements are positioned off-screen and fail viewport checks.
@@ -1294,6 +1310,11 @@ export class GroupSettingsModalPage extends BasePage {
         await label.click();
         // Wait for the state change - now we expect the "Lock" toggle to be unchecked
         await expect(this.getUnlockedGroupToggle()).not.toBeChecked();
+        // Save the change (unified save button)
+        const saveButton = this.getSaveButton();
+        await this.clickButton(saveButton, { buttonName: translation.common.save });
+        // Wait for success
+        await expect(this.getGeneralSuccessAlert()).toBeVisible();
     }
 
     /**

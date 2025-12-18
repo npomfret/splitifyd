@@ -307,9 +307,6 @@
       "warning": "Bloccare questo gruppo impedirà a chiunque di aggiungere spese, saldare debiti o modificare le impostazioni.",
       "unlockToggle": "Sblocca gruppo",
       "unlockDescription": "Consenti nuovamente ai membri di apportare modifiche a questo gruppo.",
-      "lockSuccess": "Il gruppo è stato bloccato.",
-      "unlockSuccess": "Il gruppo è stato sbloccato.",
-      "toggleFailed": "Impossibile aggiornare lo stato di blocco del gruppo.",
       "sectionTitle": "Blocco del gruppo"
     }
   },
@@ -867,6 +864,13 @@
       "general": "Generale",
       "security": "Sicurezza e permessi"
     },
+    "sections": {
+      "groupDetails": "Dettagli Gruppo",
+      "dangerZone": "Zona Pericolo"
+    },
+    "dangerZone": {
+      "description": "L'eliminazione di un gruppo è permanente e non può essere annullata."
+    },
     "securityTab": {
       "successAriaLabel": "successo",
       "unsavedChangesAriaLabel": "modifiche non salvate"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "Cerca valute...",
       "noCurrenciesSelected": "Seleziona almeno una valuta",
       "defaultNotInPermitted": "La valuta predefinita deve essere una valuta consentita",
-      "allCurrenciesSelected": "Tutte le valute selezionate",
-      "saveButton": "Salva impostazioni valuta",
-      "saveSuccess": "Impostazioni valuta aggiornate con successo.",
-      "saveFailed": "Impossibile salvare le impostazioni valuta. Riprova."
+      "allCurrenciesSelected": "Tutte le valute selezionate"
     }
   },
   "groupDisplayNameSettings": {

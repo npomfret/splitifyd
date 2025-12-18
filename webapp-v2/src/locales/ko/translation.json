@@ -307,9 +307,6 @@
       "warning": "이 그룹을 잠그면 비용 추가, 정산, 설정 변경이 불가능해집니다.",
       "unlockToggle": "그룹 잠금 해제",
       "unlockDescription": "멤버가 이 그룹을 다시 변경할 수 있도록 합니다.",
-      "lockSuccess": "그룹이 잠겼습니다.",
-      "unlockSuccess": "그룹 잠금이 해제되었습니다.",
-      "toggleFailed": "그룹 잠금 상태 업데이트에 실패했습니다.",
       "sectionTitle": "그룹 잠금"
     }
   },
@@ -867,6 +864,13 @@
       "general": "일반",
       "security": "보안 및 권한"
     },
+    "sections": {
+      "groupDetails": "그룹 상세",
+      "dangerZone": "위험 구역"
+    },
+    "dangerZone": {
+      "description": "그룹 삭제는 영구적이며 취소할 수 없습니다."
+    },
     "securityTab": {
       "successAriaLabel": "성공",
       "unsavedChangesAriaLabel": "저장되지 않은 변경 사항"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "통화 검색...",
       "noCurrenciesSelected": "하나 이상의 통화를 선택하세요.",
       "defaultNotInPermitted": "기본값은 허용된 통화여야 합니다.",
-      "allCurrenciesSelected": "모든 통화 선택됨",
-      "saveButton": "통화 설정 저장",
-      "saveSuccess": "통화 설정이 성공적으로 업데이트되었습니다.",
-      "saveFailed": "통화 설정 저장에 실패했습니다. 다시 시도하세요."
+      "allCurrenciesSelected": "모든 통화 선택됨"
     }
   },
   "groupDisplayNameSettings": {

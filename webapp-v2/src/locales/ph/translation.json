@@ -307,9 +307,6 @@
       "warning": "Ang pag-lock ng grupong ito ay pipigil sa sinuman na magdagdag ng gastusin, magbayad, o magbago ng mga setting.",
       "unlockToggle": "I-unlock ang Grupo",
       "unlockDescription": "Payagan muli ang mga miyembro na gumawa ng mga pagbabago sa grupong ito.",
-      "lockSuccess": "Na-lock na ang grupo.",
-      "unlockSuccess": "Na-unlock na ang grupo.",
-      "toggleFailed": "Hindi ma-update ang lock status ng grupo.",
       "sectionTitle": "Pag-lock ng Grupo"
     }
   },
@@ -867,6 +864,13 @@
       "general": "Pangkalahatan",
       "security": "Seguridad at mga Pahintulot"
     },
+    "sections": {
+      "groupDetails": "Detalye ng Grupo",
+      "dangerZone": "Sona ng Panganib"
+    },
+    "dangerZone": {
+      "description": "Ang pagtanggal ng grupo ay permanente at hindi na mababawi."
+    },
     "securityTab": {
       "successAriaLabel": "tagumpay",
       "unsavedChangesAriaLabel": "hindi nai-save na mga pagbabago"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "Maghanap ng mga currency...",
       "noCurrenciesSelected": "Pumili ng hindi bababa sa isang currency",
       "defaultNotInPermitted": "Ang default ay dapat na isang pinahihintulutang currency",
-      "allCurrenciesSelected": "Lahat ng currency ay napili",
-      "saveButton": "I-save ang Mga Setting ng Currency",
-      "saveSuccess": "Matagumpay na na-update ang mga setting ng currency.",
-      "saveFailed": "Nabigo ang pag-save ng mga setting ng currency. Pakisubukan muli."
+      "allCurrenciesSelected": "Lahat ng currency ay napili"
     }
   },
   "groupDisplayNameSettings": {

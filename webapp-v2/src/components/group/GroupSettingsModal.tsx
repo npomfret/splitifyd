@@ -1,8 +1,6 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
-import { useGroupCurrencySettings } from '@/app/hooks/useGroupCurrencySettings.ts';
 import { useGroupDisplayName } from '@/app/hooks/useGroupDisplayName.ts';
-import { useGroupGeneralSettings } from '@/app/hooks/useGroupGeneralSettings.ts';
-import { useGroupLockSettings } from '@/app/hooks/useGroupLockSettings.ts';
+import { useGroupGeneralTabSettings } from '@/app/hooks/useGroupGeneralTabSettings.ts';
 import { useGroupSecuritySettings } from '@/app/hooks/useGroupSecuritySettings.ts';
 import { translateGroupSettingsTab } from '@/app/i18n/dynamic-translations';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
@@ -69,7 +67,7 @@ export function GroupSettingsModal({
     // Admins can access general settings, OR access general tab when locked (to unlock)
     const canManageGeneralSettings = canManageSettings || (group.locked && isCurrentUserAdmin);
 
-    const generalSettingsState = useGroupGeneralSettings({
+    const generalTabState = useGroupGeneralTabSettings({
         group,
         isOpen,
         canManageGeneralSettings,
@@ -77,20 +75,6 @@ export function GroupSettingsModal({
         onGroupUpdated,
         onClose,
         onDelete,
-    });
-
-    const currencySettingsState = useGroupCurrencySettings({
-        group,
-        isOpen,
-        t,
-        onGroupUpdated,
-    });
-
-    const lockSettingsState = useGroupLockSettings({
-        group,
-        isOpen,
-        t,
-        onGroupUpdated,
     });
 
     const generalTabAvailable = canManageGeneralSettings;
@@ -176,20 +160,27 @@ export function GroupSettingsModal({
 
         return (
             <GroupGeneralTabContent
-                groupName={generalSettingsState.groupName}
-                groupDescription={generalSettingsState.groupDescription}
-                isSubmitting={generalSettingsState.isSubmitting}
-                validationError={generalSettingsState.validationError}
-                successMessage={generalSettingsState.successMessage}
-                hasChanges={generalSettingsState.hasChanges}
-                isFormValid={generalSettingsState.isFormValid}
-                onGroupNameChange={generalSettingsState.setGroupName}
-                onGroupDescriptionChange={generalSettingsState.setGroupDescription}
-                onSubmit={generalSettingsState.handleSubmit}
-                onDeleteClick={generalSettingsState.handleDeleteClick}
-                onClose={onClose}
-                currencySettings={currencySettingsState}
-                lockSettings={lockSettingsState}
+                groupName={generalTabState.groupName}
+                groupDescription={generalTabState.groupDescription}
+                onGroupNameChange={generalTabState.setGroupName}
+                onGroupDescriptionChange={generalTabState.setGroupDescription}
+                currencyEnabled={generalTabState.currencyEnabled}
+                permittedCurrencies={generalTabState.permittedCurrencies}
+                defaultCurrency={generalTabState.defaultCurrency}
+                onToggleCurrencyEnabled={generalTabState.toggleCurrencyEnabled}
+                onAddCurrency={generalTabState.addCurrency}
+                onRemoveCurrency={generalTabState.removeCurrency}
+                onSetDefaultCurrency={generalTabState.setDefaultCurrency}
+                locked={generalTabState.locked}
+                onToggleLocked={generalTabState.toggleLocked}
+                isSubmitting={generalTabState.isSubmitting}
+                validationError={generalTabState.validationError}
+                successMessage={generalTabState.successMessage}
+                hasChanges={generalTabState.hasChanges}
+                isFormValid={generalTabState.isFormValid}
+                onSave={generalTabState.handleSave}
+                onCancel={generalTabState.handleCancel}
+                onDeleteClick={generalTabState.handleDeleteClick}
             />
         );
     };
@@ -226,7 +217,7 @@ export function GroupSettingsModal({
         <>
             <Modal
                 open={isOpen}
-                onClose={generalSettingsState.deleteState.showConfirm ? undefined : onClose}
+                onClose={generalTabState.deleteState.showConfirm ? undefined : onClose}
                 size='lg'
                 className='max-w-3xl'
                 labelledBy='group-settings-modal-title'
@@ -291,14 +282,14 @@ export function GroupSettingsModal({
             </Modal>
 
             <DeleteGroupConfirmationModal
-                isOpen={generalSettingsState.deleteState.showConfirm}
+                isOpen={generalTabState.deleteState.showConfirm}
                 groupName={group.name}
-                confirmationText={generalSettingsState.deleteState.confirmationText}
-                onConfirmationTextChange={generalSettingsState.setConfirmationText}
-                onConfirm={generalSettingsState.handleDeleteConfirm}
-                onCancel={generalSettingsState.handleDeleteCancel}
-                isDeleting={generalSettingsState.deleteState.isDeleting}
-                error={generalSettingsState.deleteState.error}
+                confirmationText={generalTabState.deleteState.confirmationText}
+                onConfirmationTextChange={generalTabState.setConfirmationText}
+                onConfirm={generalTabState.handleDeleteConfirm}
+                onCancel={generalTabState.handleDeleteCancel}
+                isDeleting={generalTabState.deleteState.isDeleting}
+                error={generalTabState.deleteState.error}
             />
         </>
     );

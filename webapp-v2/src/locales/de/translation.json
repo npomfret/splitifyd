@@ -307,9 +307,6 @@
       "warning": "Das Sperren dieser Gruppe verhindert das Hinzufügen von Ausgaben, Abrechnungen oder Einstellungsänderungen.",
       "unlockToggle": "Gruppe entsperren",
       "unlockDescription": "Ermöglicht Mitgliedern wieder, Änderungen an dieser Gruppe vorzunehmen.",
-      "lockSuccess": "Gruppe wurde gesperrt.",
-      "unlockSuccess": "Gruppe wurde entsperrt.",
-      "toggleFailed": "Sperrstatus konnte nicht aktualisiert werden.",
       "sectionTitle": "Gruppensperrung"
     }
   },
@@ -866,6 +863,13 @@
       "general": "Allgemein",
       "security": "Sicherheit & Berechtigungen"
     },
+    "sections": {
+      "groupDetails": "Gruppendetails",
+      "dangerZone": "Gefahrenzone"
+    },
+    "dangerZone": {
+      "description": "Eine Gruppe zu löschen ist permanent und kann nicht rückgängig gemacht werden."
+    },
     "securityTab": {
       "successAriaLabel": "Erfolg",
       "unsavedChangesAriaLabel": "ungespeicherte Änderungen"
@@ -883,10 +887,7 @@
       "searchPlaceholder": "Währungen suchen...",
       "noCurrenciesSelected": "Wählen Sie mindestens eine Währung aus",
       "defaultNotInPermitted": "Standard muss eine erlaubte Währung sein",
-      "allCurrenciesSelected": "Alle Währungen ausgewählt",
-      "saveButton": "Währungseinstellungen speichern",
-      "saveSuccess": "Währungseinstellungen erfolgreich aktualisiert.",
-      "saveFailed": "Währungseinstellungen konnten nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      "allCurrenciesSelected": "Alle Währungen ausgewählt"
     }
   },
   "groupDisplayNameSettings": {

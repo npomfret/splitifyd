@@ -307,9 +307,6 @@
       "warning": "Bloķējot šo grupu, neviens nevarēs pievienot izdevumus, norēķināties vai mainīt iestatījumus.",
       "unlockToggle": "Atbloķēt grupu",
       "unlockDescription": "Ļaut dalībniekiem atkal veikt izmaiņas šajā grupā.",
-      "lockSuccess": "Grupa ir bloķēta.",
-      "unlockSuccess": "Grupa ir atbloķēta.",
-      "toggleFailed": "Neizdevās atjaunināt grupas bloķēšanas statusu.",
       "sectionTitle": "Grupas bloķēšana"
     }
   },
@@ -867,6 +864,13 @@
       "general": "Vispārīgi",
       "security": "Drošība un atļaujas"
     },
+    "sections": {
+      "groupDetails": "Grupas detaļas",
+      "dangerZone": "Bīstamā zona"
+    },
+    "dangerZone": {
+      "description": "Grupas dzēšana ir neatgriezeniska un to nevar atsaukt."
+    },
     "securityTab": {
       "successAriaLabel": "veiksmīgi",
       "unsavedChangesAriaLabel": "nesaglabātas izmaiņas"
@@ -884,10 +888,7 @@
       "searchPlaceholder": "Meklēt valūtas...",
       "noCurrenciesSelected": "Atlasiet vismaz vienu valūtu",
       "defaultNotInPermitted": "Noklusējuma valūtai jābūt atļautai valūtai",
-      "allCurrenciesSelected": "Visas valūtas atlasītas",
-      "saveButton": "Saglabāt valūtas iestatījumus",
-      "saveSuccess": "Valūtas iestatījumi veiksmīgi atjaunināti.",
-      "saveFailed": "Neizdevās saglabāt valūtas iestatījumus. Lūdzu, mēģiniet vēlreiz."
+      "allCurrenciesSelected": "Visas valūtas atlasītas"
     }
   },
   "groupDisplayNameSettings": {

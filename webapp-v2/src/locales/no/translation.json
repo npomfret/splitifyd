@@ -307,9 +307,6 @@
       "warning": "Å låse denne gruppen vil hindre alle fra å legge til utgifter, gjøre opp eller endre innstillinger.",
       "unlockToggle": "Lås opp gruppe",
       "unlockDescription": "Tillat medlemmer å gjøre endringer i denne gruppen igjen.",
-      "lockSuccess": "Gruppen er låst.",
-      "unlockSuccess": "Gruppen er låst opp.",
-      "toggleFailed": "Kunne ikke oppdatere gruppens låsestatus.",
       "sectionTitle": "Gruppelåsing"
     }
   },
@@ -866,6 +863,13 @@
       "general": "Generelt",
       "security": "Sikkerhet og tillatelser"
     },
+    "sections": {
+      "groupDetails": "Gruppedetaljer",
+      "dangerZone": "Faresone"
+    },
+    "dangerZone": {
+      "description": "Sletting av en gruppe er permanent og kan ikke angres."
+    },
     "securityTab": {
       "successAriaLabel": "suksess",
       "unsavedChangesAriaLabel": "ulagrede endringer"
@@ -883,10 +887,7 @@
       "searchPlaceholder": "Søk valutaer...",
       "noCurrenciesSelected": "Velg minst én valuta",
       "defaultNotInPermitted": "Standard må være en tillatt valuta",
-      "allCurrenciesSelected": "Alle valutaer valgt",
-      "saveButton": "Lagre valutainnstillinger",
-      "saveSuccess": "Valutainnstillinger oppdatert.",
-      "saveFailed": "Kunne ikke lagre valutainnstillinger. Vennligst prøv igjen."
+      "allCurrenciesSelected": "Alle valutaer valgt"
     }
   },
   "groupDisplayNameSettings": {

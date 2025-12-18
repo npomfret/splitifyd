@@ -307,9 +307,6 @@
       "warning": "قفل هذه المجموعة سيمنع أي شخص من إضافة مصروفات أو تسوية ديون أو تغيير الإعدادات.",
       "unlockToggle": "فتح قفل المجموعة",
       "unlockDescription": "السماح للأعضاء بإجراء تغييرات على هذه المجموعة مرة أخرى.",
-      "lockSuccess": "تم قفل المجموعة.",
-      "unlockSuccess": "تم فتح قفل المجموعة.",
-      "toggleFailed": "فشل في تحديث حالة قفل المجموعة.",
       "sectionTitle": "قفل المجموعة"
     }
   },
@@ -866,6 +863,13 @@
       "general": "عام",
       "security": "الأمان والأذونات"
     },
+    "sections": {
+      "groupDetails": "تفاصيل المجموعة",
+      "dangerZone": "منطقة الخطر"
+    },
+    "dangerZone": {
+      "description": "حذف المجموعة دائم ولا يمكن التراجع عنه."
+    },
     "securityTab": {
       "successAriaLabel": "نجاح",
       "unsavedChangesAriaLabel": "تغييرات غير محفوظة"
@@ -883,10 +887,7 @@
       "searchPlaceholder": "بحث عن عملات...",
       "noCurrenciesSelected": "حدد عملة واحدة على الأقل",
       "defaultNotInPermitted": "يجب أن يكون الافتراضي عملة مسموح بها",
-      "allCurrenciesSelected": "تم تحديد جميع العملات",
-      "saveButton": "حفظ إعدادات العملة",
-      "saveSuccess": "تم تحديث إعدادات العملة بنجاح.",
-      "saveFailed": "فشل حفظ إعدادات العملة. يرجى المحاولة مرة أخرى."
+      "allCurrenciesSelected": "تم تحديد جميع العملات"
     }
   },
   "groupDisplayNameSettings": {

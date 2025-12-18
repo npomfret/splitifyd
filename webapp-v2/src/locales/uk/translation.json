@@ -307,9 +307,6 @@
       "warning": "Блокування цієї групи заборонить будь-кому додавати витрати, розраховуватися або змінювати налаштування.",
       "unlockToggle": "Розблокувати групу",
       "unlockDescription": "Дозволити учасникам знову вносити зміни до цієї групи.",
-      "lockSuccess": "Групу заблоковано.",
-      "unlockSuccess": "Групу розблоковано.",
-      "toggleFailed": "Не вдалося оновити статус блокування групи.",
       "sectionTitle": "Блокування групи"
     }
   },
@@ -866,6 +863,13 @@
       "general": "Загальні",
       "security": "Безпека та дозволи"
     },
+    "sections": {
+      "groupDetails": "Деталі групи",
+      "dangerZone": "Небезпечна зона"
+    },
+    "dangerZone": {
+      "description": "Видалення групи є безповоротним і не може бути скасовано."
+    },
     "securityTab": {
       "successAriaLabel": "успіх",
       "unsavedChangesAriaLabel": "незбережені зміни"
@@ -883,10 +887,7 @@
       "searchPlaceholder": "Пошук валют...",
       "noCurrenciesSelected": "Виберіть принаймні одну валюту",
       "defaultNotInPermitted": "Валюта за замовчуванням повинна бути дозволеною",
-      "allCurrenciesSelected": "Вибрано всі валюти",
-      "saveButton": "Зберегти налаштування валюти",
-      "saveSuccess": "Налаштування валюти успішно оновлено.",
-      "saveFailed": "Не вдалося зберегти налаштування валюти. Будь ласка, спробуйте ще раз."
+      "allCurrenciesSelected": "Вибрано всі валюти"
     }
   },
   "groupDisplayNameSettings": {
