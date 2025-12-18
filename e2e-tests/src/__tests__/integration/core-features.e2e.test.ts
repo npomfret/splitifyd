@@ -167,7 +167,7 @@ simpleTest.describe('Member Management - Balance Restrictions', () => {
         await memberGroupDetailPage.waitForExpense(expenseDescription);
         await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, '¥50');
 
-        // Member tries to leave group (with outstanding balance)
+        // Member tries to leave group (has outstanding balance, so expect balance warning dialog)
         await memberGroupDetailPage.verifyLeaveGroupButtonVisible();
         const leaveModalWithBalance = await memberGroupDetailPage.clickLeaveGroupAndOpenBalanceWarningDialog();
 
