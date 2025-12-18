@@ -39,8 +39,8 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 ## Decisions (Secrets + Config)
 
 - **Secrets store:** Google Secret Manager (GCP).
-- **Secret ID convention:** `postmark-api-key.<postmarkServerName>` (each key corresponds to a Postmark "Server").
-  - Note: some Secret Manager configurations may reject `.` in secret IDs; if this becomes an issue, use an override via script (`--secret-id=...`) and keep the `<postmarkServerName>` mapping stable.
+- **Secret ID convention:** `postmark_api_key_<postmarkServerNameNormalized>` (each key corresponds to a Postmark "Server").
+  - Normalization: project enforces Secret IDs matching `[a-zA-Z_0-9]+`, so non-matching characters in `<postmarkServerName>` are replaced with `_`.
 - **Env convention:** each Firebase instance `.env.instance*` provides `postmark-servername=<postmarkServerName>` (the app uses this logical name to locate the secret).
 - **Current configured Postmark server:** `blackhole` only (all emails should route to Postmark "blackhole" behavior).
 
