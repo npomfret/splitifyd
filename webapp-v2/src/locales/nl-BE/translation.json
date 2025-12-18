@@ -766,7 +766,6 @@
     "currentEmailLabel": "Huidig e-mailadres",
     "displayNameLabel": "Weergavenaam",
     "displayNamePlaceholder": "Voer uw weergavenaam in",
-    "displayNameHelper": "Gebruik uw volledige naam of een bijnaam die teamgenoten zullen herkennen.",
     "saveChangesButton": "Wijzigingen opslaan",
     "passwordHeader": "Wachtwoord",
     "passwordIntro": "Stel een sterk wachtwoord in om uw {{appName}}-account veilig te houden.",
@@ -1498,8 +1497,7 @@
           "title": "Beweging"
         },
         "marketing": {
-          "title": "Marketingfuncties",
-          "description": "Marketingpagina's en -inhoud wisselen"
+          "title": "Marketingfuncties"
         },
         "headerDisplay": {
           "title": "Koptekst weergave"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "Tenant-ID",
         "appName": "App-naam",
-        "logoUrl": "Logo-URL",
-        "primaryColor": "Primaire kleur",
-        "primaryVariantColor": "Primaire variant",
-        "secondaryColor": "Secundaire kleur",
-        "secondaryVariantColor": "Secundaire variant",
-        "accentColor": "Accentkleur",
-        "neutralColor": "Neutrale kleur",
-        "neutralVariantColor": "Neutrale variant",
-        "successColor": "Succeskleur",
-        "warningColor": "Waarschuwingskleur",
-        "dangerColor": "Gevaarkleur",
-        "infoColor": "Infokleur"
+        "logoUrl": "Logo-URL"
       },
       "placeholders": {
         "tenantId": "mijn-tenant-id",

@@ -765,7 +765,6 @@
     "currentEmailLabel": "Correo electrónico actual",
     "displayNameLabel": "Nombre visible",
     "displayNamePlaceholder": "Introduzca su nombre visible",
-    "displayNameHelper": "Utilice su nombre completo o un apodo que sus compañeros reconocerán.",
     "saveChangesButton": "Guardar cambios",
     "passwordHeader": "Contraseña",
     "passwordIntro": "Establezca una contraseña segura para mantener su cuenta {{appName}} protegida.",
@@ -1497,8 +1496,7 @@
           "title": "Movimiento"
         },
         "marketing": {
-          "title": "Características de marketing",
-          "description": "Alternar páginas y contenido de marketing"
+          "title": "Características de marketing"
         },
         "headerDisplay": {
           "title": "Visualización del encabezado"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "ID del inquilino",
         "appName": "Nombre de la aplicación",
-        "logoUrl": "URL del logotipo",
-        "primaryColor": "Color principal",
-        "primaryVariantColor": "Variante principal",
-        "secondaryColor": "Color secundario",
-        "secondaryVariantColor": "Variante secundaria",
-        "accentColor": "Color de acento",
-        "neutralColor": "Color neutro",
-        "neutralVariantColor": "Variante neutra",
-        "successColor": "Color de éxito",
-        "warningColor": "Color de advertencia",
-        "dangerColor": "Color de peligro",
-        "infoColor": "Color de información"
+        "logoUrl": "URL del logotipo"
       },
       "placeholders": {
         "tenantId": "mi-id-de-inquilino",

@@ -766,7 +766,6 @@
     "currentEmailLabel": "Email attuale",
     "displayNameLabel": "Nome visualizzato",
     "displayNamePlaceholder": "Inserisci il tuo nome visualizzato",
-    "displayNameHelper": "Usa il tuo nome completo o un soprannome che i colleghi riconosceranno.",
     "saveChangesButton": "Salva modifiche",
     "passwordHeader": "Password",
     "passwordIntro": "Imposta una password forte per mantenere sicuro il tuo account {{appName}}.",
@@ -1498,8 +1497,7 @@
           "title": "Movimento"
         },
         "marketing": {
-          "title": "Funzionalità marketing",
-          "description": "Attiva/disattiva pagine e contenuti marketing"
+          "title": "Funzionalità marketing"
         },
         "headerDisplay": {
           "title": "Visualizzazione intestazione"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "ID tenant",
         "appName": "Nome app",
-        "logoUrl": "URL logo",
-        "primaryColor": "Colore primario",
-        "primaryVariantColor": "Variante primaria",
-        "secondaryColor": "Colore secondario",
-        "secondaryVariantColor": "Variante secondaria",
-        "accentColor": "Colore accento",
-        "neutralColor": "Colore neutro",
-        "neutralVariantColor": "Variante neutra",
-        "successColor": "Colore successo",
-        "warningColor": "Colore avviso",
-        "dangerColor": "Colore pericolo",
-        "infoColor": "Colore informazioni"
+        "logoUrl": "URL logo"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",

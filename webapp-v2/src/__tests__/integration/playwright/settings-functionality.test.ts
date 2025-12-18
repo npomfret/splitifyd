@@ -333,17 +333,6 @@ test.describe('Settings Page - UI Elements and Layout', () => {
         await settingsPage.verifyPasswordRequirementVisible(/Avoid passwords you've used elsewhere/i);
     });
 
-    test('should display helper text for display name input', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
-
-        // 1. Navigate to settings page
-        await settingsPage.navigate();
-
-        // 2. Verify info icon is visible (helper text is in tooltip)
-        await settingsPage.verifyDisplayNameInfoIconVisible();
-    });
-
     test('should display section headers and info icons', async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);

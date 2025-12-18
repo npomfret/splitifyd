@@ -1,8 +1,6 @@
 import { translateProfileRole } from '@/app/i18n/dynamic-translations';
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { Alert, Avatar, Button, Card, Form, Input, Tooltip, Typography } from '@/components/ui';
-import { Clickable } from '@/components/ui/Clickable';
-import { InfoCircleIcon } from '@/components/ui/icons';
+import { Alert, Avatar, Button, Card, Form, Input, Stack, Typography } from '@/components/ui';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
@@ -12,7 +10,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { BaseLayout, FormSection, PageHeader, TwoColumnLayout } from '../components/layout';
 
 interface PasswordChangeData {
     currentPassword: string;
@@ -299,364 +297,299 @@ export function SettingsPage() {
     return (
         <BaseLayout title={t('settingsPage.title')} description={t('settingsPage.description')} headerVariant='dashboard'>
             <div className='mx-auto max-w-(--breakpoint-xl) px-4 py-10 sm:px-6 lg:px-8'>
-                <div className='space-y-8'>
-                    <div className='flex flex-col gap-2'>
-                        <span className='text-xs font-medium uppercase tracking-wide text-interactive-primary'>
-                            {t('settingsPage.heroLabel')}
-                        </span>
-                        <div className='flex flex-col gap-2'>
-                            <Typography variant='display' className='font-semibold'>
-                                {t('settingsPage.accountSettingsHeader')}
-                            </Typography>
-                            <p className='max-w-2xl help-text sm:text-base'>{t('settingsPage.accountSettingsSubheader')}</p>
-                        </div>
-                    </div>
+                <Stack spacing='lg'>
+                    <PageHeader
+                        label={t('settingsPage.heroLabel')}
+                        title={t('settingsPage.accountSettingsHeader')}
+                        description={t('settingsPage.accountSettingsSubheader')}
+                    />
 
                     {(successMessage || errorMessage) && (
-                        <div className='space-y-3'>
+                        <Stack spacing='sm'>
                             {successMessage && <Alert type='success' message={successMessage} />}
                             {errorMessage && <Alert type='error' message={errorMessage} />}
-                        </div>
+                        </Stack>
                     )}
 
-                    <div className='grid gap-6 lg:grid-cols-[320px_1fr] lg:gap-8 xl:grid-cols-[360px_1fr]'>
-                        <Card padding='lg' className='shadow-md lg:sticky lg:top-24'>
-                            <div className='space-y-6'>
-                                <div className='flex items-start gap-4'>
-                                    {user && shouldShowAvatar
-                                        ? (
-                                            <Avatar
-                                                displayName={resolvedDisplayName}
-                                                userId={user.uid}
-                                                themeColor={membershipTheme || undefined}
-                                                photoURL={user.photoURL}
-                                                size='lg'
-                                            />
-                                        )
-                                        : (
-                                            <div className='flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
-                                                {profileInitials}
+                    <TwoColumnLayout
+                        sidebarWidth='medium'
+                        stickyHeader
+                        sidebar={
+                            <Card padding='lg' className='shadow-md'>
+                                <Stack spacing='lg'>
+                                    <div className='flex items-start gap-4'>
+                                        {user && shouldShowAvatar
+                                            ? (
+                                                <Avatar
+                                                    displayName={resolvedDisplayName}
+                                                    userId={user.uid}
+                                                    themeColor={membershipTheme || undefined}
+                                                    photoURL={user.photoURL}
+                                                    size='lg'
+                                                />
+                                            )
+                                            : (
+                                                <div className='flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-interactive-secondary via-interactive-secondary to-semantic-error text-lg font-semibold uppercase text-text-inverted shadow-inner'>
+                                                    {profileInitials}
+                                                </div>
+                                            )}
+
+                                        <Stack spacing='xs'>
+                                            <p className='text-sm font-semibold uppercase tracking-wide text-text-muted'>
+                                                {t('settingsPage.profileSummaryTitle')}
+                                            </p>
+                                            <div className='text-2xl font-semibold text-text-primary'>
+                                                {resolvedDisplayName}
+                                            </div>
+                                            <p className='help-text'>{t('settingsPage.profileSummaryDescription')}</p>
+                                        </Stack>
+                                    </div>
+
+                                    <Stack spacing='sm' className='text-sm'>
+                                        <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
+                                            <span className='text-text-muted'>{t('settingsPage.currentDisplayName')}</span>
+                                            <div className='font-medium text-text-primary' aria-label={t('settingsPage.displayNameValue')}>{resolvedDisplayName}</div>
+                                        </div>
+                                        <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
+                                            <span className='text-text-muted'>{t('settingsPage.email')}</span>
+                                            <div className='font-medium text-text-primary wrap-break-word' aria-label={t('settingsPage.emailValue')}>
+                                                {user.email}
+                                            </div>
+                                        </div>
+                                        {/* Only show account role to system admins - it's not meaningful to regular users */}
+                                        {user.role === SystemUserRoles.SYSTEM_ADMIN && (
+                                            <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
+                                                <span className='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
+                                                <div className='font-medium text-text-primary'>
+                                                    {user.role
+                                                        ? translateProfileRole(user.role, t) || t('settingsPage.profileSummaryRoleFallback')
+                                                        : t('settingsPage.profileSummaryRoleFallback')}
+                                                </div>
                                             </div>
                                         )}
+                                    </Stack>
+                                </Stack>
+                            </Card>
+                        }
+                    >
+                        <FormSection
+                            title={t('settingsPage.profileInformationHeader')}
+                            description={t('settingsPage.profileInformationSubheader')}
+                            moreInfoLabel={t('common.moreInfo')}
+                        >
+                            <Form
+                                onSubmit={() => {
+                                    if (!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong) {
+                                        return;
+                                    }
+                                    return handleDisplayNameUpdate();
+                                }}
+                            >
+                                <Stack spacing='md'>
+                                    <Input
+                                        id='settings-display-name'
+                                        label={t('settingsPage.displayNameLabel')}
+                                        value={displayName}
+                                        onChange={(value) => {
+                                            displayNameSignal.value = value;
+                                        }}
+                                        placeholder={t('settingsPage.displayNamePlaceholder')}
+                                        disabled={authStore.isUpdatingProfile}
+                                        error={isDisplayNameEmpty
+                                            ? t('settingsPage.errorMessages.displayNameEmpty')
+                                            : isDisplayNameTooLong
+                                            ? t('settingsPage.errorMessages.displayNameTooLong')
+                                            : undefined}
+                                    />
 
-                                    <div className='space-y-1'>
-                                        <p className='text-sm font-semibold uppercase tracking-wide text-text-muted'>
-                                            {t('settingsPage.profileSummaryTitle')}
-                                        </p>
-                                        <div className='text-2xl font-semibold text-text-primary'>
-                                            {resolvedDisplayName}
+                                    <Button
+                                        type='submit'
+                                        disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
+                                        loading={authStore.isUpdatingProfile}
+                                    >
+                                        {t('settingsPage.saveChangesButton')}
+                                    </Button>
+                                </Stack>
+                            </Form>
+                        </FormSection>
+
+                        <FormSection
+                            title={t('settingsPage.emailSectionTitle')}
+                            description={t('settingsPage.emailSectionDescription')}
+                            moreInfoLabel={t('common.moreInfo')}
+                        >
+                            {!showEmailForm
+                                ? (
+                                    <div className='flex flex-col gap-3 rounded-lg border border-border-default bg-surface-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
+                                        <div>
+                                            <p className='text-xs font-semibold uppercase text-text-muted'>
+                                                {t('settingsPage.currentEmailLabel')}
+                                            </p>
+                                            <p className='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
                                         </div>
-                                        <p className='help-text'>{t('settingsPage.profileSummaryDescription')}</p>
+                                        <Button variant='secondary' onClick={handleStartEmailChange}>
+                                            {t('settingsPage.changeEmailButton')}
+                                        </Button>
                                     </div>
-                                </div>
-
-                                <div className='space-y-3 text-sm'>
-                                    <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
-                                        <span className='text-text-muted'>{t('settingsPage.currentDisplayName')}</span>
-                                        <div className='font-medium text-text-primary' aria-label={t('settingsPage.displayNameValue')}>{resolvedDisplayName}</div>
-                                    </div>
-                                    <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
-                                        <span className='text-text-muted'>{t('settingsPage.email')}</span>
-                                        <div className='font-medium text-text-primary wrap-break-word' aria-label={t('settingsPage.emailValue')}>
-                                            {user.email}
-                                        </div>
-                                    </div>
-                                    {/* Only show account role to system admins - it's not meaningful to regular users */}
-                                    {user.role === SystemUserRoles.SYSTEM_ADMIN && (
-                                        <div className='rounded-lg border border-border-default bg-surface-subtle px-4 py-3'>
-                                            <span className='text-text-muted'>{t('settingsPage.profileSummaryRoleLabel')}</span>
-                                            <div className='font-medium text-text-primary'>
-                                                {user.role
-                                                    ? translateProfileRole(user.role, t) || t('settingsPage.profileSummaryRoleFallback')
-                                                    : t('settingsPage.profileSummaryRoleFallback')}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </Card>
-
-                        <div className='space-y-6'>
-                            <Card padding='lg' ariaLabel={t('settingsPage.profileInformationHeader')}>
-                                <div className='space-y-6'>
-                                    <div className='flex items-center gap-1.5'>
-                                        <Typography variant='heading'>{t('settingsPage.profileInformationHeader')}</Typography>
-                                        <Tooltip content={t('settingsPage.profileInformationSubheader')} placement='top'>
-                                            <Clickable
-                                                as='button'
-                                                type='button'
-                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                                aria-label={t('common.moreInfo')}
-                                            >
-                                                <InfoCircleIcon size={16} />
-                                            </Clickable>
-                                        </Tooltip>
-                                    </div>
-
+                                )
+                                : (
                                     <Form
                                         onSubmit={() => {
-                                            if (!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong) {
-                                                return;
+                                            if (!isEmailLoading) {
+                                                return handleEmailChange();
                                             }
-                                            return handleDisplayNameUpdate();
                                         }}
-                                        className='space-y-5'
                                     >
-                                        <div>
-                                            <label htmlFor='settings-display-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
-                                                {t('settingsPage.displayNameLabel')}
-                                                <Tooltip content={t('settingsPage.displayNameHelper')} placement='top'>
-                                                    <Clickable
-                                                        as='button'
-                                                        type='button'
-                                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                                        aria-label={t('common.moreInfo')}
-                                                    >
-                                                        <InfoCircleIcon size={16} />
-                                                    </Clickable>
-                                                </Tooltip>
-                                            </label>
+                                        <Stack spacing='md'>
                                             <Input
-                                                id='settings-display-name'
-                                                value={displayName}
+                                                label={t('settingsPage.newEmailLabel')}
+                                                type='email'
+                                                value={emailData.newEmail}
                                                 onChange={(value) => {
-                                                    displayNameSignal.value = value;
+                                                    emailDataSignal.value = { ...emailDataSignal.value, newEmail: value };
                                                 }}
-                                                placeholder={t('settingsPage.displayNamePlaceholder')}
-                                                disabled={authStore.isUpdatingProfile}
-                                                error={isDisplayNameEmpty
-                                                    ? t('settingsPage.errorMessages.displayNameEmpty')
-                                                    : isDisplayNameTooLong
-                                                    ? t('settingsPage.errorMessages.displayNameTooLong')
-                                                    : undefined}
+                                                placeholder={t('settingsPage.newEmailPlaceholder')}
+                                                disabled={isEmailLoading}
+                                                error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
+                                                id='new-email-input'
                                             />
-                                        </div>
 
-                                        <Button
-                                            type='submit'
-                                            disabled={!hasDisplayNameChanged || authStore.isUpdatingProfile || isDisplayNameEmpty || isDisplayNameTooLong}
-                                            loading={authStore.isUpdatingProfile}
-                                        >
-                                            {t('settingsPage.saveChangesButton')}
-                                        </Button>
-                                    </Form>
-                                </div>
-                            </Card>
+                                            <Input
+                                                label={t('settingsPage.emailPasswordLabel')}
+                                                type='password'
+                                                value={emailData.currentPassword}
+                                                onChange={(value) => {
+                                                    emailDataSignal.value = { ...emailDataSignal.value, currentPassword: value };
+                                                }}
+                                                disabled={isEmailLoading}
+                                                id='email-password-input'
+                                            />
 
-                            <Card padding='lg' ariaLabel={t('settingsPage.emailSectionTitle')}>
-                                <div className='space-y-6'>
-                                    <div className='flex items-center gap-1.5'>
-                                        <Typography variant='heading'>{t('settingsPage.emailSectionTitle')}</Typography>
-                                        <Tooltip content={t('settingsPage.emailSectionDescription')} placement='top'>
-                                            <Clickable
-                                                as='button'
-                                                type='button'
-                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                                aria-label={t('common.moreInfo')}
-                                            >
-                                                <InfoCircleIcon size={16} />
-                                            </Clickable>
-                                        </Tooltip>
-                                    </div>
-
-                                    {!showEmailForm
-                                        ? (
-                                            <div className='flex flex-col gap-3 rounded-lg border border-border-default bg-surface-muted px-4 py-4 sm:flex-row sm:items-center sm:justify-between'>
-                                                <div>
-                                                    <p className='text-xs font-semibold uppercase text-text-muted'>
-                                                        {t('settingsPage.currentEmailLabel')}
-                                                    </p>
-                                                    <p className='font-medium text-text-primary wrap-break-word'>{originalEmail}</p>
-                                                </div>
-                                                <Button variant='secondary' onClick={handleStartEmailChange}>
-                                                    {t('settingsPage.changeEmailButton')}
+                                            <div className='flex flex-col gap-3 sm:flex-row'>
+                                                <Button
+                                                    type='submit'
+                                                    disabled={isEmailLoading
+                                                        || !hasEmailChanged
+                                                        || shouldShowEmailFormatError
+                                                        || emailData.currentPassword.trim().length === 0}
+                                                    loading={isEmailLoading}
+                                                >
+                                                    {t('settingsPage.updateEmailButton')}
+                                                </Button>
+                                                <Button
+                                                    type='button'
+                                                    variant='secondary'
+                                                    onClick={handleCancelEmailChange}
+                                                    disabled={isEmailLoading}
+                                                >
+                                                    {t('settingsPage.cancelButton')}
                                                 </Button>
                                             </div>
-                                        )
-                                        : (
-                                            <Form
-                                                onSubmit={() => {
-                                                    if (!isEmailLoading) {
-                                                        return handleEmailChange();
-                                                    }
+                                        </Stack>
+                                    </Form>
+                                )}
+                        </FormSection>
+
+                        <FormSection
+                            title={t('settingsPage.passwordHeader')}
+                            description={t('settingsPage.passwordIntro')}
+                            moreInfoLabel={t('common.moreInfo')}
+                        >
+                            <div className='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
+                                <div className='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
+                                <ul className='mt-2 space-y-2'>
+                                    <li className='flex gap-2'>
+                                        <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                        <span>{t('settingsPage.passwordRequirements.length')}</span>
+                                    </li>
+                                    <li className='flex gap-2'>
+                                        <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                        <span>{t('settingsPage.passwordRequirements.mix')}</span>
+                                    </li>
+                                    <li className='flex gap-2'>
+                                        <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
+                                        <span>{t('settingsPage.passwordRequirements.reuse')}</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {!showPasswordForm
+                                ? (
+                                    <Button
+                                        onClick={() => {
+                                            showPasswordFormSignal.value = true;
+                                        }}
+                                    >
+                                        {t('settingsPage.changePasswordButton')}
+                                    </Button>
+                                )
+                                : (
+                                    <Form
+                                        onSubmit={() => {
+                                            if (!isLoading) {
+                                                return handlePasswordChange();
+                                            }
+                                        }}
+                                    >
+                                        <Stack spacing='md'>
+                                            <Input
+                                                label={t('settingsPage.currentPasswordLabel')}
+                                                type='password'
+                                                name='currentPassword'
+                                                value={passwordData.currentPassword}
+                                                onChange={(value) => {
+                                                    passwordDataSignal.value = { ...passwordDataSignal.value, currentPassword: value };
                                                 }}
-                                                className='space-y-5'
-                                            >
-                                                <Input
-                                                    label={t('settingsPage.newEmailLabel')}
-                                                    type='email'
-                                                    value={emailData.newEmail}
-                                                    onChange={(value) => {
-                                                        emailDataSignal.value = { ...emailDataSignal.value, newEmail: value };
-                                                    }}
-                                                    placeholder={t('settingsPage.newEmailPlaceholder')}
-                                                    disabled={isEmailLoading}
-                                                    error={shouldShowEmailFormatError ? t('settingsPage.errorMessages.emailInvalid') : undefined}
-                                                    id='new-email-input'
-                                                />
+                                                disabled={isLoading}
+                                                id='current-password-input'
+                                            />
 
-                                                <Input
-                                                    label={t('settingsPage.emailPasswordLabel')}
-                                                    type='password'
-                                                    value={emailData.currentPassword}
-                                                    onChange={(value) => {
-                                                        emailDataSignal.value = { ...emailDataSignal.value, currentPassword: value };
-                                                    }}
-                                                    disabled={isEmailLoading}
-                                                    id='email-password-input'
-                                                />
-
-                                                <div className='flex flex-col gap-3 sm:flex-row'>
-                                                    <Button
-                                                        type='submit'
-                                                        disabled={isEmailLoading
-                                                            || !hasEmailChanged
-                                                            || shouldShowEmailFormatError
-                                                            || emailData.currentPassword.trim().length === 0}
-                                                        loading={isEmailLoading}
-                                                    >
-                                                        {t('settingsPage.updateEmailButton')}
-                                                    </Button>
-                                                    <Button
-                                                        type='button'
-                                                        variant='secondary'
-                                                        onClick={handleCancelEmailChange}
-                                                        disabled={isEmailLoading}
-                                                    >
-                                                        {t('settingsPage.cancelButton')}
-                                                    </Button>
-                                                </div>
-                                            </Form>
-                                        )}
-                                </div>
-                            </Card>
-
-                            <Card padding='lg' ariaLabel={t('settingsPage.passwordHeader')}>
-                                <div className='space-y-6'>
-                                    <div className='flex items-center gap-1.5'>
-                                        <Typography variant='heading'>{t('settingsPage.passwordHeader')}</Typography>
-                                        <Tooltip content={t('settingsPage.passwordIntro')} placement='top'>
-                                            <Clickable
-                                                as='button'
-                                                type='button'
-                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                                aria-label={t('common.moreInfo')}
-                                            >
-                                                <InfoCircleIcon size={16} />
-                                            </Clickable>
-                                        </Tooltip>
-                                    </div>
-
-                                    <div className='rounded-xl border border-interactive-primary/20 bg-interactive-primary/10 px-4 py-4 text-sm text-interactive-primary'>
-                                        <div className='font-semibold'>{t('settingsPage.passwordRequirementsHeading')}</div>
-                                        <ul className='mt-2 space-y-2'>
-                                            <li className='flex gap-2'>
-                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
-                                                <span>{t('settingsPage.passwordRequirements.length')}</span>
-                                            </li>
-                                            <li className='flex gap-2'>
-                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
-                                                <span>{t('settingsPage.passwordRequirements.mix')}</span>
-                                            </li>
-                                            <li className='flex gap-2'>
-                                                <span className='mt-1 h-2 w-2 shrink-0 rounded-full bg-interactive-primary' aria-hidden='true' />
-                                                <span>{t('settingsPage.passwordRequirements.reuse')}</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    {!showPasswordForm
-                                        ? (
-                                            <Button
-                                                onClick={() => {
-                                                    showPasswordFormSignal.value = true;
+                                            <Input
+                                                label={t('settingsPage.newPasswordLabel')}
+                                                type='password'
+                                                name='newPassword'
+                                                value={passwordData.newPassword}
+                                                onChange={(value) => {
+                                                    passwordDataSignal.value = { ...passwordDataSignal.value, newPassword: value };
                                                 }}
-                                            >
-                                                {t('settingsPage.changePasswordButton')}
-                                            </Button>
-                                        )
-                                        : (
-                                            <div>
-                                                <Form
-                                                    onSubmit={() => {
-                                                        if (!isLoading) {
-                                                            return handlePasswordChange();
-                                                        }
-                                                    }}
-                                                    className='space-y-5'
-                                                >
-                                                    <Input
-                                                        label={t('settingsPage.currentPasswordLabel')}
-                                                        type='password'
-                                                        name='currentPassword'
-                                                        value={passwordData.currentPassword}
-                                                        onChange={(value) => {
-                                                            passwordDataSignal.value = { ...passwordDataSignal.value, currentPassword: value };
-                                                        }}
-                                                        disabled={isLoading}
-                                                        id='current-password-input'
-                                                    />
+                                                disabled={isLoading}
+                                                id='new-password-input'
+                                            />
 
-                                                    <Input
-                                                        label={t('settingsPage.newPasswordLabel')}
-                                                        type='password'
-                                                        name='newPassword'
-                                                        value={passwordData.newPassword}
-                                                        onChange={(value) => {
-                                                            passwordDataSignal.value = { ...passwordDataSignal.value, newPassword: value };
-                                                        }}
-                                                        disabled={isLoading}
-                                                        id='new-password-input'
-                                                    />
+                                            <Input
+                                                label={t('settingsPage.confirmNewPasswordLabel')}
+                                                type='password'
+                                                name='confirmNewPassword'
+                                                value={passwordData.confirmNewPassword}
+                                                onChange={(value) => {
+                                                    passwordDataSignal.value = { ...passwordDataSignal.value, confirmNewPassword: value };
+                                                }}
+                                                disabled={isLoading}
+                                                id='confirm-password-input'
+                                            />
 
-                                                    <Input
-                                                        label={t('settingsPage.confirmNewPasswordLabel')}
-                                                        type='password'
-                                                        name='confirmNewPassword'
-                                                        value={passwordData.confirmNewPassword}
-                                                        onChange={(value) => {
-                                                            passwordDataSignal.value = { ...passwordDataSignal.value, confirmNewPassword: value };
-                                                        }}
-                                                        disabled={isLoading}
-                                                        id='confirm-password-input'
-                                                    />
-
-                                                    <div className='flex flex-col gap-3 sm:flex-row'>
-                                                        <Button type='submit' disabled={isLoading} loading={isLoading}>
-                                                            {t('settingsPage.updatePasswordButton')}
-                                                        </Button>
-                                                        <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading}>
-                                                            {t('settingsPage.cancelButton')}
-                                                        </Button>
-                                                    </div>
-                                                </Form>
+                                            <div className='flex flex-col gap-3 sm:flex-row'>
+                                                <Button type='submit' disabled={isLoading} loading={isLoading}>
+                                                    {t('settingsPage.updatePasswordButton')}
+                                                </Button>
+                                                <Button type='button' variant='secondary' onClick={handleCancelPasswordChange} disabled={isLoading}>
+                                                    {t('settingsPage.cancelButton')}
+                                                </Button>
                                             </div>
-                                        )}
-                                </div>
-                            </Card>
+                                        </Stack>
+                                    </Form>
+                                )}
+                        </FormSection>
 
-                            <Card padding='lg' ariaLabel={t('languageSelector.label')}>
-                                <div className='space-y-6'>
-                                    <div className='flex items-center gap-1.5'>
-                                        <Typography variant='heading'>{t('languageSelector.label')}</Typography>
-                                        <Tooltip content={t('languageSelector.description')} placement='top'>
-                                            <Clickable
-                                                as='button'
-                                                type='button'
-                                                className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                                aria-label={t('common.moreInfo')}
-                                            >
-                                                <InfoCircleIcon size={16} />
-                                            </Clickable>
-                                        </Tooltip>
-                                    </div>
-
-                                    <LanguageSwitcher variant='full' />
-                                </div>
-                            </Card>
-                        </div>
-                    </div>
-                </div>
+                        <FormSection
+                            title={t('languageSelector.label')}
+                            description={t('languageSelector.description')}
+                            moreInfoLabel={t('common.moreInfo')}
+                        >
+                            <LanguageSwitcher variant='full' />
+                        </FormSection>
+                    </TwoColumnLayout>
+                </Stack>
             </div>
         </BaseLayout>
     );

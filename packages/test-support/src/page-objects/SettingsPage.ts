@@ -444,18 +444,6 @@ export class SettingsPage extends BasePage {
     }
 
     // ============================================================================
-    // DISPLAY NAME INFO ICON LOCATORS
-    // ============================================================================
-
-    /**
-     * Display name info icon (contains helper text in tooltip)
-     */
-    protected getDisplayNameInfoIcon(): Locator {
-        // The info icon is inside the label element that contains "Display Name" text
-        return this.page.locator('label').filter({ hasText: translation.settingsPage.displayNameLabel }).getByLabel(translation.common.moreInfo);
-    }
-
-    // ============================================================================
     // SECTION HEADER LOCATORS
     // ============================================================================
 
@@ -551,17 +539,6 @@ export class SettingsPage extends BasePage {
      */
     async verifyPasswordRequirementVisible(pattern: RegExp): Promise<void> {
         await expect(this.getPasswordRequirement(pattern)).toBeVisible();
-    }
-
-    // ============================================================================
-    // DISPLAY NAME INFO ICON VERIFICATION METHODS
-    // ============================================================================
-
-    /**
-     * Verify display name info icon is visible (helper text is in tooltip)
-     */
-    async verifyDisplayNameInfoIconVisible(): Promise<void> {
-        await expect(this.getDisplayNameInfoIcon()).toBeVisible();
     }
 
     // ============================================================================

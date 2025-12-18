@@ -91,6 +91,77 @@ The focus trap in `Modal.tsx` **must not steal focus from active form elements**
 
 ---
 
+## Layout Composition Components
+
+**Location:** `components/layout/`
+
+Higher-level components that compose primitives (Stack, Surface, Card) for consistent page layouts.
+
+### PageHeader - Hero section
+```tsx
+<PageHeader
+  label="Account"           // optional eyebrow label
+  title="Settings"          // required
+  description="Manage..."   // optional
+  actions={<Button>...</Button>}  // optional right-side actions
+/>
+```
+
+### PageSection - Content section wrapper
+```tsx
+<PageSection
+  title="Recent Groups"
+  actions={<Button>Create</Button>}  // optional header actions
+  glass={true}                        // glass-panel styling (default: true)
+>
+  {children}
+</PageSection>
+```
+
+### FormSection - Card wrapper for forms
+```tsx
+<FormSection
+  title="Change Password"
+  description="Tooltip content for info icon"
+  moreInfoLabel="More info"  // aria-label for tooltip trigger
+>
+  <Input label="Current" />
+  <Button>Save</Button>
+</FormSection>
+```
+
+### TwoColumnLayout - Sidebar + main content
+```tsx
+<TwoColumnLayout
+  sidebar={<ProfileCard />}
+  sidebarWidth="medium"      // 'narrow' | 'medium' | 'wide'
+  stickyHeader               // sidebar sticks on scroll
+  gap="md"                   // gap between columns
+>
+  {mainContent}
+</TwoColumnLayout>
+```
+
+### ResponsiveColumns - Mobile-aware multi-column
+```tsx
+<ResponsiveColumns
+  left={<MembersList />}
+  main={<ExpensesList />}
+  right={<BalancesSection />}
+  mobileOrder={['main', 'right', 'left']}  // stack order on mobile
+  mobileHidden={['left']}                   // hide on mobile
+/>
+```
+
+**Usage rules:**
+- Use `PageHeader` for all page hero sections
+- Use `PageSection` for glass-panel content sections with optional headers
+- Use `FormSection` for settings-style form cards
+- Use `TwoColumnLayout` for sidebar + main layouts (like SettingsPage)
+- Use `ResponsiveColumns` for complex multi-column layouts
+
+---
+
 ## Motion System
 
 **Location:** `app/hooks/`

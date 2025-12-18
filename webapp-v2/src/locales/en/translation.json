@@ -765,7 +765,6 @@
     "currentEmailLabel": "Current email",
     "displayNameLabel": "Display Name",
     "displayNamePlaceholder": "Enter your display name",
-    "displayNameHelper": "Use your full name or a nickname that teammates will recognize.",
     "saveChangesButton": "Save Changes",
     "passwordHeader": "Password",
     "passwordIntro": "Set a strong password to keep your {{appName}} account secure.",
@@ -1497,8 +1496,7 @@
           "title": "Motion"
         },
         "marketing": {
-          "title": "Marketing Features",
-          "description": "Toggle marketing pages and content"
+          "title": "Marketing Features"
         },
         "headerDisplay": {
           "title": "Header Display"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "Tenant ID",
         "appName": "App Name",
-        "logoUrl": "Logo URL",
-        "primaryColor": "Primary Color",
-        "primaryVariantColor": "Primary Variant",
-        "secondaryColor": "Secondary Color",
-        "secondaryVariantColor": "Secondary Variant",
-        "accentColor": "Accent Color",
-        "neutralColor": "Neutral Color",
-        "neutralVariantColor": "Neutral Variant",
-        "successColor": "Success Color",
-        "warningColor": "Warning Color",
-        "dangerColor": "Danger Color",
-        "infoColor": "Info Color"
+        "logoUrl": "Logo URL"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",

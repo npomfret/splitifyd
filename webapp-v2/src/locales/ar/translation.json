@@ -765,7 +765,6 @@
     "currentEmailLabel": "البريد الإلكتروني الحالي",
     "displayNameLabel": "اسم العرض",
     "displayNamePlaceholder": "أدخل اسم العرض الخاص بك",
-    "displayNameHelper": "استخدم اسمك الكامل أو لقبًا يتعرف عليه زملاؤك في الفريق.",
     "saveChangesButton": "حفظ التغييرات",
     "passwordHeader": "كلمة المرور",
     "passwordIntro": "قم بتعيين كلمة مرور قوية للحفاظ على أمان حساب {{appName}} الخاص بك.",
@@ -1497,8 +1496,7 @@
           "title": "الحركة"
         },
         "marketing": {
-          "title": "ميزات التسويق",
-          "description": "تبديل صفحات التسويق والمحتوى"
+          "title": "ميزات التسويق"
         },
         "headerDisplay": {
           "title": "عرض الرأس"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "معرف المستأجر",
         "appName": "اسم التطبيق",
-        "logoUrl": "عنوان URL للشعار",
-        "primaryColor": "اللون الأساسي",
-        "primaryVariantColor": "اللون الأساسي المتغير",
-        "secondaryColor": "اللون الثانوي",
-        "secondaryVariantColor": "اللون الثانوي المتغير",
-        "accentColor": "لون التمييز",
-        "neutralColor": "اللون المحايد",
-        "neutralVariantColor": "اللون المحايد المتغير",
-        "successColor": "لون النجاح",
-        "warningColor": "لون التحذير",
-        "dangerColor": "لون الخطر",
-        "infoColor": "لون المعلومات"
+        "logoUrl": "عنوان URL للشعار"
       },
       "placeholders": {
         "tenantId": "معرف المستأجر الخاص بي",

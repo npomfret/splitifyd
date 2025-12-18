@@ -1,15 +1,1 @@
-export { AuroraGradientSection } from './AuroraGradientSection';
-export { BorderColorsSection } from './BorderColorsSection';
-export { GlassmorphismSection } from './GlassmorphismSection';
-export { InteractiveColorsSection } from './InteractiveColorsSection';
-export { LegalSection } from './LegalSection';
-export { MarketingSection } from './MarketingSection';
-export { MotionEffectsSection } from './MotionEffectsSection';
 export { PaletteColorsSection } from './PaletteColorsSection';
-export { RadiiSection } from './RadiiSection';
-export { ShadowsSection } from './ShadowsSection';
-export { SpacingSection } from './SpacingSection';
-export { StatusColorsSection } from './StatusColorsSection';
-export { SurfaceColorsSection } from './SurfaceColorsSection';
-export { TextColorsSection } from './TextColorsSection';
-export { TypographySection } from './TypographySection';

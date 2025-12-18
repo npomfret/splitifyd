@@ -1,5 +1,5 @@
 import { ShareGroupModal } from '@/components/group';
-import { Button, Typography } from '@/components/ui';
+import { Button, Stack, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logWarning } from '@/utils/browser-logger.ts';
 import { GroupId, GroupName } from '@billsplit-wl/shared';
@@ -10,8 +10,7 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { DashboardGrid } from '../components/layout/DashboardGrid';
+import { BaseLayout, PageSection } from '../components/layout';
 
 export function DashboardPage() {
     const { t } = useTranslation();
@@ -82,69 +81,67 @@ export function DashboardPage() {
 
     return (
         <BaseLayout title={t('dashboard.title')} description={t('dashboard.description')} headerVariant='dashboard'>
-            <DashboardGrid
-                mainContent={
-                    <>
-                        {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
-                        {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
-                            <div className='mb-6'>
-                                <Typography variant='pageTitle' as='h2' className='mb-2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</Typography>
-                                <p className='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
-                            </div>
-                        )}
+            <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+                <Stack spacing='lg'>
+                    {/* Welcome Section - Only show for first-time users (no groups) after loading is complete */}
+                    {enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized && !enhancedGroupsStore.loading && (
+                        <Stack spacing='xs'>
+                            <Typography variant='pageTitle' as='h2'>{t('dashboard.welcomeMessage', { name: user.displayName })}</Typography>
+                            <p className='text-text-muted'>{t('dashboard.welcomeDescription')}</p>
+                        </Stack>
+                    )}
 
-                        {/* Groups Section */}
-                        <section className='glass-panel border-border-default rounded-lg shadow-lg border p-8' aria-labelledby='groups-section-heading'>
-                            <div className='flex flex-col gap-4 mb-8 lg:flex-row lg:items-center lg:justify-between'>
-                                <Typography variant='heading' as='h3' id='groups-section-heading' className='font-bold'>{t('dashboard.yourGroups')}</Typography>
-                                <div className='flex flex-wrap items-center gap-4 justify-between lg:justify-end'>
-                                    <div
-                                        className='inline-flex rounded-md border border-border-default overflow-hidden'
-                                        role='group'
-                                        aria-label={t('dashboard.groupsFilter.label')}
-                                    >
-                                        <Button
-                                            type='button'
-                                            aria-pressed={!showArchived}
-                                            disabled={filterLoading}
-                                            onClick={() => changeGroupFilter(false)}
-                                            variant={!showArchived ? 'primary' : 'secondary'}
-                                            size='sm'
-                                            className='rounded-none min-w-[90px]'
-                                            magnetic={false}
-                                        >
-                                            {t('dashboard.groupsFilter.active')}
-                                        </Button>
-                                        <Button
-                                            type='button'
-                                            aria-pressed={showArchived}
-                                            disabled={filterLoading}
-                                            onClick={() => changeGroupFilter(true)}
-                                            variant={showArchived ? 'primary' : 'secondary'}
-                                            size='sm'
-                                            className='rounded-none border-l border-border-default min-w-[90px]'
-                                            magnetic={false}
-                                        >
-                                            {t('dashboard.groupsFilter.archived')}
-                                        </Button>
-                                    </div>
+                    {/* Groups Section */}
+                    <PageSection
+                        title={t('dashboard.yourGroups')}
+                        ariaLabelledBy='groups-section-heading'
+                        actions={
+                            <>
+                                <div
+                                    className='inline-flex rounded-md border border-border-default overflow-hidden'
+                                    role='group'
+                                    aria-label={t('dashboard.groupsFilter.label')}
+                                >
                                     <Button
-                                        variant='primary'
-                                        size='md'
-                                        onClick={() => setIsCreateModalOpen(true)}
-                                        className='hidden lg:block'
+                                        type='button'
+                                        aria-pressed={!showArchived}
+                                        disabled={filterLoading}
+                                        onClick={() => changeGroupFilter(false)}
+                                        variant={!showArchived ? 'primary' : 'secondary'}
+                                        size='sm'
+                                        className='rounded-none min-w-[90px]'
+                                        magnetic={false}
                                     >
-                                        {t('dashboard.createGroup')}
+                                        {t('dashboard.groupsFilter.active')}
+                                    </Button>
+                                    <Button
+                                        type='button'
+                                        aria-pressed={showArchived}
+                                        disabled={filterLoading}
+                                        onClick={() => changeGroupFilter(true)}
+                                        variant={showArchived ? 'primary' : 'secondary'}
+                                        size='sm'
+                                        className='rounded-none border-l border-border-default min-w-[90px]'
+                                        magnetic={false}
+                                    >
+                                        {t('dashboard.groupsFilter.archived')}
                                     </Button>
                                 </div>
-                            </div>
-
-                            {/* Groups Content */}
-                            <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
-                        </section>
-                    </>
-                }
-            />
+                                <Button
+                                    variant='primary'
+                                    size='md'
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                    className='hidden lg:block'
+                                >
+                                    {t('dashboard.createGroup')}
+                                </Button>
+                            </>
+                        }
+                    >
+                        <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
+                    </PageSection>
+                </Stack>
+            </div>
 
             {/* Create Group Modal */}
             <CreateGroupModal

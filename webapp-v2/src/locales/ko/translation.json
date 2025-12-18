@@ -813,8 +813,7 @@
       "emailPasswordRequired": "이 변경을 확인하려면 현재 비밀번호를 입력하세요.",
       "emailInUse": "해당 이메일은 이미 다른 {{appName}} 계정에 연결되어 있습니다.",
       "emailChangeFailed": "이메일 변경에 실패했습니다. 다시 시도하세요."
-    },
-    "displayNameHelper": "팀원들이 알아볼 수 있는 실명 또는 닉네임을 사용하세요."
+    }
   },
   "editGroupModal": {
     "groupNameLabel": "그룹 이름",
@@ -1498,8 +1497,7 @@
           "title": "모션"
         },
         "marketing": {
-          "title": "마케팅 기능",
-          "description": "마케팅 페이지 및 콘텐츠 전환"
+          "title": "마케팅 기능"
         },
         "headerDisplay": {
           "title": "헤더 표시"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "테넌트 ID",
         "appName": "앱 이름",
-        "logoUrl": "로고 URL",
-        "primaryColor": "기본 색상",
-        "primaryVariantColor": "기본 변형",
-        "secondaryColor": "보조 색상",
-        "secondaryVariantColor": "보조 변형",
-        "accentColor": "강조 색상",
-        "neutralColor": "중립 색상",
-        "neutralVariantColor": "중립 변형",
-        "successColor": "성공 색상",
-        "warningColor": "경고 색상",
-        "dangerColor": "위험 색상",
-        "infoColor": "정보 색상"
+        "logoUrl": "로고 URL"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",

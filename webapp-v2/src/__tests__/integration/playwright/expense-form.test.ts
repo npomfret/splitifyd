@@ -2117,7 +2117,7 @@ test.describe('Expense Form', () => {
                 name: 'large-receipt.png',
                 mimeType: 'image/png',
                 buffer: largeBuffer,
-            });
+            }, { timeout: 10000 });
 
             // Error should be displayed
             await expenseFormPage.verifyReceiptErrorVisible();

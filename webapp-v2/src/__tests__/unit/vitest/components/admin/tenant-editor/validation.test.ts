@@ -98,6 +98,13 @@ function createValidTenantData(): TenantData {
         letterSpacingTight: '-0.02em',
         letterSpacingNormal: '0',
         letterSpacingWide: '0.02em',
+        typographySemanticBody: 'md',
+        typographySemanticBodyStrong: 'md',
+        typographySemanticCaption: 'sm',
+        typographySemanticButton: 'sm',
+        typographySemanticEyebrow: 'xs',
+        typographySemanticHeading: '2xl',
+        typographySemanticDisplay: '4xl',
         spacing2xs: '0.25rem',
         spacingXs: '0.5rem',
         spacingSm: '0.75rem',
@@ -206,13 +213,13 @@ describe('validateTenantData', () => {
         it('returns error for empty font family', () => {
             const data = createValidTenantData();
             data.fontFamilySans = '';
-            expect(validateTenantData(data, mockT)).toBe('Sans font family is required');
+            expect(validateTenantData(data, mockT)).toBe('Sans is required');
         });
 
         it('returns error for empty legal company name', () => {
             const data = createValidTenantData();
             data.legalCompanyName = '';
-            expect(validateTenantData(data, mockT)).toBe('Company name is required');
+            expect(validateTenantData(data, mockT)).toBe('Company Name is required');
         });
     });
 

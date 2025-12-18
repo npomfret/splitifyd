@@ -2,6 +2,7 @@ import { apiClient } from '@/app/apiClient';
 import { AdminFormSection, AdminFormToggle, ModeToggle } from '@/components/admin/forms';
 import { ImagePicker } from '@/components/admin/ImagePicker';
 import {
+    AutoSection,
     buildBrandingTokensFromForm,
     CreationMode,
     EMPTY_TENANT_DATA,
@@ -11,23 +12,7 @@ import {
     TenantEditorModalProps,
     validateTenantData,
 } from '@/components/admin/tenant-editor';
-import {
-    AuroraGradientSection,
-    BorderColorsSection,
-    GlassmorphismSection,
-    InteractiveColorsSection,
-    LegalSection,
-    MarketingSection,
-    MotionEffectsSection,
-    PaletteColorsSection,
-    RadiiSection,
-    ShadowsSection,
-    SpacingSection,
-    StatusColorsSection,
-    SurfaceColorsSection,
-    TextColorsSection,
-    TypographySection,
-} from '@/components/admin/tenant-editor/sections';
+import { PaletteColorsSection } from '@/components/admin/tenant-editor/sections';
 import { Alert, Button, ImageUploadField, Input, Modal } from '@/components/ui';
 import { XIcon } from '@/components/ui/icons';
 import { logError } from '@/utils/browser-logger';
@@ -569,30 +554,24 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                             {/* Advanced Mode Only Sections */}
                             {editorMode === 'advanced' && (
                                 <>
-                                    <SurfaceColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
-
-                                    <TextColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
-
-                                    <InteractiveColorsSection formData={formData} update={update} isSaving={isSaving} />
-
-                                    <BorderColorsSection formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
-
-                                    <StatusColorsSection formData={formData} update={update} isSaving={isSaving} />
-
-                                    <MotionEffectsSection formData={formData} update={update} isSaving={isSaving} />
-                                    <AuroraGradientSection formData={formData} update={update} isSaving={isSaving} />
-                                    <GlassmorphismSection formData={formData} update={update} isSaving={isSaving} />
-
-                                    <TypographySection formData={formData} update={update} isSaving={isSaving} />
-                                    <SpacingSection formData={formData} update={update} isSaving={isSaving} />
-                                    <RadiiSection formData={formData} update={update} isSaving={isSaving} />
-                                    <ShadowsSection formData={formData} update={update} isSaving={isSaving} />
+                                    <AutoSection sectionId='surfaces' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='text' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='interactive' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='border' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='status' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='motion' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='aurora' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='glassmorphism' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='typography' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='spacing' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='radii' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                                    <AutoSection sectionId='shadows' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
                                 </>
                             )}
 
-                            {/* Basic Mode Sections: Legal and Marketing */}
-                            <LegalSection formData={formData} update={update} isSaving={isSaving} />
-                            <MarketingSection formData={formData} update={update} isSaving={isSaving} />
+                            {/* Legal and Marketing - always visible */}
+                            <AutoSection sectionId='legal' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
+                            <AutoSection sectionId='marketing' formData={formData} update={update} isSaving={isSaving} mode={mode} creationMode={creationMode} />
                         </div>
                     </div>
 

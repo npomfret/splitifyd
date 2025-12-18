@@ -766,7 +766,6 @@
     "currentEmailLabel": "Kasalukuyang email",
     "displayNameLabel": "Pangalan sa Display",
     "displayNamePlaceholder": "Ilagay ang iyong pangalan sa display",
-    "displayNameHelper": "Gamitin ang iyong buong pangalan o isang palayaw na makikilala ng mga kasamahan sa koponan.",
     "saveChangesButton": "I-save ang mga Pagbabago",
     "passwordHeader": "Password",
     "passwordIntro": "Magtakda ng isang malakas na password para panatilihing ligtas ang iyong {{appName}} account.",
@@ -1498,8 +1497,7 @@
           "title": "Paggalaw"
         },
         "marketing": {
-          "title": "Mga Feature ng Marketing",
-          "description": "I-toggle ang mga pahina at nilalaman ng marketing"
+          "title": "Mga Feature ng Marketing"
         },
         "headerDisplay": {
           "title": "Display ng Header"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "Tenant ID",
         "appName": "Pangalan ng App",
-        "logoUrl": "URL ng Logo",
-        "primaryColor": "Pangunahing Kulay",
-        "primaryVariantColor": "Pangunahing Variant",
-        "secondaryColor": "Pangalawang Kulay",
-        "secondaryVariantColor": "Pangalawang Variant",
-        "accentColor": "Accent na Kulay",
-        "neutralColor": "Neutral na Kulay",
-        "neutralVariantColor": "Neutral na Variant",
-        "successColor": "Kulay ng Tagumpay",
-        "warningColor": "Kulay ng Babala",
-        "dangerColor": "Kulay ng Panganib",
-        "infoColor": "Kulay ng Impormasyon"
+        "logoUrl": "URL ng Logo"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",

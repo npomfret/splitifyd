@@ -766,7 +766,6 @@
     "currentEmailLabel": "Pašreizējais e-pasts",
     "displayNameLabel": "Parādāmais vārds",
     "displayNamePlaceholder": "Ievadiet savu parādāmo vārdu",
-    "displayNameHelper": "Izmantojiet savu pilno vārdu vai segvārdu, ko komandas biedri atpazīs.",
     "saveChangesButton": "Saglabāt izmaiņas",
     "passwordHeader": "Parole",
     "passwordIntro": "Iestatiet stipru paroli, lai nodrošinātu sava {{appName}} konta drošību.",
@@ -1498,8 +1497,7 @@
           "title": "Kustība"
         },
         "marketing": {
-          "title": "Mārketinga funkcijas",
-          "description": "Pārslēgt mārketinga lapas un saturu"
+          "title": "Mārketinga funkcijas"
         },
         "headerDisplay": {
           "title": "Galvenes attēlojums"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "Īrnieka ID",
         "appName": "Lietotnes nosaukums",
-        "logoUrl": "Logotipa URL",
-        "primaryColor": "Primārā krāsa",
-        "primaryVariantColor": "Primārais variants",
-        "secondaryColor": "Sekundārā krāsa",
-        "secondaryVariantColor": "Sekundārais variants",
-        "accentColor": "Akcenta krāsa",
-        "neutralColor": "Neitrāla krāsa",
-        "neutralVariantColor": "Neitrāls variants",
-        "successColor": "Veiksmīga krāsa",
-        "warningColor": "Brīdinājuma krāsa",
-        "dangerColor": "Bīstamības krāsa",
-        "infoColor": "Informācijas krāsa"
+        "logoUrl": "Logotipa URL"
       },
       "placeholders": {
         "tenantId": "mans-irnieka-id",

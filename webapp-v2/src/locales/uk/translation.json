@@ -765,7 +765,6 @@
     "currentEmailLabel": "Поточна електронна пошта",
     "displayNameLabel": "Відображуване ім'я",
     "displayNamePlaceholder": "Введіть своє відображуване ім'я",
-    "displayNameHelper": "Використовуйте своє повне ім'я або псевдонім, який впізнають товариші по команді.",
     "saveChangesButton": "Зберегти зміни",
     "passwordHeader": "Пароль",
     "passwordIntro": "Встановіть надійний пароль, щоб захистити свій обліковий запис {{appName}}.",
@@ -1497,8 +1496,7 @@
           "title": "Рух"
         },
         "marketing": {
-          "title": "Маркетингові функції",
-          "description": "Переключення маркетингових сторінок і вмісту"
+          "title": "Маркетингові функції"
         },
         "headerDisplay": {
           "title": "Відображення заголовка"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "ID орендаря",
         "appName": "Назва програми",
-        "logoUrl": "URL логотипу",
-        "primaryColor": "Основний колір",
-        "primaryVariantColor": "Варіант основного",
-        "secondaryColor": "Вторинний колір",
-        "secondaryVariantColor": "Варіант вторинного",
-        "accentColor": "Акцентний колір",
-        "neutralColor": "Нейтральний колір",
-        "neutralVariantColor": "Варіант нейтрального",
-        "successColor": "Колір успіху",
-        "warningColor": "Колір попередження",
-        "dangerColor": "Колір небезпеки",
-        "infoColor": "Колір інформації"
+        "logoUrl": "URL логотипу"
       },
       "placeholders": {
         "tenantId": "мій-орендар",

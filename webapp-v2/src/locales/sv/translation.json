@@ -766,7 +766,6 @@
     "currentEmailLabel": "Nuvarande e-post",
     "displayNameLabel": "Visningsnamn",
     "displayNamePlaceholder": "Ange ditt visningsnamn",
-    "displayNameHelper": "Använd ditt fullständiga namn eller ett smeknamn som dina lagkamrater kommer att känna igen.",
     "saveChangesButton": "Spara ändringar",
     "passwordHeader": "Lösenord",
     "passwordIntro": "Ange ett starkt lösenord för att hålla ditt {{appName}}-konto säkert.",
@@ -1498,8 +1497,7 @@
           "title": "Rörelse"
         },
         "marketing": {
-          "title": "Marknadsföringsfunktioner",
-          "description": "Växla marknadsföringssidor och innehåll"
+          "title": "Marknadsföringsfunktioner"
         },
         "headerDisplay": {
           "title": "Rubrikvisning"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "Hyresgäst-ID",
         "appName": "Appnamn",
-        "logoUrl": "Logotyp-URL",
-        "primaryColor": "Primärfärg",
-        "primaryVariantColor": "Primärvariant",
-        "secondaryColor": "Sekundärfärg",
-        "secondaryVariantColor": "Sekundärvariant",
-        "accentColor": "Accentfärg",
-        "neutralColor": "Neutral färg",
-        "neutralVariantColor": "Neutral variant",
-        "successColor": "Framgångsfärg",
-        "warningColor": "Varningsfärg",
-        "dangerColor": "Färfärg",
-        "infoColor": "Informationsfärg"
+        "logoUrl": "Logotyp-URL"
       },
       "placeholders": {
         "tenantId": "mitt-hyresgäst-id",

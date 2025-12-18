@@ -765,7 +765,6 @@
     "currentEmailLabel": "Nåværende e-post",
     "displayNameLabel": "Visningsnavn",
     "displayNamePlaceholder": "Skriv inn visningsnavnet ditt",
-    "displayNameHelper": "Bruk ditt fulle navn eller et kallenavn som lagkamerater vil gjenkjenne.",
     "saveChangesButton": "Lagre endringer",
     "passwordHeader": "Passord",
     "passwordIntro": "Sett et sterkt passord for å holde {{appName}}-kontoen din sikker.",
@@ -1497,8 +1496,7 @@
           "title": "Bevegelse"
         },
         "marketing": {
-          "title": "Markedsføringsfunksjoner",
-          "description": "Vis/skjul markedsføringssider og innhold"
+          "title": "Markedsføringsfunksjoner"
         },
         "headerDisplay": {
           "title": "Topptekstvisning"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "Tenant-ID",
         "appName": "Appnavn",
-        "logoUrl": "Logo-URL",
-        "primaryColor": "Primærfarge",
-        "primaryVariantColor": "Primærvariant",
-        "secondaryColor": "Sekundærfarge",
-        "secondaryVariantColor": "Sekundærvariant",
-        "accentColor": "Aksentfarge",
-        "neutralColor": "Nøytralfarge",
-        "neutralVariantColor": "Nøytralvariant",
-        "successColor": "Suksessfarge",
-        "warningColor": "Advarselsfarge",
-        "dangerColor": "Farefarge",
-        "infoColor": "Infofarge"
+        "logoUrl": "Logo-URL"
       },
       "placeholders": {
         "tenantId": "min-tenant-id",

@@ -765,7 +765,6 @@
     "currentEmailLabel": "Aktuelle E-Mail",
     "displayNameLabel": "Anzeigename",
     "displayNamePlaceholder": "Geben Sie Ihren Anzeigenamen ein",
-    "displayNameHelper": "Verwenden Sie Ihren vollständigen Namen oder einen Spitznamen, den Teammitglieder erkennen werden.",
     "saveChangesButton": "Änderungen speichern",
     "passwordHeader": "Passwort",
     "passwordIntro": "Legen Sie ein sicheres Passwort fest, um Ihr {{appName}}-Konto zu schützen.",
@@ -1497,8 +1496,7 @@
           "title": "Bewegung"
         },
         "marketing": {
-          "title": "Marketingfunktionen",
-          "description": "Marketingseiten und -inhalte umschalten"
+          "title": "Marketingfunktionen"
         },
         "headerDisplay": {
           "title": "Kopfzeilen-Anzeige"
@@ -1513,18 +1511,7 @@
       "fields": {
         "tenantId": "Mandanten-ID",
         "appName": "App-Name",
-        "logoUrl": "Logo-URL",
-        "primaryColor": "Primärfarbe",
-        "primaryVariantColor": "Primärfarbvariante",
-        "secondaryColor": "Sekundärfarbe",
-        "secondaryVariantColor": "Sekundärfarbvariante",
-        "accentColor": "Akzentfarbe",
-        "neutralColor": "Neutrale Farbe",
-        "neutralVariantColor": "Neutrale Farbvariante",
-        "successColor": "Erfolgsfarbe",
-        "warningColor": "Warnfarbe",
-        "dangerColor": "Gefahrenfarbe",
-        "infoColor": "Info-Farbe"
+        "logoUrl": "Logo-URL"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",

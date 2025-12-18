@@ -766,7 +766,6 @@
     "currentEmailLabel": "現在のメールアドレス",
     "displayNameLabel": "表示名",
     "displayNamePlaceholder": "表示名を入力してください",
-    "displayNameHelper": "チームメイトが認識できる氏名またはニックネームを使用してください。",
     "saveChangesButton": "変更を保存",
     "passwordHeader": "パスワード",
     "passwordIntro": "{{appName}}アカウントを安全に保つために、強力なパスワードを設定してください。",
@@ -1498,8 +1497,7 @@
           "title": "モーション"
         },
         "marketing": {
-          "title": "マーケティング機能",
-          "description": "マーケティングページとコンテンツを切り替えます"
+          "title": "マーケティング機能"
         },
         "headerDisplay": {
           "title": "ヘッダー表示"
@@ -1514,18 +1512,7 @@
       "fields": {
         "tenantId": "テナントID",
         "appName": "アプリ名",
-        "logoUrl": "ロゴURL",
-        "primaryColor": "プライマリカラー",
-        "primaryVariantColor": "プライマリバリアント",
-        "secondaryColor": "セカンダリカラー",
-        "secondaryVariantColor": "セカンダリバリアント",
-        "accentColor": "アクセントカラー",
-        "neutralColor": "ニュートラルカラー",
-        "neutralVariantColor": "ニュートラルバリアント",
-        "successColor": "成功色",
-        "warningColor": "警告色",
-        "dangerColor": "危険色",
-        "infoColor": "情報色"
+        "logoUrl": "ロゴURL"
       },
       "placeholders": {
         "tenantId": "my-tenant-id",
