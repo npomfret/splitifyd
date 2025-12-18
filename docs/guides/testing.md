@@ -301,6 +301,10 @@ within the SAME test, you may create a `private` helper that returns the locator
 
 ### Selector Priority
 
+**Default selector strategy (MANDATORY):** do what the user does — locate a container by **heading/landmark** (region/dialog/nav/section), then locate the unique element *within that container*.
+
+If you don’t follow this (e.g. page-level `getByRole(...)`, `getByText(...)`, `.first()/.nth()`, generic `dialog/listbox/menu/alert`), add a short comment justifying the exception (what makes it unique/stable, or why you’re deliberately asserting styling/structure).
+
 1. **ARIA roles/labels** - `getByRole('button', { name: 'Submit' })`
 2. **Visible text** - `getByRole('heading', { name: 'Settings' })`
 3. **Form labels** - `getByLabel('Email address')`

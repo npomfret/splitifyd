@@ -373,6 +373,8 @@ When adding attributes to elements for testing, **prefer what the user can see**
 
 **Scope first, then select.** Use a container's heading or landmark to narrow scope, then find the element within. Never use `.first()`, `.nth()`, or ambiguous selectors that could match multiple elements.
 
+If you must deviate (global selector, generic role, index-based selection), add a brief justification comment explaining why it’s unique/stable.
+
 ```typescript
 // ✅ Scoped by section heading - unambiguous
 const section = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Currency Settings' }) });
@@ -509,4 +511,3 @@ Every selector should be **unambiguous**. If multiple elements could match, scop
 | `@layer components { .foo { ... } }` | `@utility foo { ... }` (Tailwind v4) |
 | `data-testid` on elements with semantic meaning | Only add when no role, label, or visible text exists |
 | Inline explainer text cluttering forms | `InfoCircleIcon` + `Tooltip` beside labels |
-
