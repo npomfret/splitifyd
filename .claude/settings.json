@@ -42,6 +42,7 @@
       "Bash(git merge-base:*)",
       "Bash(git rebase:*)",
       "Bash(git reset:*)",
+      "Bash(git rev-parse:*)",
       "Bash(git:*)",
       "Bash(grep:*)",
       "Bash(http:*)",
