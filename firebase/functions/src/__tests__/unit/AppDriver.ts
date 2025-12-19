@@ -108,6 +108,7 @@ import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulat
 import { expect } from 'vitest';
 import { ApiError, Errors } from '../../errors';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
+import type { UserDocument } from '../../schemas';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
 import { FakeEmailService } from '../../services/email';
 import { FirestoreReader } from '../../services/firestore';
@@ -559,6 +560,9 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         count: number;
         includeAdmin?: boolean;
     }): Promise<{ users: UserId[]; admin?: UserId; }> {
+        // Auto-seed localhost tenant for registration (idempotent - safe to call multiple times)
+        this.seedLocalhostTenant();
+
         const users: UserId[] = [];
 
         // Create regular users
@@ -843,6 +847,22 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             throw new Error(`Settlement not found: ${settlementId}`);
         }
         return settlement;
+    }
+
+    /**
+     * Direct database access to get a user document by ID.
+     * This bypasses the API layer and reads directly from the stub database.
+     * Useful for verifying internal fields like signupTenantId that aren't exposed via API.
+     */
+    async getUserDocumentById(userId: UserId | string): Promise<UserDocument> {
+        const firestoreReader = new FirestoreReader(this.db);
+        const user = await firestoreReader.getUser(
+            typeof userId === 'string' ? toUserId(userId) : userId,
+        );
+        if (!user) {
+            throw new Error(`User not found: ${userId}`);
+        }
+        return user;
     }
 
     async listGroupExpenses(groupId: GroupId | string, options: ListExpensesOptions = {}, authToken: AuthToken): Promise<ListExpensesResponse> {
@@ -1155,6 +1175,14 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async register(userData: UserRegistration): Promise<RegisterResponse> {
         const req = createStubRequest('', userData);
         const res = await this.dispatchByHandler('register', req);
+        this.throwIfError(res);
+        return res.getJson() as RegisterResponse;
+    }
+
+    async registerWithOptions(userData: UserRegistration, options: Partial<StubRequestOptions>): Promise<RegisterResponse> {
+        const req = createStubRequest('', userData, {}, options);
+        const res = await this.dispatchByHandler('register', req);
+        this.throwIfError(res);
         return res.getJson() as RegisterResponse;
     }
 

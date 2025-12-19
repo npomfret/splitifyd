@@ -1,7 +1,7 @@
 import { PolicyIdSchema, SystemUserRoles, toEmail, toISOString, VersionHashSchema } from '@billsplit-wl/shared';
 import type { Email } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { OptionalAuditFieldsSchema, UserIdSchema } from './common';
+import { OptionalAuditFieldsSchema, TenantIdSchema, UserIdSchema } from './common';
 
 /**
  * Base User schema without document ID
@@ -18,6 +18,7 @@ const BaseUserSchema = z
         acceptedPolicies: z
             .record(PolicyIdSchema, z.record(VersionHashSchema, z.string().datetime().transform(toISOString)))
             .optional(),
+        signupTenantId: TenantIdSchema.optional(), // Tenant where user registered (for analytics)
     })
     .merge(OptionalAuditFieldsSchema);
 

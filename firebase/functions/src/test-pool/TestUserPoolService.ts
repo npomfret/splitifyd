@@ -1,5 +1,5 @@
 import type { Email } from '@billsplit-wl/shared';
-import { toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import { toDisplayName, toEmail, toPassword, toTenantId } from '@billsplit-wl/shared';
 import type { IAuthService } from '../services/auth';
 import type { IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
@@ -82,7 +82,8 @@ export class TestUserPoolService {
             termsAccepted: true,
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
-        });
+            signupHostname: 'localhost',
+        }, toTenantId('test-tenant'));
 
         const token = await this.authService.createCustomToken(user.uid);
 

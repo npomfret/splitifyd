@@ -8,7 +8,7 @@ import type { IAuthService } from '../services/auth';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 import type { UserService } from '../services/UserService2';
 import { HostResolver } from '../utils/HostResolver';
-import { validateEmailVerificationRequest, validateLoginRequest, validatePasswordResetRequest } from './validation';
+import { validateEmailVerificationRequest, validateLoginRequest, validatePasswordResetRequest, validateRegisterRequest } from './validation';
 
 export class AuthHandlers {
     private readonly hostResolver = new HostResolver();
@@ -99,14 +99,26 @@ export class AuthHandlers {
      * Returns 201 Created with the user data on success.
      */
     register = async (req: Request, res: Response): Promise<void> => {
-        // Register the user first
-        const result = await this.userService.registerUser(req.body as UserRegistration);
+        // Validate request body (includes signupHostname)
+        const validated = validateRegisterRequest(req.body as UserRegistration);
+
+        // Validate request host from headers
+        const hostInfo = this.hostResolver.resolve(req);
+
+        // Compare server-validated host with client-provided hostname
+        // The client hostname is normalized (trimmed, lowercased) by the validator
+        if (validated.signupHostname !== hostInfo.host) {
+            throw Errors.invalidRequest(ErrorDetail.HOST_MISMATCH);
+        }
+
+        // Resolve tenant from the validated host
+        const tenantContext = await this.tenantRegistry.resolveTenant({ host: hostInfo.host });
+
+        // Register the user with the resolved tenant ID
+        const result = await this.userService.registerUser(validated, tenantContext.tenantId);
 
         // Attempt to send welcome email (non-blocking - don't fail registration if email fails)
         try {
-            const hostInfo = this.hostResolver.resolve(req);
-            const tenantContext = await this.tenantRegistry.resolveTenant({ host: hostInfo.host });
-
             if (tenantContext.source === 'domain') {
                 const legal = tenantContext.config?.brandingTokens?.tokens?.legal;
                 if (legal?.appName && legal.supportEmail) {
@@ -116,7 +128,7 @@ export class AuthHandlers {
                     const protocol = protoHeader?.split(',')[0]?.trim().toLowerCase() === 'http' ? 'http' : 'https';
                     const baseUrl = `${protocol}://${hostInfo.publicHost}`;
 
-                    await this.authService.sendWelcomeEmail(toEmail((req.body as UserRegistration).email), {
+                    await this.authService.sendWelcomeEmail(toEmail(validated.email), {
                         baseUrl,
                         appName: legal.appName,
                         supportEmail: toEmail(legal.supportEmail),

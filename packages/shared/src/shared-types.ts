@@ -522,6 +522,7 @@ export interface UserRegistration extends BaseUser {
     termsAccepted: boolean;
     cookiePolicyAccepted: boolean;
     privacyPolicyAccepted: boolean;
+    signupHostname: string; // Browser hostname for tenant resolution validation
 }
 
 export interface FirebaseUser extends BaseUser {

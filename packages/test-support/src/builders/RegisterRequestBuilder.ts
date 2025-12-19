@@ -11,6 +11,7 @@ export class RegisterRequestBuilder {
         termsAccepted: randomBoolean(),
         cookiePolicyAccepted: randomBoolean(),
         privacyPolicyAccepted: randomBoolean(),
+        signupHostname: 'localhost',
     };
 
     withEmail(email: Email | string): this {
@@ -60,6 +61,16 @@ export class RegisterRequestBuilder {
 
     withoutPrivacyPolicyAccepted(): this {
         delete (this.request as any).privacyPolicyAccepted;
+        return this;
+    }
+
+    withSignupHostname(hostname: string): this {
+        this.request.signupHostname = hostname;
+        return this;
+    }
+
+    withoutSignupHostname(): this {
+        delete (this.request as any).signupHostname;
         return this;
     }
 

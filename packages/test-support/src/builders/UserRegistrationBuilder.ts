@@ -14,6 +14,7 @@ export class UserRegistrationBuilder {
             termsAccepted: true,
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
+            signupHostname: 'localhost',
         };
     }
 
@@ -60,6 +61,11 @@ export class UserRegistrationBuilder {
     /** For testing password validation - sets a password that's too weak */
     withInvalidPassword(password: string): this {
         (this.userRegistration as any).password = toPassword(password);
+        return this;
+    }
+
+    withSignupHostname(hostname: string): this {
+        this.userRegistration.signupHostname = hostname;
         return this;
     }
 

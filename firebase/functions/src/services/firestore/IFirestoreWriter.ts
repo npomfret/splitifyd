@@ -33,6 +33,7 @@ interface FirestoreUserDocumentFields {
     role?: SystemUserRole;
     preferredLanguage?: string;
     acceptedPolicies?: Record<string, Record<string, string>>;
+    signupTenantId?: TenantId;
     createdAt?: ISOString;
     updatedAt?: ISOString;
 }

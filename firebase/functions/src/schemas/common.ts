@@ -1,5 +1,5 @@
-import { isValidCurrency, toCommentId, toExpenseId, toGroupId, toGroupName, toPolicyId, toSettlementId, toUserId } from '@billsplit-wl/shared';
-import type { CommentId, ExpenseId, GroupId, GroupName, PolicyId, SettlementId, UserId } from '@billsplit-wl/shared';
+import { isValidCurrency, toCommentId, toExpenseId, toGroupId, toGroupName, toPolicyId, toSettlementId, toTenantId, toUserId } from '@billsplit-wl/shared';
+import type { CommentId, ExpenseId, GroupId, GroupName, PolicyId, SettlementId, TenantId, UserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { FieldValue, Timestamp } from '../firestore-wrapper';
 
@@ -102,6 +102,13 @@ export const PolicyIdSchema = z
     .min(1)
     .describe('Firestore Policy document ID')
     .transform(toPolicyId) as z.ZodType<PolicyId>;
+
+export const TenantIdSchema = z
+    .string()
+    .trim()
+    .min(1)
+    .describe('Tenant identifier')
+    .transform(toTenantId) as z.ZodType<TenantId>;
 
 export const CurrencyCodeSchema = z
     .string()

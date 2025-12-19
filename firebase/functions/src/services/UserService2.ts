@@ -2,12 +2,11 @@ import { ClientUser, SystemUserRoles, toISOString, UserProfile, UserProfileRespo
 import { GroupMember, GroupMembershipDTO, GroupMembersResponse } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import { DisplayName } from '@billsplit-wl/shared';
-import type { Email, UserId } from '@billsplit-wl/shared';
+import type { Email, TenantId, UserId } from '@billsplit-wl/shared';
 import { normalizeDisplayNameForComparison } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { toEmail, toUserId } from '@billsplit-wl/shared';
 import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
-import { validateRegisterRequest } from '../auth/validation';
 import { ApiError, ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import { measureDb } from '../monitoring/measure';
@@ -511,24 +510,22 @@ export class UserService {
 
     /**
      * Register a new user in the system
-     * @param requestBody - The raw request body containing user registration data
+     * @param requestBody - The validated request body containing user registration data
+     * @param signupTenantId - The tenant ID from which the user is registering
      * @returns A RegisterUserResult with the newly created user information
      * @throws ApiError if registration fails
      */
-    async registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
+    async registerUser(requestBody: UserRegistration, signupTenantId: TenantId): Promise<RegisterUserResult> {
         return withMinimumDuration(
             this.minRegistrationDurationMs,
-            () => measureDb('UserService2.registerUser', async () => this._registerUser(requestBody)),
+            () => measureDb('UserService2.registerUser', async () => this._registerUser(requestBody, signupTenantId)),
         );
     }
 
-    private async _registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
+    private async _registerUser(requestBody: UserRegistration, signupTenantId: TenantId): Promise<RegisterUserResult> {
         LoggerContext.update({ operation: 'register-user' });
 
-        // Validate the request body
-        const userRegistration = validateRegisterRequest(requestBody);
-
-        const user = await this.createUserDirect(userRegistration);
+        const user = await this.createUserDirect(requestBody, signupTenantId);
 
         return {
             success: true,
@@ -537,7 +534,7 @@ export class UserService {
         };
     }
 
-    async createUserDirect(userRegistration: UserRegistration): Promise<ClientUser> {
+    async createUserDirect(userRegistration: UserRegistration, signupTenantId: TenantId): Promise<ClientUser> {
         let userRecord: UserRecord | null = null;
 
         try {
@@ -564,6 +561,7 @@ export class UserService {
                 createdAt: now,
                 updatedAt: now,
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
+                signupTenantId, // Record tenant where user registered (for analytics)
             };
 
             // FirestoreWriter handles validation and conversion to Firestore format

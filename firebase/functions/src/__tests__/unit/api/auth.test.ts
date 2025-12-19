@@ -1,9 +1,10 @@
 /**
- * @file Login and Password Reset API Tests
- * Tests the /login and /password-reset endpoints
+ * @file Auth API Tests
+ * Tests the /register, /login and /password-reset endpoints
  */
 
-import { toEmail, toPassword } from '@billsplit-wl/shared';
+import { toEmail, toPassword, toUserId } from '@billsplit-wl/shared';
+import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ErrorDetail } from '../../../errors';
 import { AppDriver } from '../AppDriver';
@@ -13,6 +14,104 @@ describe('auth endpoints', () => {
 
     beforeEach(async () => {
         appDriver = new AppDriver();
+    });
+
+    describe('POST /register', () => {
+        beforeEach(() => {
+            // Registration requires a tenant with domain match for localhost
+            appDriver.seedLocalhostTenant();
+        });
+
+        it('should successfully register a new user', async () => {
+            const registration = new UserRegistrationBuilder()
+                .withEmail('newuser@example.com')
+                .withPassword('ValidPassword1234!')
+                .withDisplayName('New User')
+                .build();
+
+            const result = await appDriver.register(registration);
+
+            expect(result.success).toBe(true);
+            expect(result.user).toBeDefined();
+            expect(result.user.uid).toBeDefined();
+            expect(result.user.displayName).toBe('New User');
+        });
+
+        it('should store signupTenantId on the user document', async () => {
+            const registration = new UserRegistrationBuilder()
+                .withEmail('tenant-tracked@example.com')
+                .withPassword('ValidPassword1234!')
+                .withDisplayName('Tenant Tracked User')
+                .build();
+
+            const result = await appDriver.register(registration);
+
+            // Verify signupTenantId is stored on the user document
+            const userDocument = await appDriver.getUserDocumentById(toUserId(result.user.uid));
+            expect(userDocument.signupTenantId).toBe('localhost-tenant');
+        });
+
+        it('should reject registration when signupHostname does not match request host', async () => {
+            const registration = new UserRegistrationBuilder()
+                .withEmail('newuser@example.com')
+                .withPassword('ValidPassword1234!')
+                .withDisplayName('New User')
+                .withSignupHostname('malicious.attacker.com') // Different from request host (localhost)
+                .build();
+
+            await expect(appDriver.register(registration))
+                .rejects
+                .toMatchObject({
+                    statusCode: 400,
+                    code: 'INVALID_REQUEST',
+                    data: { detail: ErrorDetail.HOST_MISMATCH },
+                });
+        });
+
+        it('should reject registration when host header conflicts with X-Forwarded-Host', async () => {
+            const registration = new UserRegistrationBuilder()
+                .withEmail('newuser@example.com')
+                .withPassword('ValidPassword1234!')
+                .withDisplayName('New User')
+                .withSignupHostname('tenant-a.example.com')
+                .build();
+
+            await expect(
+                appDriver.registerWithOptions(registration, {
+                    headers: {
+                        host: 'tenant-a.example.com',
+                        'x-forwarded-host': 'tenant-b.example.com',
+                    },
+                    hostname: 'tenant-a.example.com',
+                }),
+            )
+                .rejects
+                .toMatchObject({
+                    statusCode: 400,
+                    code: 'INVALID_REQUEST',
+                    data: { detail: ErrorDetail.HOST_MISMATCH },
+                });
+        });
+
+        it('should allow registration from unknown host when default tenant exists', async () => {
+            // The TenantRegistryService falls back to the default tenant for unknown hosts.
+            // This is expected behavior for white-label apps - TENANT_NOT_FOUND only occurs
+            // when no default tenant is configured (which is a misconfigured environment).
+            const unknownHost = 'unknown-tenant.example.com';
+            const registration = new UserRegistrationBuilder()
+                .withEmail('newuser-unknown@example.com')
+                .withPassword('ValidPassword1234!')
+                .withDisplayName('Unknown Host User')
+                .withSignupHostname(unknownHost)
+                .build();
+
+            const result = await appDriver.registerWithOptions(registration, {
+                hostname: unknownHost,
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.user.displayName).toBe('Unknown Host User');
+        });
     });
 
     describe('POST /login', () => {

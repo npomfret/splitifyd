@@ -70,6 +70,10 @@ const mapRegisterError = (error: z.ZodError): never => {
                 errorMessage = 'Privacy policy acceptance must be a boolean value';
             }
             break;
+        case 'signupHostname':
+            errorCode = 'MISSING_SIGNUP_HOSTNAME';
+            errorMessage = 'Signup hostname is required';
+            break;
         default:
             break;
     }
@@ -87,6 +91,7 @@ export const validateRegisterRequest = createRequestValidator({
         termsAccepted: value.termsAccepted,
         cookiePolicyAccepted: value.cookiePolicyAccepted,
         privacyPolicyAccepted: value.privacyPolicyAccepted,
+        signupHostname: value.signupHostname.trim().toLowerCase(),
     }),
     mapError: mapRegisterError,
 }) as (body: UserRegistration) => UserRegistration;

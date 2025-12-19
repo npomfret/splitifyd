@@ -998,11 +998,14 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         });
     }
 
-    async register(userData: UserRegistration): Promise<RegisterResponse> {
+    async register(userData: Omit<UserRegistration, 'signupHostname'>): Promise<RegisterResponse> {
         return this.request({
             endpoint: '/register',
             method: 'POST',
-            body: userData,
+            body: {
+                ...userData,
+                signupHostname: window.location.hostname,
+            },
         });
     }
 

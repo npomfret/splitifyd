@@ -1,5 +1,6 @@
-import { DisplayName, toDisplayName, toGroupId, toUserId } from '@billsplit-wl/shared';
+import { DisplayName, toDisplayName, toGroupId, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { ClientUserBuilder, CreateGroupRequestBuilder, PasswordChangeRequestBuilder, StubFirestoreDatabase, StubStorage, UserRegistrationBuilder, UserUpdateBuilder } from '@billsplit-wl/test-support';
+
 import { StubCloudTasksClient } from 'ts-firebase-simulator';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HTTP_STATUS } from '../../../constants';
@@ -10,6 +11,8 @@ import { UserService } from '../../../services/UserService2';
 import { createUnitTestServiceConfig, StubGroupAttachmentStorage } from '../../test-config';
 import { AppDriver } from '../AppDriver';
 import { StubAuthService } from '../mocks/StubAuthService';
+
+const TEST_TENANT_ID = toTenantId('test-tenant');
 
 describe('UserService - Consolidated Unit Tests', () => {
     let userService: UserService;
@@ -48,7 +51,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('New User')
                 .build();
 
-            const result = await userService.registerUser(registrationData);
+            const result = await userService.registerUser(registrationData, TEST_TENANT_ID);
 
             // Verify registration result
             expect(result.success).toBe(true);
@@ -80,7 +83,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Different Name')
                 .build();
 
-            await expect(userService.registerUser(duplicateData)).rejects.toThrow(
+            await expect(userService.registerUser(duplicateData, TEST_TENANT_ID)).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
                     code: 'ALREADY_EXISTS',
@@ -122,7 +125,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .build();
 
                 let settled = false;
-                const registrationPromise = testUserService.registerUser(duplicateData).finally(() => {
+                const registrationPromise = testUserService.registerUser(duplicateData, TEST_TENANT_ID).finally(() => {
                     settled = true;
                 });
 
@@ -158,7 +161,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(true)
                 .build();
 
-            await expect(userService.registerUser(userData)).rejects.toThrow(
+            await expect(userService.registerUser(userData, TEST_TENANT_ID)).rejects.toThrow(
                 expect.objectContaining({
                     code: ErrorCode.VALIDATION_ERROR,
                 }),
@@ -173,7 +176,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(true)
                 .build();
 
-            await expect(userService.registerUser(userData2)).rejects.toThrow(
+            await expect(userService.registerUser(userData2, TEST_TENANT_ID)).rejects.toThrow(
                 expect.objectContaining({
                     code: ErrorCode.VALIDATION_ERROR,
                 }),
@@ -188,7 +191,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withPrivacyPolicyAccepted(false)
                 .build();
 
-            await expect(userService.registerUser(userData3)).rejects.toThrow(
+            await expect(userService.registerUser(userData3, TEST_TENANT_ID)).rejects.toThrow(
                 expect.objectContaining({
                     code: ErrorCode.VALIDATION_ERROR,
                 }),
@@ -201,7 +204,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Themed User')
                 .build();
 
-            const result = await userService.registerUser(registrationData);
+            const result = await userService.registerUser(registrationData, TEST_TENANT_ID);
 
             // Verify registration succeeded
             expect(result.success).toBe(true);
@@ -226,7 +229,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName(displayName)
                 .withPassword('SecurePassword123')
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Update photo URL manually for this test
@@ -279,7 +282,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName(originalDisplayName)
                 .withPassword('SecurePassword123')
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Returns void on success (204 No Content pattern)
@@ -301,7 +304,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPassword('SecurePassword123')
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Returns void on success (204 No Content pattern)
@@ -321,7 +324,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPassword('SecurePassword123')
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Set a photo URL first
@@ -367,7 +370,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName('Test User')
                 .withPassword(currentPassword)
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Returns void on success (204 No Content pattern)
@@ -410,7 +413,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName(displayName)
                 .withPassword('SecurePassword123')
                 .build();
-            const result = await userService.registerUser(registration);
+            const result = await userService.registerUser(registration, TEST_TENANT_ID);
             const uid = toUserId(result.user.uid!);
 
             // Set photo URL
@@ -466,7 +469,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                 .withDisplayName(displayName)
                 .withPassword('ValidCurrentPassword1234!')
                 .build();
-            const result = await validationUserService.registerUser(registration);
+            const result = await validationUserService.registerUser(registration, TEST_TENANT_ID);
             validationTestUserId = result.user.uid!;
         });
 
@@ -615,7 +618,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
             });
 
             it('should validate password strength during registration', async () => {
@@ -628,7 +631,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
             });
 
             it('should require terms acceptance', async () => {
@@ -641,7 +644,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
                     expect.objectContaining({
                         code: ErrorCode.VALIDATION_ERROR,
                     }),
@@ -658,7 +661,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
                     expect.objectContaining({
                         code: ErrorCode.VALIDATION_ERROR,
                     }),
@@ -675,7 +678,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(false)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
                     expect.objectContaining({
                         code: ErrorCode.VALIDATION_ERROR,
                     }),
@@ -692,7 +695,7 @@ describe('UserService - Consolidated Unit Tests', () => {
                     .withPrivacyPolicyAccepted(true)
                     .build();
 
-                await expect(validationUserService.registerUser(registrationData)).rejects.toThrow(ApiError);
+                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
             });
 
             it('should accept valid registration data', async () => {

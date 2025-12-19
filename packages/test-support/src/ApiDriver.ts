@@ -191,7 +191,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         });
     }
 
-    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
+    async createUser(userRegistration: Omit<UserRegistration, 'signupHostname'> = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
         let registrationError: unknown = null;
 
         try {
@@ -487,8 +487,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         return await this.apiRequest(`/groups/${groupId}/activity-feed${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
-    async register(userData: UserRegistration): Promise<RegisterResponse> {
-        return await this.apiRequest('/register', 'POST', userData);
+    async register(userData: Omit<UserRegistration, 'signupHostname'>): Promise<RegisterResponse> {
+        // Extract hostname from baseUrl to match what the server will see
+        const baseUrlHostname = new URL(this.config.baseUrl).hostname;
+        const registrationData: UserRegistration = {
+            ...userData,
+            signupHostname: baseUrlHostname,
+        };
+        return await this.apiRequest('/register', 'POST', registrationData);
     }
 
     async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -579,11 +585,12 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     private async fetchPolicyText(endpoint: string): Promise<string> {
         const url = `${this.config.baseUrl}${endpoint}`;
+        const parsedUrl = new URL(url);
         const response = await fetch(url, {
             method: 'GET',
             headers: {
                 Accept: 'text/plain',
-                Host: 'localhost',
+                Host: parsedUrl.host,
             },
         });
 
@@ -727,12 +734,13 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         },
     ): Promise<any> {
         const url = `${this.config.baseUrl}${endpoint}`;
+        const parsedUrl = new URL(url);
         const fetchOptions: RequestInit = {
             method,
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/x-serialized-json',
-                Host: 'localhost', // todo: extract this from the url if it's important
+                Host: parsedUrl.host, // Use actual host from URL for consistent host validation
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
@@ -780,12 +788,13 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     private async binaryRequest(endpoint: string, buffer: Buffer, contentType: string, token?: string | null): Promise<any> {
         const url = `${this.config.baseUrl}${endpoint}`;
+        const parsedUrl = new URL(url);
         const fetchOptions: RequestInit = {
             method: 'POST',
             headers: {
                 'Content-Type': contentType,
                 Accept: 'application/x-serialized-json',
-                Host: 'localhost',
+                Host: parsedUrl.host, // Use actual host from URL for consistent host validation
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
             // Use type assertion for Buffer - Node's fetch accepts Buffer
@@ -946,6 +955,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async uploadTenantImage(tenantId: string, assetType: 'logo' | 'favicon', file: File | Buffer, contentType: string, token?: AuthToken): Promise<{ url: string; }> {
         const url = `${this.config.baseUrl}/admin/tenants/${tenantId}/assets/${assetType}`;
+        const parsedUrl = new URL(url);
         const body = Buffer.isBuffer(file) ? file : Buffer.from(await file.arrayBuffer());
 
         const response = await fetch(url, {
@@ -953,7 +963,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             headers: {
                 'Content-Type': contentType,
                 Accept: 'application/json',
-                Host: 'localhost',
+                Host: parsedUrl.host,
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
             // Buffer is compatible with fetch body at runtime, but TS types don't recognize it
@@ -1007,6 +1017,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async uploadTenantLibraryImage(tenantId: string, name: string, file: File | Buffer, contentType: string, token?: AuthToken): Promise<UploadTenantLibraryImageResponse> {
         const url = `${this.config.baseUrl}/admin/tenants/${tenantId}/images?name=${encodeURIComponent(name)}`;
+        const parsedUrl = new URL(url);
         const body = Buffer.isBuffer(file) ? file : Buffer.from(await file.arrayBuffer());
 
         const response = await fetch(url, {
@@ -1014,7 +1025,7 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             headers: {
                 'Content-Type': contentType,
                 Accept: 'application/json',
-                Host: 'localhost',
+                Host: parsedUrl.host,
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
             body: body as unknown as BodyInit,

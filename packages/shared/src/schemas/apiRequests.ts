@@ -307,6 +307,7 @@ export const RegisterRequestSchema = z.object({
         invalidType: 'Privacy policy acceptance must be a boolean value',
         notAccepted: 'You must accept the Privacy Policy',
     }),
+    signupHostname: z.string().min(1, 'Signup hostname is required'),
 });
 
 export const LoginRequestSchema = z.object({

@@ -42,9 +42,10 @@ const TEST_USERS: UserRegistration[] = [
         termsAccepted: true,
         cookiePolicyAccepted: true,
         privacyPolicyAccepted: true,
+        signupHostname: 'localhost',
     },
-    { email: toEmail('leia.organa@example.com'), displayName: toDisplayName('Leia Organa'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
-    { email: toEmail('han.solo@example.com'), displayName: toDisplayName('Han Solo'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
+    { email: toEmail('leia.organa@example.com'), displayName: toDisplayName('Leia Organa'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true, signupHostname: 'localhost' },
+    { email: toEmail('han.solo@example.com'), displayName: toDisplayName('Han Solo'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true, signupHostname: 'localhost' },
     {
         email: toEmail('rey.skywalker@example.com'),
         displayName: toDisplayName('Rey Skywalker'),
@@ -52,9 +53,10 @@ const TEST_USERS: UserRegistration[] = [
         termsAccepted: true,
         cookiePolicyAccepted: true,
         privacyPolicyAccepted: true,
+        signupHostname: 'localhost',
     },
-    { email: toEmail('finn@example.com'), displayName: toDisplayName('Finn'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
-    { email: toEmail('poe.dameron@example.com'), displayName: toDisplayName('Poe Dameron'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true },
+    { email: toEmail('finn@example.com'), displayName: toDisplayName('Finn'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true, signupHostname: 'localhost' },
+    { email: toEmail('poe.dameron@example.com'), displayName: toDisplayName('Poe Dameron'), password: DEFAULT_PASSWORD, termsAccepted: true, cookiePolicyAccepted: true, privacyPolicyAccepted: true, signupHostname: 'localhost' },
     {
         email: toEmail('obiwan.kenobi@example.com'),
         displayName: toDisplayName('Obi-Wan Kenobi'),
@@ -62,11 +64,13 @@ const TEST_USERS: UserRegistration[] = [
         termsAccepted: true,
         cookiePolicyAccepted: true,
         privacyPolicyAccepted: true,
+        signupHostname: 'localhost',
     },
     {
         email: toEmail('padme.amidala@example.com'),
         displayName: toDisplayName('Padmé Amidala'),
         password: DEFAULT_PASSWORD,
+        signupHostname: 'localhost',
         termsAccepted: true,
         cookiePolicyAccepted: true,
         privacyPolicyAccepted: true,
@@ -194,6 +198,7 @@ const BILL_SPLITTER_REGISTRATION: UserRegistration = {
     termsAccepted: true,
     cookiePolicyAccepted: true,
     privacyPolicyAccepted: true,
+    signupHostname: 'localhost',
 };
 
 async function signInExistingUser(email: string, password: string): Promise<AuthenticatedFirebaseUser | null> {

@@ -1,5 +1,36 @@
 # Record Tenant on User Registration
 
+## Status: COMPLETED
+
+### Implementation Summary
+
+All phases have been implemented and tested:
+
+1. **Data Model Updates:**
+   - Added `TenantIdSchema` to `firebase/functions/src/schemas/common.ts`
+   - Added `signupTenantId` (optional) to `firebase/functions/src/schemas/user.ts`
+   - Added `signupHostname` to `UserRegistration` interface and `RegisterRequestSchema`
+   - Added `MISSING_SIGNUP_HOSTNAME` error code
+
+2. **Backend Logic:**
+   - Uses `HostResolver` class from `firebase/functions/src/utils/HostResolver.ts` for host validation
+   - Updated register handler in `handlers.ts` to validate host and resolve tenant
+   - Updated `UserService2.ts` to accept and store `signupTenantId`
+
+3. **Frontend:**
+   - Updated `apiClient.ts` to automatically add `signupHostname` from `window.location.hostname`
+
+4. **Tests:**
+   - Added registration tests in `firebase/functions/src/__tests__/unit/api/auth.test.ts`:
+     - Successful registration
+     - HOST_MISMATCH when signupHostname doesn't match request host
+     - HOST_MISMATCH when host headers conflict
+     - Fallback to default tenant for unknown hosts
+
+**Note:** The TENANT_NOT_FOUND scenario only occurs when no default tenant is configured. The TenantRegistryService falls back to the default tenant for unknown hosts, which is expected behavior for white-label apps.
+
+---
+
 ## Objective
 
 Capture and store the tenant (`TenantId`) from which a user originates during the registration process. This is a data-collection task to enable future analytics and tenant-specific user management features. This task does not include building any features that consume this data.

@@ -74,6 +74,7 @@ export function RegisterPage() {
             termsAccepted: agreeToTerms,
             cookiePolicyAccepted: agreeToCookies,
             privacyPolicyAccepted: agreeToPrivacy,
+            signupHostname: window.location.hostname, // Added for tenant tracking
         });
 
         if (!result.success) {
