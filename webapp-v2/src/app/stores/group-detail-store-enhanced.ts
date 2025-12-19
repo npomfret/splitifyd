@@ -6,6 +6,7 @@ import { batch, signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 import type { ActivityFeedRealtimeService } from '../services/activity-feed-realtime-service';
 import { activityFeedRealtimeService } from '../services/activity-feed-realtime-service';
+import { getAuthStore } from './auth-store';
 import { GroupDetailCollectionManager } from './helpers/group-detail-collection-manager';
 import { GroupDetailRealtimeCoordinator } from './helpers/group-detail-realtime-coordinator';
 import { GroupDetailSideEffectsManager } from './helpers/group-detail-side-effects';
@@ -293,6 +294,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     async toggleSettlementReaction(settlementId: SettlementId, emoji: ReactionEmoji): Promise<void> {
+        const authStore = await getAuthStore();
+        const currentUserId = authStore.user?.uid;
+        if (!currentUserId) {
+            logError('Failed to toggle settlement reaction: user not authenticated');
+            return;
+        }
+
         try {
             const response = await apiClient.toggleSettlementReaction(settlementId, emoji);
 
@@ -302,17 +310,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     return settlement;
                 }
 
-                const currentReactions = settlement.userReactions || [];
+                const currentUserReactions = settlement.userReactions?.[currentUserId] ?? [];
                 const currentCounts = settlement.reactionCounts || {};
 
-                let newUserReactions: ReactionEmoji[];
+                let newUserReactionsArray: ReactionEmoji[];
                 let newCounts: typeof currentCounts;
 
                 if (response.action === 'added') {
-                    newUserReactions = [...currentReactions, emoji];
+                    newUserReactionsArray = [...currentUserReactions, emoji];
                     newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
                 } else {
-                    newUserReactions = currentReactions.filter((e) => e !== emoji);
+                    newUserReactionsArray = currentUserReactions.filter((e) => e !== emoji);
                     const newCount = (currentCounts[emoji] || 1) - 1;
                     newCounts = { ...currentCounts };
                     if (newCount > 0) {
@@ -322,7 +330,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     }
                 }
 
-                return { ...settlement, userReactions: newUserReactions, reactionCounts: newCounts };
+                const newUserReactionsMap = {
+                    ...(settlement.userReactions || {}),
+                    [currentUserId]: newUserReactionsArray,
+                };
+
+                return { ...settlement, userReactions: newUserReactionsMap, reactionCounts: newCounts };
             });
         } catch (error) {
             logError('Failed to toggle settlement reaction', error);

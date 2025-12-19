@@ -1,4 +1,4 @@
-import { ReactionEmojis } from '@billsplit-wl/shared';
+import { ReactionEmojis, toUserId } from '@billsplit-wl/shared';
 import { GroupDetailPage, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder, SettlementWithMembersBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockGroupCommentsApi, mockGroupDetailApi, mockToggleSettlementReactionApi } from '../../utils/mock-firebase-service';
@@ -35,7 +35,7 @@ test.describe('Settlement Reactions', () => {
             .withAmount(100.00, 'USD')
             .withNote('Settlement With Reactions')
             .withReactionCounts({ [ReactionEmojis.THUMBS_UP]: 2, [ReactionEmojis.HEART]: 1 })
-            .withUserReactions([ReactionEmojis.THUMBS_UP])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.THUMBS_UP] })
             .build();
 
         const groupFullDetails = new GroupFullDetailsBuilder()
@@ -145,7 +145,7 @@ test.describe('Settlement Reactions', () => {
             .withAmount(75.00, 'USD')
             .withNote('Toggle Me Off')
             .withReactionCounts({ [ReactionEmojis.HEART]: 1 })
-            .withUserReactions([ReactionEmojis.HEART])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.HEART] })
             .build();
 
         const groupFullDetails = new GroupFullDetailsBuilder()

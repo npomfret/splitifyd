@@ -104,14 +104,14 @@ service cloud.firestore {
       }
     }
     
-    // Group balances collection - production security rules
-    match /group-balances/{groupId} {
+    // Balances collection - top-level for batch querying
+    match /balances/{groupId} {
       // Allow read only for group members
       allow read: if request.auth != null &&
         isGroupActive(groupId) &&
         exists(/databases/$(database)/documents/group-memberships/$(request.auth.uid + '_' + groupId));
 
-      // Deny all writes - these should only be updated by server functions
+      // Deny all writes - only server functions can update balances
       allow write: if false;
     }
     

@@ -300,7 +300,7 @@ export function SettlementHistory({
                                         <div className='col-span-2 mt-1'>
                                             <ReactionBar
                                                 counts={settlement.reactionCounts}
-                                                userReactions={settlement.userReactions}
+                                                userReactions={currentUserId ? settlement.userReactions?.[currentUserId] : undefined}
                                                 onToggle={(emoji) => handleReactionToggle(settlement.id, emoji)}
                                                 size='sm'
                                             />

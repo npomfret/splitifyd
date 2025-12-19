@@ -270,26 +270,25 @@ export class GroupService {
         });
         timer.endPhase();
 
-        // Step 2: Fetch balances and enrich groups in parallel
+        // Step 2: Batch fetch all balances in a single round-trip (O(1) instead of O(N))
         timer.startPhase('balances');
-        const groupsWithBalances = await Promise.all(
-            paginatedGroups.data.map(async (group: GroupDTO) => {
-                try {
-                    const groupBalance = await this.firestoreReader.getGroupBalance(group.id);
-                    return this.enrichGroupWithBalance(group, groupBalance, userId);
-                } catch (e) {
-                    logger.error('Error reading group balance', e, { groupId: group.id });
-                    const emptyBalance: GroupBalanceDTO = {
-                        groupId: group.id,
-                        balancesByCurrency: {},
-                        simplifiedDebts: [],
-                        lastUpdatedAt: toISOString(new Date().toISOString()),
-                        version: 0,
-                    };
-                    return this.enrichGroupWithBalance(group, emptyBalance, userId);
-                }
-            }),
-        );
+        const groupIds = paginatedGroups.data.map((group) => group.id);
+        const balancesMap = await this.firestoreReader.getBalancesByGroupIds(groupIds);
+
+        const groupsWithBalances = paginatedGroups.data.map((group: GroupDTO) => {
+            const groupBalance = balancesMap.get(group.id);
+            if (groupBalance) {
+                return this.enrichGroupWithBalance(group, groupBalance, userId);
+            }
+            const emptyBalance: GroupBalanceDTO = {
+                groupId: group.id,
+                balancesByCurrency: {},
+                simplifiedDebts: [],
+                lastUpdatedAt: toISOString(new Date().toISOString()),
+                version: 0,
+            };
+            return this.enrichGroupWithBalance(group, emptyBalance, userId);
+        });
         timer.endPhase();
 
         // Step 3: Build response

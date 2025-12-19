@@ -1,4 +1,4 @@
-import { ReactionEmojis } from '@billsplit-wl/shared';
+import { ReactionEmojis, toUserId } from '@billsplit-wl/shared';
 import { CommentBuilder, ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockToggleExpenseCommentReactionApi } from '../../utils/mock-firebase-service';
@@ -39,7 +39,7 @@ test.describe('Comment Reactions', () => {
             .withAuthorName(testUser.displayName)
             .withText('Great expense!')
             .withReactionCounts({ [ReactionEmojis.THUMBS_UP]: 2, [ReactionEmojis.HEART]: 1 })
-            .withUserReactions([ReactionEmojis.THUMBS_UP])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.THUMBS_UP] })
             .build();
 
         const groupFullDetails = new GroupFullDetailsBuilder()
@@ -172,7 +172,7 @@ test.describe('Comment Reactions', () => {
             .withAuthorName(testUser.displayName)
             .withText('Toggle me!')
             .withReactionCounts({ [ReactionEmojis.HEART]: 1 })
-            .withUserReactions([ReactionEmojis.HEART])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.HEART] })
             .build();
 
         const groupFullDetails = new GroupFullDetailsBuilder()

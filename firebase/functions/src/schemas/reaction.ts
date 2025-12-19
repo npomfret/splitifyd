@@ -1,17 +1,5 @@
-import { ReactionEmojis, toReactionId } from '@billsplit-wl/shared';
-import type { ReactionId } from '@billsplit-wl/shared';
+import { ReactionEmojis } from '@billsplit-wl/shared';
 import { z } from 'zod';
-import { AuditFieldsSchema, UserIdSchema } from './common';
-
-/**
- * Schema for ReactionId branded type
- */
-export const ReactionIdSchema = z
-    .string()
-    .trim()
-    .min(1)
-    .describe('Firestore Reaction document ID (format: {userId}_{emoji})')
-    .transform(toReactionId) as z.ZodType<ReactionId>;
 
 /**
  * Schema for validating reaction emojis.
@@ -25,32 +13,6 @@ export const ReactionEmojiSchema = z.enum([
     ReactionEmojis.SAD,
     ReactionEmojis.CELEBRATE,
 ]);
-
-/**
- * Base reaction schema - represents a single reaction in a subcollection.
- * Document path: {resource}/reactions/{userId}_{emoji}
- */
-const BaseReactionSchema = z
-    .object({
-        userId: UserIdSchema,
-        emoji: ReactionEmojiSchema,
-    })
-    .merge(AuditFieldsSchema);
-
-/**
- * Full reaction document schema including document ID.
- * Used for reading reactions from Firestore.
- */
-export const ReactionDocumentSchema = BaseReactionSchema
-    .extend({
-        id: z.string().min(1),
-    })
-    .strict();
-
-/**
- * Schema for reaction data without the ID (for writing to Firestore).
- */
-export const ReactionDataSchema = BaseReactionSchema;
 
 /**
  * Schema for aggregated reaction counts stored on parent documents.
@@ -67,3 +29,10 @@ export const ReactionCountsSchema = z
         [ReactionEmojis.CELEBRATE]: z.number().int().min(0),
     })
     .partial();
+
+/**
+ * Schema for user reactions map stored on parent documents.
+ * Maps userId to array of emojis: { 'user123': ['👍', '❤️'], 'user456': ['👍'] }
+ * Denormalized for O(1) reads - no need to query subcollection.
+ */
+export const UserReactionsMapSchema = z.record(z.string(), z.array(ReactionEmojiSchema));

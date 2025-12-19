@@ -80,7 +80,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 deletedBy: null,
                 supersededBy: null,
                 isLocked: expect.any(Boolean), // Lock status computed based on group membership
-                userReactions: [],
+                // userReactions is undefined when no reactions exist (denormalized on parent doc)
             });
         });
 
@@ -504,7 +504,7 @@ describe('ExpenseService - Consolidated Unit Tests', () => {
                 deletedBy: null,
                 supersededBy: null,
                 isLocked: expect.any(Boolean),
-                userReactions: [],
+                // userReactions is undefined when no reactions exist (denormalized on parent doc)
             });
         });
 

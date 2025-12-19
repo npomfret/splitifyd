@@ -167,79 +167,7 @@ export class FirestoreReader implements IFirestoreReader {
     // User Reactions Helpers
     // ========================================================================
 
-    /**
-     * Get all reactions by a specific user for a resource.
-     * Reactions are stored as documents with ID format: {userId}_{emoji}
-     *
-     * @param collectionPath - Path to the reactions subcollection (e.g., "expenses/abc/reactions")
-     * @param userId - The user whose reactions to fetch
-     * @returns Array of emoji strings the user has reacted with
-     */
-    async getUserReactionsForResource(collectionPath: string, userId: UserId): Promise<ReactionEmoji[]> {
-        try {
-            // Query documents where ID starts with userId_
-            // Firestore range query: >= userId_ and < userId`
-            // The backtick character (`) comes after underscore in ASCII, so this captures all userId_* patterns
-            const startAt = `${userId}_`;
-            const endAt = `${userId}\``;
-
-            const snapshot = await this
-                .db
-                .collection(collectionPath)
-                .orderBy('__name__')
-                .where(FieldPath.documentId(), '>=', startAt)
-                .where(FieldPath.documentId(), '<', endAt)
-                .get();
-
-            const emojis: ReactionEmoji[] = [];
-            snapshot.forEach((doc) => {
-                // Extract emoji from document ID: {userId}_{emoji}
-                const docId = doc.id;
-                const underscoreIndex = docId.indexOf('_');
-                if (underscoreIndex !== -1) {
-                    const emoji = docId.substring(underscoreIndex + 1);
-                    emojis.push(emoji as ReactionEmoji);
-                }
-            });
-
-            return emojis;
-        } catch (error) {
-            logger.warn('Failed to get user reactions', { collectionPath, userId, error });
-            return []; // Return empty array on error to avoid breaking the main query
-        }
-    }
-
-    /**
-     * Get user's reactions for an expense
-     */
-    async getUserReactionsForExpense(expenseId: ExpenseId, userId: UserId): Promise<ReactionEmoji[]> {
-        const collectionPath = `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.REACTIONS}`;
-        return this.getUserReactionsForResource(collectionPath, userId);
-    }
-
-    /**
-     * Get user's reactions for a settlement
-     */
-    async getUserReactionsForSettlement(settlementId: SettlementId, userId: UserId): Promise<ReactionEmoji[]> {
-        const collectionPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}/${FirestoreCollections.REACTIONS}`;
-        return this.getUserReactionsForResource(collectionPath, userId);
-    }
-
-    /**
-     * Get user's reactions for a group comment
-     */
-    async getUserReactionsForGroupComment(groupId: GroupId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]> {
-        const collectionPath = `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}`;
-        return this.getUserReactionsForResource(collectionPath, userId);
-    }
-
-    /**
-     * Get user's reactions for an expense comment
-     */
-    async getUserReactionsForExpenseComment(expenseId: ExpenseId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]> {
-        const collectionPath = `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}`;
-        return this.getUserReactionsForResource(collectionPath, userId);
-    }
+    // Note: getUserReactionsFor* methods removed - reactions are now denormalized on parent documents
 
     private parseTenantDocument(snapshot: IDocumentSnapshot): TenantFullRecord {
         const rawData = snapshot.data();
@@ -360,7 +288,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroupBalance(groupId: GroupId): Promise<GroupBalanceDTO> {
         try {
-            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance').get();
+            const doc = await this.db.collection(FirestoreCollections.BALANCES).doc(groupId).get();
 
             if (!doc.exists) {
                 throw Errors.notFound('Balance', ErrorDetail.BALANCE_NOT_FOUND);
@@ -378,6 +306,48 @@ export class FirestoreReader implements IFirestoreReader {
             return this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
         } catch (error) {
             logger.error('Failed to get group balance', error, { groupId });
+            throw error;
+        }
+    }
+
+    async getBalancesByGroupIds(groupIds: GroupId[]): Promise<Map<GroupId, GroupBalanceDTO>> {
+        if (groupIds.length === 0) {
+            return new Map();
+        }
+
+        try {
+            // Build document references for batch fetch
+            const refs = groupIds.map((groupId) =>
+                this.db.collection(FirestoreCollections.BALANCES).doc(groupId),
+            );
+
+            // Single network round trip using Firestore's native batch read
+            const docs = await this.db.getAll(...refs);
+
+            const result = new Map<GroupId, GroupBalanceDTO>();
+
+            for (const doc of docs) {
+                if (!doc.exists) {
+                    continue;
+                }
+
+                const data = doc.data();
+                if (!data) {
+                    continue;
+                }
+
+                try {
+                    const validated = GroupBalanceDocumentSchema.parse(data);
+                    const converted = this.convertTimestampsToISO(validated) as any as GroupBalanceDTO;
+                    result.set(doc.id as GroupId, converted);
+                } catch (parseError) {
+                    logger.warn('Failed to parse balance document', { groupId: doc.id, error: parseError });
+                }
+            }
+
+            return result;
+        } catch (error) {
+            logger.error('Failed to batch fetch group balances', error, { groupIds });
             throw error;
         }
     }
@@ -752,19 +722,37 @@ export class FirestoreReader implements IFirestoreReader {
                 return new Map();
             }
 
-            // Fetch all members in parallel (more efficient than sequential)
-            const memberPromises = userIds.map((userId) => this.getGroupMember(groupId, userId));
-            const members = await Promise.all(memberPromises);
+            // Build document references for batch fetch
+            const refs = userIds.map((userId) => {
+                const topLevelDocId = newTopLevelMembershipDocId(userId, groupId);
+                return this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
+            });
 
-            // Build result map, filtering out null values (members not found)
+            // Single network round trip using Firestore's native batch read
+            const docs = await this.db.getAll(...refs);
+
+            // Build result map, filtering out non-existent documents
             const result = new Map<UserId, GroupMembershipDTO>();
 
-            for (let i = 0; i < members.length; i++) {
-                const member = members[i];
+            for (let i = 0; i < docs.length; i++) {
+                const doc = docs[i];
                 const userId = userIds[i];
 
-                if (member) {
-                    result.set(userId, member);
+                if (!doc.exists) {
+                    continue;
+                }
+
+                const data = doc.data();
+                if (!data) {
+                    continue;
+                }
+
+                try {
+                    const parsedMember = TopLevelGroupMemberSchema.parse(data);
+                    const converted = this.convertTimestampsToISO(parsedMember) as unknown as GroupMembershipDTO;
+                    result.set(userId, converted);
+                } catch (parseError) {
+                    logger.warn('Failed to parse group member document', { groupId, userId, error: parseError });
                 }
             }
 

@@ -135,11 +135,8 @@ export class ExpenseService {
         }
         timer.endPhase();
 
-        // Fetch isLocked and userReactions in parallel
-        const [isLocked, userReactions] = await Promise.all([
-            this.isExpenseLocked(expense),
-            this.firestoreReader.getUserReactionsForExpense(expenseId, userId),
-        ]);
+        // Compute lock status - userReactions are now denormalized on the expense document
+        const isLocked = await this.isExpenseLocked(expense);
 
         logger.info('expense-retrieved', {
             id: expenseId,
@@ -149,7 +146,6 @@ export class ExpenseService {
         return {
             ...expense,
             isLocked,
-            userReactions,
         };
     }
 
@@ -418,15 +414,21 @@ export class ExpenseService {
 
         const splitsToValidate = updateData.splits ?? oldExpense.splits;
         const uniqueSplitParticipants = Array.from(new Set(splitsToValidate.map((split) => split.uid)));
-        await Promise.all(uniqueSplitParticipants.map(async (splitUid) => {
+
+        // First check all participants are in the memberIds list
+        for (const splitUid of uniqueSplitParticipants) {
             if (!memberIds.includes(splitUid)) {
                 throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
-            const memberRecord = await this.firestoreReader.getGroupMember(oldExpense.groupId, splitUid);
-            if (!memberRecord) {
+        }
+
+        // Batch fetch all member records in single round trip
+        const memberRecords = await this.firestoreReader.getGroupMembers(oldExpense.groupId, uniqueSplitParticipants);
+        for (const splitUid of uniqueSplitParticipants) {
+            if (!memberRecords.has(splitUid)) {
                 throw Errors.validationError('splits', ErrorDetail.INVALID_PARTICIPANT);
             }
-        }));
+        }
 
         // Generate new expense ID for the updated version
         const newExpenseId = toExpenseId(this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES));
@@ -829,11 +831,8 @@ export class ExpenseService {
         const userIds = expense.participants;
         const participantData = await this.userService.resolveGroupMemberProfiles(groupId, userIds);
 
-        // Fetch isLocked and userReactions in parallel
-        const [isLocked, userReactions] = await Promise.all([
-            this.isExpenseLocked(expense),
-            this.firestoreReader.getUserReactionsForExpense(expenseId, userId),
-        ]);
+        // Compute lock status - userReactions are now denormalized on the expense document
+        const isLocked = await this.isExpenseLocked(expense);
         timer.endPhase();
 
         // Format expense response
@@ -847,7 +846,6 @@ export class ExpenseService {
             expense: {
                 ...expense,
                 isLocked,
-                userReactions,
             },
             group,
             members: { members: participantData }, // Wrap in object to match ExpenseFullDetailsDTO.members structure

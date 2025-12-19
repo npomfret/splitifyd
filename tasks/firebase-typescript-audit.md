@@ -56,7 +56,7 @@ Balance check happened before the transaction that deletes membership. A concurr
 
 Fix via schema denormalization. No existing users or data, so we can restructure freely.
 
-### 1) Comment/Settlement/Expense Reactions N+1 🔧 IN PROGRESS
+### 1) Comment/Settlement/Expense Reactions N+1 ✅ COMPLETE
 
 **Problem:** Each item fetches user reactions from subcollection individually.
 
@@ -80,19 +80,21 @@ Store on parent doc: userReactions: Record<UserId, ReactionEmoji[]>
 - Old: `userReactions: ReactionEmoji[]` (current user only)
 - New: `userReactions: Record<UserId, ReactionEmoji[]>` (all users - more social)
 
-**Files to modify:**
-- `packages/shared/src/shared-types.ts` - Change `userReactions` type
-- `packages/shared/src/schemas/apiSchemas.ts` - Update response schemas
-- `firebase/functions/src/schemas/*.ts` - Update document schemas
-- `firebase/functions/src/services/ReactionService.ts` - Write `userReactions` map on toggle
-- `firebase/functions/src/services/firestore/FirestoreReader.ts` - Remove `getUserReactionsFor*` methods
-- `firebase/functions/src/services/CommentService.ts` - Remove reaction fetching loop
-- `firebase/functions/src/services/SettlementService.ts` - Remove reaction fetching loop
-- `webapp-v2/src/app/components/` - Update reaction display for new shape
+**Progress:**
+- [x] `packages/shared/src/shared-types.ts` - Added `UserReactionsMap` type, updated DTOs
+- [x] `firebase/functions/src/schemas/*.ts` - Updated document schemas with `UserReactionsMapSchema`
+- [x] `firebase/functions/src/services/ReactionService.ts` - Rewrote to update `userReactions` map on toggle
+- [x] `firebase/functions/src/services/firestore/FirestoreReader.ts` - Removed `getUserReactionsFor*` methods
+- [x] `firebase/functions/src/services/CommentService.ts` - Removed reaction fetching loop
+- [x] `firebase/functions/src/services/SettlementService.ts` - Removed reaction fetching loop
+- [x] `webapp-v2/src/app/components/` - Updated frontend components for new map format
+- [x] `packages/test-support/src/builders/*.ts` - Updated test builders for new format
+- [x] `firebase/functions/src/__tests__/unit/api/reactions.test.ts` - Updated unit tests for new format
+- [x] `webapp-v2/src/__tests__/integration/playwright/*.test.ts` - Updated Playwright tests for new format
 
 ---
 
-### 2) Group list balance reads N+1 🔧 IN PROGRESS
+### 2) Group list balance reads N+1 ✅ COMPLETE
 
 **Problem:** Each group fetches balance from subcollection individually.
 
@@ -109,12 +111,13 @@ groups/{groupId}/metadata/balance
 balances/{groupId}
 ```
 
-**Files to modify:**
-- `firebase/functions/src/services/firestore/FirestoreReader.ts` - Add `getBalancesByGroupIds()` using `getAll()`
-- `firebase/functions/src/services/firestore/FirestoreWriter.ts` - Update balance write path
-- `firebase/functions/src/services/firestore/IFirestoreReader.ts` - Update interface
-- `firebase/functions/src/services/GroupService.ts` - Use batch balance fetch
-- `firebase/firestore.rules` - Add `balances` collection rules
+**Progress:**
+- [x] `firebase/functions/src/constants.ts` - Added `BALANCES` collection constant
+- [x] `firebase/functions/src/services/firestore/FirestoreWriter.ts` - Updated balance write path to `balances/{groupId}`
+- [x] `firebase/functions/src/services/firestore/FirestoreReader.ts` - Updated read path, added `getBalancesByGroupIds()` using `getAll()`
+- [x] `firebase/functions/src/services/firestore/IFirestoreReader.ts` - Added batch method to interface
+- [x] `firebase/functions/src/services/GroupService.ts` - Now uses batch balance fetch (O(1) instead of O(N))
+- [x] `firebase/firestore.rules` - Updated to use `balances` collection
 
 ---
 
@@ -125,5 +128,7 @@ balances/{groupId}
 | labels typo | High | Low | ✅ Fixed |
 | Join race condition | Medium | Medium | ✅ Fixed |
 | Leave/remove balance race | Medium | Medium | ✅ Fixed |
-| Reactions N+1 | Low | Medium | 🔧 In Progress |
-| Group balance N+1 | Low | Low | 🔧 In Progress |
+| Reactions N+1 | Low | Medium | ✅ Complete |
+| Group balance N+1 | Low | Low | ✅ Complete |
+
+All N+1 scaling risks have been eliminated through schema denormalization. The codebase now scales properly with O(1) batch reads for reactions and balances.

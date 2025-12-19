@@ -959,7 +959,7 @@ export interface ExpenseLocation {
 export interface ExpenseDTO extends Expense, BaseDTO<ExpenseId> {
     isLocked: boolean; // True if any participant has left the group (computed field, always present)
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
-    userReactions?: ReactionEmoji[]; // Current user's reactions on this expense (optional, included when user has reacted)
+    userReactions?: UserReactionsMap; // All users' reactions on this expense (optional, included when reactions exist)
     commentCount?: number; // Number of comments on this expense (optional, 0 means no comments)
 }
 
@@ -1009,7 +1009,7 @@ interface Settlement extends SoftDeletable {
 export interface SettlementDTO extends Settlement, BaseDTO<SettlementId> {
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
-    userReactions?: ReactionEmoji[]; // Current user's reactions on this settlement (optional, included when user has reacted)
+    userReactions?: UserReactionsMap; // All users' reactions on this settlement (optional, included when reactions exist)
 }
 
 export interface CreateSettlementRequest {
@@ -1057,7 +1057,7 @@ export interface SettlementWithMembers extends SoftDeletable {
     isLocked: boolean; // True if payer or payee has left the group (computed field, always present)
     supersededBy: SettlementId | null; // Non-null if this settlement was edited (replaced by newer version)
     reactionCounts?: ReactionCounts;
-    userReactions?: ReactionEmoji[]; // Current user's reactions on this settlement
+    userReactions?: UserReactionsMap; // All users' reactions on this settlement
 }
 
 // ========================================================================
@@ -1314,7 +1314,7 @@ interface Comment {
  */
 export interface CommentDTO extends Comment, BaseDTO<CommentId> {
     reactionCounts?: ReactionCounts; // Aggregated reaction counts (optional, included when reactions exist)
-    userReactions?: ReactionEmoji[]; // Current user's reactions on this comment (optional, included when user has reacted)
+    userReactions?: UserReactionsMap; // All users' reactions on this comment (optional, included when reactions exist)
 }
 
 interface BaseCreateCommentRequest {
@@ -1341,22 +1341,17 @@ export interface CreateExpenseCommentRequest extends BaseCreateCommentRequest {
 export type ReactionCounts = Partial<Record<ReactionEmoji, number>>;
 
 /**
- * Individual reaction stored in Firestore subcollection.
- * Document ID format: {userId}_{emoji}
+ * Map of user IDs to their reaction emojis on a resource.
+ * Stored directly on parent documents (expense, settlement, comment) for O(1) reads.
  */
-export interface ReactionDTO {
-    id: ReactionId;
-    userId: UserId;
-    emoji: ReactionEmoji;
-    createdAt: ISOString;
-}
+export type UserReactionsMap = Partial<Record<UserId, ReactionEmoji[]>>;
 
 /**
- * Summary of reactions for a resource, including the current user's reactions.
+ * Summary of reactions for a resource, including all users' reactions.
  */
 export interface ReactionSummary {
     counts: ReactionCounts;
-    userReactions: ReactionEmoji[];
+    userReactions: UserReactionsMap;
 }
 
 /**

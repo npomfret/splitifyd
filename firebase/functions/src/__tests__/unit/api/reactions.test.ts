@@ -188,20 +188,21 @@ describe('reactions', () => {
             await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.HEART, user1);
             await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.THUMBS_UP, user2);
 
-            // Verify user1 sees their reactions in getExpenseFullDetails
+            // Verify all users' reactions are visible (new format: Record<UserId, ReactionEmoji[]>)
             const fullDetails1 = await appDriver.getExpenseFullDetails(expense.id, user1);
-            expect(fullDetails1.expense.userReactions).toEqual(
+            expect(fullDetails1.expense.userReactions).toBeDefined();
+            expect(fullDetails1.expense.userReactions![user1]).toEqual(
                 expect.arrayContaining([ReactionEmojis.THUMBS_UP, ReactionEmojis.HEART]),
             );
-            expect(fullDetails1.expense.userReactions).toHaveLength(2);
+            expect(fullDetails1.expense.userReactions![user2]).toEqual([ReactionEmojis.THUMBS_UP]);
             expect(fullDetails1.expense.reactionCounts).toEqual({
                 [ReactionEmojis.THUMBS_UP]: 2,
                 [ReactionEmojis.HEART]: 1,
             });
 
-            // Verify user2 sees only their reaction
+            // Both users see the same userReactions map
             const fullDetails2 = await appDriver.getExpenseFullDetails(expense.id, user2);
-            expect(fullDetails2.expense.userReactions).toEqual([ReactionEmojis.THUMBS_UP]);
+            expect(fullDetails2.expense.userReactions).toEqual(fullDetails1.expense.userReactions);
             expect(fullDetails2.expense.reactionCounts).toEqual({
                 [ReactionEmojis.THUMBS_UP]: 2,
                 [ReactionEmojis.HEART]: 1,
@@ -231,16 +232,18 @@ describe('reactions', () => {
             await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.LAUGH, user1);
             await appDriver.toggleExpenseReaction(expense.id, ReactionEmojis.LAUGH, user2);
 
-            // Verify user1 sees their reaction in getExpense
+            // Verify all users' reactions are visible (new format: Record<UserId, ReactionEmoji[]>)
             const expense1 = await appDriver.getExpense(expense.id, user1);
-            expect(expense1.userReactions).toEqual([ReactionEmojis.LAUGH]);
+            expect(expense1.userReactions).toBeDefined();
+            expect(expense1.userReactions![user1]).toEqual([ReactionEmojis.LAUGH]);
+            expect(expense1.userReactions![user2]).toEqual([ReactionEmojis.LAUGH]);
             expect(expense1.reactionCounts).toEqual({
                 [ReactionEmojis.LAUGH]: 2,
             });
 
-            // Verify user2 sees their reaction
+            // Both users see the same userReactions map
             const expense2 = await appDriver.getExpense(expense.id, user2);
-            expect(expense2.userReactions).toEqual([ReactionEmojis.LAUGH]);
+            expect(expense2.userReactions).toEqual(expense1.userReactions);
         });
     });
 
@@ -301,22 +304,23 @@ describe('reactions', () => {
             await appDriver.toggleGroupCommentReaction(groupId, comment.id, ReactionEmojis.HEART, user1);
             await appDriver.toggleGroupCommentReaction(groupId, comment.id, ReactionEmojis.THUMBS_UP, user2);
 
-            // Verify user1 sees their reactions in listGroupComments
+            // Verify all users' reactions are visible (new format: Record<UserId, ReactionEmoji[]>)
             const result1 = await appDriver.listGroupComments(groupId, {}, user1);
             const comment1 = result1.comments.find(c => c.id === comment.id);
-            expect(comment1?.userReactions).toEqual(
+            expect(comment1?.userReactions).toBeDefined();
+            expect(comment1?.userReactions![user1]).toEqual(
                 expect.arrayContaining([ReactionEmojis.THUMBS_UP, ReactionEmojis.HEART]),
             );
-            expect(comment1?.userReactions).toHaveLength(2);
+            expect(comment1?.userReactions![user2]).toEqual([ReactionEmojis.THUMBS_UP]);
             expect(comment1?.reactionCounts).toEqual({
                 [ReactionEmojis.THUMBS_UP]: 2,
                 [ReactionEmojis.HEART]: 1,
             });
 
-            // Verify user2 sees only their reaction
+            // Both users see the same userReactions map
             const result2 = await appDriver.listGroupComments(groupId, {}, user2);
             const comment2 = result2.comments.find(c => c.id === comment.id);
-            expect(comment2?.userReactions).toEqual([ReactionEmojis.THUMBS_UP]);
+            expect(comment2?.userReactions).toEqual(comment1?.userReactions);
         });
     });
 
@@ -392,22 +396,23 @@ describe('reactions', () => {
             await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.SAD, user1);
             await appDriver.toggleExpenseCommentReaction(expense.id, comment.id, ReactionEmojis.WOW, user2);
 
-            // Verify user1 sees their reactions in listExpenseComments
+            // Verify all users' reactions are visible (new format: Record<UserId, ReactionEmoji[]>)
             const result1 = await appDriver.listExpenseComments(expense.id, {}, user1);
             const comment1 = result1.comments.find(c => c.id === comment.id);
-            expect(comment1?.userReactions).toEqual(
+            expect(comment1?.userReactions).toBeDefined();
+            expect(comment1?.userReactions![user1]).toEqual(
                 expect.arrayContaining([ReactionEmojis.WOW, ReactionEmojis.SAD]),
             );
-            expect(comment1?.userReactions).toHaveLength(2);
+            expect(comment1?.userReactions![user2]).toEqual([ReactionEmojis.WOW]);
             expect(comment1?.reactionCounts).toEqual({
                 [ReactionEmojis.WOW]: 2,
                 [ReactionEmojis.SAD]: 1,
             });
 
-            // Verify user2 sees only their reaction
+            // Both users see the same userReactions map
             const result2 = await appDriver.listExpenseComments(expense.id, {}, user2);
             const comment2 = result2.comments.find(c => c.id === comment.id);
-            expect(comment2?.userReactions).toEqual([ReactionEmojis.WOW]);
+            expect(comment2?.userReactions).toEqual(comment1?.userReactions);
         });
     });
 
@@ -491,22 +496,23 @@ describe('reactions', () => {
             await appDriver.toggleSettlementReaction(settlement.id, ReactionEmojis.HEART, user1);
             await appDriver.toggleSettlementReaction(settlement.id, ReactionEmojis.CELEBRATE, user2);
 
-            // Verify user1 sees their reactions in listGroupSettlements
+            // Verify all users' reactions are visible (new format: Record<UserId, ReactionEmoji[]>)
             const result1 = await appDriver.listGroupSettlements(groupId, {}, user1);
             const settlement1 = result1.settlements.find(s => s.id === settlement.id);
-            expect(settlement1?.userReactions).toEqual(
+            expect(settlement1?.userReactions).toBeDefined();
+            expect(settlement1?.userReactions![user1]).toEqual(
                 expect.arrayContaining([ReactionEmojis.CELEBRATE, ReactionEmojis.HEART]),
             );
-            expect(settlement1?.userReactions).toHaveLength(2);
+            expect(settlement1?.userReactions![user2]).toEqual([ReactionEmojis.CELEBRATE]);
             expect(settlement1?.reactionCounts).toEqual({
                 [ReactionEmojis.CELEBRATE]: 2,
                 [ReactionEmojis.HEART]: 1,
             });
 
-            // Verify user2 sees only their reaction
+            // Both users see the same userReactions map
             const result2 = await appDriver.listGroupSettlements(groupId, {}, user2);
             const settlement2 = result2.settlements.find(s => s.id === settlement.id);
-            expect(settlement2?.userReactions).toEqual([ReactionEmojis.CELEBRATE]);
+            expect(settlement2?.userReactions).toEqual(settlement1?.userReactions);
         });
     });
 

@@ -393,6 +393,13 @@ export class CommentsStoreImpl implements CommentsStore {
             return;
         }
 
+        const authStore = await getAuthStore();
+        const currentUserId = authStore.user?.uid;
+        if (!currentUserId) {
+            this.#errorSignal.value = 'User not authenticated';
+            return;
+        }
+
         try {
             let response;
             if (target.type === 'group') {
@@ -407,17 +414,17 @@ export class CommentsStoreImpl implements CommentsStore {
                     return comment;
                 }
 
-                const currentReactions = comment.userReactions || [];
+                const currentUserReactions = comment.userReactions?.[currentUserId] ?? [];
                 const currentCounts = comment.reactionCounts || {};
 
-                let newUserReactions: ReactionEmoji[];
+                let newUserReactionsArray: ReactionEmoji[];
                 let newCounts: typeof currentCounts;
 
                 if (response.action === 'added') {
-                    newUserReactions = [...currentReactions, emoji];
+                    newUserReactionsArray = [...currentUserReactions, emoji];
                     newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
                 } else {
-                    newUserReactions = currentReactions.filter((e) => e !== emoji);
+                    newUserReactionsArray = currentUserReactions.filter((e) => e !== emoji);
                     const newCount = (currentCounts[emoji] || 1) - 1;
                     newCounts = { ...currentCounts };
                     if (newCount > 0) {
@@ -427,7 +434,12 @@ export class CommentsStoreImpl implements CommentsStore {
                     }
                 }
 
-                return { ...comment, userReactions: newUserReactions, reactionCounts: newCounts };
+                const newUserReactionsMap = {
+                    ...(comment.userReactions || {}),
+                    [currentUserId]: newUserReactionsArray,
+                };
+
+                return { ...comment, userReactions: newUserReactionsMap, reactionCounts: newCounts };
             });
         } catch (error) {
             logError('Failed to toggle reaction', error);

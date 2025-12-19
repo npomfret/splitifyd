@@ -461,17 +461,17 @@ describe('Firestore Security Rules (Production)', () => {
                         .withBalance(userId2, USD, '-50')
                         .build();
 
-                    await setDoc(doc(db, 'group-balances', groupId), groupBalance);
+                    await setDoc(doc(db, 'balances', groupId), groupBalance);
                 });
         });
 
         it('should allow authenticated users to read group balances', async () => {
             // Only group members can read group balances (user1 and user2 are members from Groups Collection setup)
-            await assertSucceeds(getDoc(doc(user1Db, 'group-balances', groupId)));
-            await assertSucceeds(getDoc(doc(user2Db, 'group-balances', groupId)));
+            await assertSucceeds(getDoc(doc(user1Db, 'balances', groupId)));
+            await assertSucceeds(getDoc(doc(user2Db, 'balances', groupId)));
 
             // User3 is not a group member and should be denied
-            await assertFails(getDoc(doc(user3Db, 'group-balances', groupId)));
+            await assertFails(getDoc(doc(user3Db, 'balances', groupId)));
         });
 
         it('should deny all client writes to group balances', async () => {
@@ -480,7 +480,7 @@ describe('Firestore Security Rules (Production)', () => {
             };
 
             // No clients can write balances
-            await assertFails(setDoc(doc(user1Db, 'group-balances', groupId), updateData, { merge: true }));
+            await assertFails(setDoc(doc(user1Db, 'balances', groupId), updateData, { merge: true }));
         });
     });
 

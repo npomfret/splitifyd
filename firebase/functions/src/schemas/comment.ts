@@ -2,7 +2,7 @@ import { toAttachmentId, toUserId } from '@billsplit-wl/shared';
 import { z } from 'zod';
 
 import { FirestoreTimestampSchema } from './common';
-import { ReactionCountsSchema } from './reaction';
+import { ReactionCountsSchema, UserReactionsMapSchema } from './reaction';
 
 /**
  * Schema for comment attachment references stored in Firestore.
@@ -32,6 +32,7 @@ export const CommentDocumentSchema = z
         createdAt: FirestoreTimestampSchema,
         updatedAt: FirestoreTimestampSchema,
         reactionCounts: ReactionCountsSchema.nullable().optional(), // Aggregate emoji reaction counts
+        userReactions: UserReactionsMapSchema.nullable().optional(), // All users' reactions (denormalized)
     })
     .strict();
 

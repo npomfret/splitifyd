@@ -6,8 +6,8 @@
  */
 
 /**
- * Firestore collection names
- * Centralized constant to ensure consistency across the application
+ * Firestore collection names and API route segments.
+ * Centralized constant to ensure consistency across the application.
  */
 export const FirestoreCollections = {
     GROUPS: 'groups',
@@ -17,11 +17,12 @@ export const FirestoreCollections = {
     USERS: 'users',
     POLICIES: 'policies',
     COMMENTS: 'comments',
-    REACTIONS: 'reactions',
+    REACTIONS: 'reactions', // API route segment only - reactions are denormalized on parent documents
     ACTIVITY_FEED: 'activity-feed',
     SHARE_LINK_TOKENS: 'share-link-tokens',
     TENANTS: 'tenants',
     ACCOUNT_MERGES: 'account-merges',
+    BALANCES: 'balances',
 } as const;
 
 // HTTP Status Codes

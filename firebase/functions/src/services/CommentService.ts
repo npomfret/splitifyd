@@ -65,16 +65,11 @@ export class CommentService {
         });
         timer.endPhase();
 
-        const comments: CommentDTO[] = await Promise.all(
-            result.comments.map(async (comment) => {
-                const userReactions = await this.firestoreReader.getUserReactionsForGroupComment(groupId, comment.id, userId);
-                return {
-                    ...comment,
-                    authorAvatar: comment.authorAvatar || undefined,
-                    userReactions,
-                };
-            }),
-        );
+        // userReactions are now denormalized on the comment document - no N+1 queries needed
+        const comments: CommentDTO[] = result.comments.map((comment) => ({
+            ...comment,
+            authorAvatar: comment.authorAvatar || undefined,
+        }));
 
         return {
             comments,
@@ -100,16 +95,11 @@ export class CommentService {
         });
         timer.endPhase();
 
-        const comments: CommentDTO[] = await Promise.all(
-            result.comments.map(async (comment) => {
-                const userReactions = await this.firestoreReader.getUserReactionsForExpenseComment(expenseId, comment.id, userId);
-                return {
-                    ...comment,
-                    authorAvatar: comment.authorAvatar || undefined,
-                    userReactions,
-                };
-            }),
-        );
+        // userReactions are now denormalized on the comment document - no N+1 queries needed
+        const comments: CommentDTO[] = result.comments.map((comment) => ({
+            ...comment,
+            authorAvatar: comment.authorAvatar || undefined,
+        }));
 
         return {
             comments,

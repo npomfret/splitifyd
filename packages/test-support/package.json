@@ -22,6 +22,6 @@
     "@billsplit-wl/shared": "^1.0.0",
     "@playwright/test": "^1.57.0",
     "firebase-admin": "^13.6.0",
-    "ts-firebase-simulator": "^0.3.0"
+    "ts-firebase-simulator": "^0.9.0"
   }
 }

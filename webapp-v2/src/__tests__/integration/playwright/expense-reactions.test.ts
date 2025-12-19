@@ -1,4 +1,4 @@
-import { ReactionEmojis } from '@billsplit-wl/shared';
+import { ReactionEmojis, toUserId } from '@billsplit-wl/shared';
 import { ExpenseDetailPage, ExpenseDTOBuilder, ExpenseFullDetailsBuilder, GroupDTOBuilder, GroupFullDetailsBuilder, GroupMemberBuilder } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 import { mockExpenseCommentsApi, mockExpenseDetailApi, mockGroupCommentsApi, mockGroupDetailApi, mockToggleExpenseReactionApiForAllEmojis } from '../../utils/mock-firebase-service';
@@ -176,7 +176,7 @@ test.describe('Expense Reactions', () => {
             .withPaidBy(testUser.uid)
             .withParticipants([testUser.uid])
             .withReactionCounts({ [ReactionEmojis.THUMBS_UP]: 2, [ReactionEmojis.HEART]: 1 })
-            .withUserReactions([ReactionEmojis.THUMBS_UP])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.THUMBS_UP] })
             .build();
 
         const group = GroupDTOBuilder
@@ -236,7 +236,7 @@ test.describe('Expense Reactions', () => {
             .withPaidBy(testUser.uid)
             .withParticipants([testUser.uid])
             .withReactionCounts({ [ReactionEmojis.THUMBS_UP]: 1 })
-            .withUserReactions([ReactionEmojis.THUMBS_UP])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.THUMBS_UP] })
             .build();
 
         const group = GroupDTOBuilder
@@ -354,7 +354,7 @@ test.describe('Expense Reactions', () => {
             .withPaidBy(testUser.uid)
             .withParticipants([testUser.uid])
             .withReactionCounts({ [ReactionEmojis.THUMBS_UP]: 2 })
-            .withUserReactions([ReactionEmojis.THUMBS_UP])
+            .withUserReactions({ [toUserId(testUser.uid)]: [ReactionEmojis.THUMBS_UP] })
             .build();
 
         const group = GroupDTOBuilder

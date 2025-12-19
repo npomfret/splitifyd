@@ -40,7 +40,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
 
     const getBalance = async (): Promise<GroupBalanceDTO> => {
         return await stubDb.runTransaction(async (transaction) => {
-            const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+            const balanceRef = stubDb.doc(`balances/${groupId}`);
             const balanceSnap = await transaction.get(balanceRef);
             return balanceSnap.data();
         });
@@ -60,7 +60,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createEmptyBalance();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseCreated(transaction, groupId, initialBalance, expense, [userId1, userId2]);
@@ -89,7 +89,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User1 is owed $50 by User2
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseCreated(transaction, groupId, initialBalance, expense, [userId1, userId2]);
@@ -117,7 +117,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createEmptyBalance();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseCreated(transaction, groupId, initialBalance, expense, [userId1, userId2, userId3]);
@@ -144,7 +144,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User1 is owed $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseDeleted(transaction, groupId, initialBalance, expense, [userId1, userId2]);
@@ -168,7 +168,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 initialBalance.balancesByCurrency[usdCurrency][userId1].owedBy[userId2] = '100';
                 initialBalance.balancesByCurrency[usdCurrency][userId2].netBalance = '-100';
                 initialBalance.balancesByCurrency[usdCurrency][userId2].owes[userId1] = '100';
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 const expense = new ExpenseDTOBuilder()
                     .withExpenseId('expense-1')
@@ -216,7 +216,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     )
                     .build();
 
-                stubDb.seed(`groups/${groupId}/metadata/balance`, currentBalance);
+                stubDb.seed(`balances/${groupId}`, currentBalance);
 
                 const expense = new ExpenseDTOBuilder()
                     .withExpenseId('expense-eur')
@@ -247,7 +247,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 const participants = [userId1, userId2];
 
                 const initialBalance = createEmptyBalance();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 const originalExpense = new ExpenseDTOBuilder()
                     .withExpenseId('expense-lifecycle')
@@ -328,7 +328,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseUpdated(transaction, groupId, initialBalance, oldExpense, newExpense, [userId1, userId2]);
@@ -364,7 +364,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseUpdated(transaction, groupId, initialBalance, oldExpense, newExpense, [userId1, userId2]);
@@ -402,7 +402,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD();
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applyExpenseUpdated(transaction, groupId, initialBalance, oldExpense, newExpense, [userId1, userId2]);
@@ -433,7 +433,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User2 owes User1 $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementCreated(transaction, groupId, initialBalance, settlement, [userId1, userId2]);
@@ -458,7 +458,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User2 owes User1 $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementCreated(transaction, groupId, initialBalance, settlement, [userId1, userId2]);
@@ -482,7 +482,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User2 owes User1 $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementCreated(transaction, groupId, initialBalance, settlement, [userId1, userId2]);
@@ -514,7 +514,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 initialBalance.balancesByCurrency[usdCurrency][userId1].owedBy[userId2] = '20';
                 initialBalance.balancesByCurrency[usdCurrency][userId2].netBalance = '-20';
                 initialBalance.balancesByCurrency[usdCurrency][userId2].owes[userId1] = '20';
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementDeleted(transaction, groupId, initialBalance, settlement, [userId1, userId2]);
@@ -548,7 +548,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User2 owes User1 $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementUpdated(transaction, groupId, initialBalance, oldSettlement, newSettlement, [userId1, userId2]);
@@ -583,7 +583,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                     .build();
 
                 const initialBalance = createBalanceWithUSD(); // User2 owes User1 $50
-                stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+                stubDb.seed(`balances/${groupId}`, initialBalance);
 
                 await stubDb.runTransaction(async (transaction) => {
                     service.applySettlementUpdated(transaction, groupId, initialBalance, oldSettlement, newSettlement, [userId1, userId2]);
@@ -619,7 +619,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 .build();
 
             const initialBalance = createEmptyBalance();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // Version 0 initially
             let balance = await getBalance();
@@ -670,7 +670,7 @@ describe('IncrementalBalanceService - Unit Tests', () => {
                 .build();
 
             const initialBalance = createEmptyBalance();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // Apply first expense
             await stubDb.runTransaction(async (transaction) => {

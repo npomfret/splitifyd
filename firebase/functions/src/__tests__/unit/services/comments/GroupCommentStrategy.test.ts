@@ -13,6 +13,7 @@ describe('GroupCommentStrategy', () => {
     beforeEach(() => {
         // Create AppDriver which sets up all real services
         appDriver = new AppDriver();
+        appDriver.seedLocalhostTenant();
         strategy = new GroupCommentStrategy(appDriver.componentBuilder.buildFirestoreReader(), appDriver.componentBuilder.buildGroupMemberService());
     });
 

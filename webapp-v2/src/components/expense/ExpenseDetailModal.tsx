@@ -1,5 +1,6 @@
 import { apiClient } from '@/app/apiClient';
 import { useModalOpen } from '@/app/hooks/useModalOpen';
+import { getAuthStore } from '@/app/stores/auth-store';
 import { CommentsSection } from '@/components/comments';
 import { ReactionBar } from '@/components/reactions';
 import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
@@ -10,10 +11,10 @@ import { logError } from '@/utils/browser-logger.ts';
 import { formatCurrency } from '@/utils/currency';
 import { formatDistanceToNow, formatExpenseDateTime, formatLocalDateTime } from '@/utils/dateUtils.ts';
 import { getGroupDisplayName } from '@/utils/displayName';
-import type { ReactionEmoji } from '@billsplit-wl/shared';
+import type { ReactionEmoji, UserId } from '@billsplit-wl/shared';
 import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode, toDisplayName } from '@billsplit-wl/shared';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useCallback, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ExpenseActions } from './ExpenseActions';
 import { SplitBreakdown } from './SplitBreakdown';
@@ -36,6 +37,13 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
     const [group, setGroup] = useState<GroupDTO | null>(null);
     const [members, setMembers] = useState<GroupMember[]>([]);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState<UserId | null>(null);
+
+    useEffect(() => {
+        getAuthStore().then((store) => {
+            setCurrentUserId(store.user?.uid as UserId ?? null);
+        });
+    }, []);
 
     const loadExpense = useCallback(async (id: ExpenseId) => {
         try {
@@ -98,23 +106,23 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
     };
 
     const handleReactionToggle = async (emoji: ReactionEmoji) => {
-        if (!expenseId || !expense) return;
+        if (!expenseId || !expense || !currentUserId) return;
 
         try {
             const response = await apiClient.toggleExpenseReaction(expenseId, emoji);
 
             // Optimistically update the local expense state
-            const currentReactions = expense.userReactions || [];
+            const currentUserReactions = expense.userReactions?.[currentUserId] ?? [];
             const currentCounts = expense.reactionCounts || {};
 
-            let newUserReactions: ReactionEmoji[];
+            let newUserReactionsArray: ReactionEmoji[];
             let newCounts: typeof currentCounts;
 
             if (response.action === 'added') {
-                newUserReactions = [...currentReactions, emoji];
+                newUserReactionsArray = [...currentUserReactions, emoji];
                 newCounts = { ...currentCounts, [emoji]: (currentCounts[emoji] || 0) + 1 };
             } else {
-                newUserReactions = currentReactions.filter((e) => e !== emoji);
+                newUserReactionsArray = currentUserReactions.filter((e) => e !== emoji);
                 const newCount = (currentCounts[emoji] || 1) - 1;
                 newCounts = { ...currentCounts };
                 if (newCount > 0) {
@@ -124,7 +132,12 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                 }
             }
 
-            setExpense({ ...expense, userReactions: newUserReactions, reactionCounts: newCounts });
+            const newUserReactionsMap = {
+                ...(expense.userReactions || {}),
+                [currentUserId]: newUserReactionsArray,
+            };
+
+            setExpense({ ...expense, userReactions: newUserReactionsMap, reactionCounts: newCounts });
         } catch (err) {
             logError('Failed to toggle expense reaction', err);
         }
@@ -320,7 +333,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         <div className='flex justify-center pb-4 border-b border-border-default'>
                             <ReactionBar
                                 counts={expense.reactionCounts}
-                                userReactions={expense.userReactions}
+                                userReactions={currentUserId ? expense.userReactions?.[currentUserId] : undefined}
                                 onToggle={handleReactionToggle}
                                 size='md'
                             />

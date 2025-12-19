@@ -1,4 +1,4 @@
-import type { CommentDTO, GroupId, ReactionEmoji } from '@billsplit-wl/shared';
+import type { CommentDTO, GroupId, ReactionEmoji, UserId } from '@billsplit-wl/shared';
 import { toDisplayName } from '@billsplit-wl/shared';
 import { ReactionBar } from '../reactions';
 import { Avatar, RelativeTime } from '../ui';
@@ -6,6 +6,7 @@ import { AttachmentDisplay } from '../ui/AttachmentDisplay';
 
 interface CommentItemProps {
     comment: CommentDTO;
+    currentUserId?: UserId | null;
     isCurrentUser?: boolean;
     showAvatar?: boolean;
     className?: string;
@@ -16,6 +17,7 @@ interface CommentItemProps {
 
 export function CommentItem({
     comment,
+    currentUserId,
     isCurrentUser = false,
     showAvatar = true,
     className = '',
@@ -23,6 +25,9 @@ export function CommentItem({
     reactionDisabled = false,
     attachmentGroupId,
 }: CommentItemProps) {
+    const currentUserReactions = currentUserId && comment.userReactions
+        ? comment.userReactions[currentUserId] ?? []
+        : [];
     return (
         <article
             className={`flex flex-col gap-1 ${className}`}
@@ -59,7 +64,7 @@ export function CommentItem({
             {onReactionToggle && (
                 <ReactionBar
                     counts={comment.reactionCounts}
-                    userReactions={comment.userReactions}
+                    userReactions={currentUserReactions}
                     onToggle={onReactionToggle}
                     disabled={reactionDisabled}
                     size='sm'

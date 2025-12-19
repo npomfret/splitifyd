@@ -1,7 +1,6 @@
 import type { CommentId, ExpenseId, GroupId, ReactableResourceType, SettlementId, UserId } from '@billsplit-wl/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, ReactableResourceTypes, ReactionCounts, ReactionEmoji, ReactionToggleResponse, toISOString } from '@billsplit-wl/shared';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { FirestoreCollections } from '../constants';
+import { ActivityFeedActions, ActivityFeedEventTypes, ReactableResourceTypes, ReactionCounts, ReactionEmoji, ReactionToggleResponse, toISOString, UserReactionsMap } from '@billsplit-wl/shared';
+import { FieldValue } from 'firebase-admin/firestore';
 import { ErrorDetail, Errors } from '../errors';
 import { logger } from '../logger';
 import * as measure from '../monitoring/measure';
@@ -14,13 +13,11 @@ import { GroupMemberService } from './GroupMemberService';
 /**
  * Service for managing emoji reactions on expenses, comments, and settlements.
  *
- * Reactions are stored in subcollections under each resource:
- * - expenses/{expenseId}/reactions/{userId}_{emoji}
- * - groups/{groupId}/comments/{commentId}/reactions/{userId}_{emoji}
- * - expenses/{expenseId}/comments/{commentId}/reactions/{userId}_{emoji}
- * - settlements/{settlementId}/reactions/{userId}_{emoji}
+ * Reactions are stored directly on parent documents in two denormalized fields:
+ * - reactionCounts: { emoji: count } - aggregate counts per emoji
+ * - userReactions: { userId: [emoji1, emoji2] } - each user's reactions
  *
- * Aggregate counts are stored on parent documents in `reactionCounts` field.
+ * This denormalized structure enables O(1) reads - no subcollection queries needed.
  */
 export class ReactionService {
     constructor(
@@ -65,13 +62,10 @@ export class ReactionService {
         );
         timer.endPhase();
 
-        const reactionPath = this.buildExpenseReactionPath(expenseId, userId, emoji);
-        const parentPath = `${FirestoreCollections.EXPENSES}/${expenseId}`;
-
         const result = await this._toggleReaction({
             timer,
-            reactionPath,
-            parentPath,
+            parentCollection: 'expenses',
+            parentId: expenseId,
             userId,
             emoji,
             actorName: actorMember.groupDisplayName,
@@ -79,7 +73,6 @@ export class ReactionService {
             groupName: group.name,
             memberIds,
             resourceType: ReactableResourceTypes.EXPENSE,
-            resourceDescription: expense.description,
         });
 
         logger.info('expense-reaction-toggled', {
@@ -129,13 +122,10 @@ export class ReactionService {
         }
         timer.endPhase();
 
-        const reactionPath = this.buildGroupCommentReactionPath(groupId, commentId, userId, emoji);
-        const parentPath = `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}/${commentId}`;
-
         const result = await this._toggleReaction({
             timer,
-            reactionPath,
-            parentPath,
+            parentCollection: `groups/${groupId}/comments`,
+            parentId: commentId,
             userId,
             emoji,
             actorName: actorMember.groupDisplayName,
@@ -143,7 +133,6 @@ export class ReactionService {
             groupName: group.name,
             memberIds,
             resourceType: ReactableResourceTypes.GROUP_COMMENT,
-            resourceDescription: comment.text.slice(0, 50),
         });
 
         logger.info('group-comment-reaction-toggled', {
@@ -199,13 +188,10 @@ export class ReactionService {
         }
         timer.endPhase();
 
-        const reactionPath = this.buildExpenseCommentReactionPath(expenseId, commentId, userId, emoji);
-        const parentPath = `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}/${commentId}`;
-
         const result = await this._toggleReaction({
             timer,
-            reactionPath,
-            parentPath,
+            parentCollection: `expenses/${expenseId}/comments`,
+            parentId: commentId,
             userId,
             emoji,
             actorName: actorMember.groupDisplayName,
@@ -213,7 +199,6 @@ export class ReactionService {
             groupName: group.name,
             memberIds,
             resourceType: ReactableResourceTypes.EXPENSE_COMMENT,
-            resourceDescription: comment.text.slice(0, 50),
         });
 
         logger.info('expense-comment-reaction-toggled', {
@@ -262,13 +247,10 @@ export class ReactionService {
         );
         timer.endPhase();
 
-        const reactionPath = this.buildSettlementReactionPath(settlementId, userId, emoji);
-        const parentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
-
         const result = await this._toggleReaction({
             timer,
-            reactionPath,
-            parentPath,
+            parentCollection: 'settlements',
+            parentId: settlementId,
             userId,
             emoji,
             actorName: actorMember.groupDisplayName,
@@ -276,7 +258,6 @@ export class ReactionService {
             groupName: group.name,
             memberIds,
             resourceType: ReactableResourceTypes.SETTLEMENT,
-            resourceDescription: settlement.note,
         });
 
         logger.info('settlement-reaction-toggled', {
@@ -290,12 +271,13 @@ export class ReactionService {
     }
 
     /**
-     * Core toggle logic shared by all resource types
+     * Core toggle logic shared by all resource types.
+     * Updates both reactionCounts and userReactions on the parent document.
      */
     private async _toggleReaction(params: {
         timer: PerformanceTimer;
-        reactionPath: string;
-        parentPath: string;
+        parentCollection: string;
+        parentId: string;
         userId: UserId;
         emoji: ReactionEmoji;
         actorName: string;
@@ -303,12 +285,11 @@ export class ReactionService {
         groupName: string;
         memberIds: UserId[];
         resourceType: ReactableResourceType;
-        resourceDescription: string | null | undefined;
     }): Promise<ReactionToggleResponse> {
         const {
             timer,
-            reactionPath,
-            parentPath,
+            parentCollection,
+            parentId,
             userId,
             emoji,
             actorName,
@@ -316,7 +297,6 @@ export class ReactionService {
             groupName,
             memberIds,
             resourceType,
-            resourceDescription,
         } = params;
 
         let action: 'added' | 'removed' = 'added';
@@ -327,17 +307,10 @@ export class ReactionService {
 
         timer.startPhase('transaction');
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            const reactionRef = this.firestoreWriter.getDocumentReferenceInTransaction(
-                transaction,
-                reactionPath.split('/').slice(0, -1).join('/'),
-                reactionPath.split('/').pop()!,
-            );
-
-            const reactionDoc = await transaction.get(reactionRef);
             const parentRef = this.firestoreWriter.getDocumentReferenceInTransaction(
                 transaction,
-                parentPath.split('/').slice(0, -1).join('/'),
-                parentPath.split('/').pop()!,
+                parentCollection,
+                parentId,
             );
             const parentDoc = await transaction.get(parentRef);
 
@@ -345,18 +318,26 @@ export class ReactionService {
                 throw Errors.notFound('Resource');
             }
 
-            const parentData = parentDoc.data() as { reactionCounts?: ReactionCounts; };
+            const parentData = parentDoc.data() as {
+                reactionCounts?: ReactionCounts;
+                userReactions?: UserReactionsMap;
+            };
             const currentCounts: ReactionCounts = parentData?.reactionCounts ?? {};
+            const currentUserReactions: UserReactionsMap = parentData?.userReactions ?? {};
             const currentCount = currentCounts[emoji] ?? 0;
+            const userEmojis = currentUserReactions[userId] ?? [];
 
             const now = toISOString(new Date().toISOString());
 
-            if (reactionDoc.exists) {
+            // Check if user has already reacted with this emoji
+            const hasReacted = userEmojis.includes(emoji);
+
+            if (hasReacted) {
+                // Remove the reaction
                 action = 'removed';
                 newCount = Math.max(0, currentCount - 1);
 
-                transaction.delete(reactionRef);
-
+                // Update reactionCounts
                 const newCounts = { ...currentCounts };
                 if (newCount === 0) {
                     delete newCounts[emoji];
@@ -364,28 +345,40 @@ export class ReactionService {
                     newCounts[emoji] = newCount;
                 }
 
+                // Update userReactions - remove this emoji from user's list
+                const newUserReactions = { ...currentUserReactions };
+                const updatedUserEmojis = userEmojis.filter((e) => e !== emoji);
+                if (updatedUserEmojis.length === 0) {
+                    delete newUserReactions[userId];
+                } else {
+                    newUserReactions[userId] = updatedUserEmojis;
+                }
+
                 transaction.update(parentRef, {
                     reactionCounts: Object.keys(newCounts).length > 0 ? newCounts : null,
+                    userReactions: Object.keys(newUserReactions).length > 0 ? newUserReactions : null,
                     updatedAt: FieldValue.serverTimestamp(),
                 });
             } else {
+                // Add the reaction
                 action = 'added';
                 newCount = currentCount + 1;
 
-                const reactionData = {
-                    userId,
-                    emoji,
-                    createdAt: Timestamp.now(),
-                };
-                transaction.set(reactionRef, reactionData);
-
+                // Update reactionCounts
                 const newCounts: ReactionCounts = {
                     ...currentCounts,
                     [emoji]: newCount,
                 };
 
+                // Update userReactions - add this emoji to user's list
+                const newUserReactions: UserReactionsMap = {
+                    ...currentUserReactions,
+                    [userId]: [...userEmojis, emoji],
+                };
+
                 transaction.update(parentRef, {
                     reactionCounts: newCounts,
+                    userReactions: newUserReactions,
                     updatedAt: FieldValue.serverTimestamp(),
                 });
             }
@@ -419,39 +412,5 @@ export class ReactionService {
             emoji,
             newCount,
         };
-    }
-
-    private buildReactionId(userId: UserId, emoji: ReactionEmoji): string {
-        return `${userId}_${emoji}`;
-    }
-
-    private buildExpenseReactionPath(expenseId: ExpenseId, userId: UserId, emoji: ReactionEmoji): string {
-        const reactionId = this.buildReactionId(userId, emoji);
-        return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.REACTIONS}/${reactionId}`;
-    }
-
-    private buildGroupCommentReactionPath(
-        groupId: GroupId,
-        commentId: CommentId,
-        userId: UserId,
-        emoji: ReactionEmoji,
-    ): string {
-        const reactionId = this.buildReactionId(userId, emoji);
-        return `${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}/${reactionId}`;
-    }
-
-    private buildExpenseCommentReactionPath(
-        expenseId: ExpenseId,
-        commentId: CommentId,
-        userId: UserId,
-        emoji: ReactionEmoji,
-    ): string {
-        const reactionId = this.buildReactionId(userId, emoji);
-        return `${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}/${commentId}/${FirestoreCollections.REACTIONS}/${reactionId}`;
-    }
-
-    private buildSettlementReactionPath(settlementId: SettlementId, userId: UserId, emoji: ReactionEmoji): string {
-        const reactionId = this.buildReactionId(userId, emoji);
-        return `${FirestoreCollections.SETTLEMENTS}/${settlementId}/${FirestoreCollections.REACTIONS}/${reactionId}`;
     }
 }

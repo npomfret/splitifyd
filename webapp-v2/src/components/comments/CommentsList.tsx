@@ -1,5 +1,6 @@
 import { getAuthStore } from '@/app/stores/auth-store';
-import type { CommentDTO, CommentId, GroupId, ReactionEmoji } from '@billsplit-wl/shared';
+import type { CommentDTO, CommentId, GroupId, ReactionEmoji, UserId } from '@billsplit-wl/shared';
+import { toUserId } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -32,11 +33,12 @@ export function CommentsList({
     attachmentGroupId,
 }: CommentsListProps) {
     const { t } = useTranslation();
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<UserId | null>(null);
 
     useEffect(() => {
         getAuthStore().then((store) => {
-            setCurrentUserId(store.user?.uid ?? null);
+            const uid = store.user?.uid;
+            setCurrentUserId(uid ? toUserId(uid) : null);
         });
     }, []);
 
@@ -74,6 +76,7 @@ export function CommentsList({
                             <CommentItem
                                 key={comment.id}
                                 comment={comment}
+                                currentUserId={currentUserId}
                                 isCurrentUser={currentUserId === comment.authorId}
                                 attachmentGroupId={attachmentGroupId}
                                 onReactionToggle={onReactionToggle ? (emoji) => onReactionToggle(comment.id, emoji) : undefined}

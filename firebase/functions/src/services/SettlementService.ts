@@ -647,45 +647,47 @@ export class SettlementService {
         // Get current member IDs once for all settlements
         const currentMemberIds = await this.firestoreReader.getAllGroupMemberIds(groupId);
 
-        const settlements: SettlementWithMembers[] = await Promise.all(
-            result.settlements.map(async (settlement) => {
-                const [payerData, payeeData, userReactions] = await Promise.all([
-                    this.userService.resolveGroupMemberProfile(groupId, settlement.payerId),
-                    this.userService.resolveGroupMemberProfile(groupId, settlement.payeeId),
-                    this.firestoreReader.getUserReactionsForSettlement(settlement.id, userId),
-                ]);
+        // Batch fetch all unique member profiles - eliminates N+1 for profiles
+        const uniqueUserIds = new Set<UserId>();
+        for (const settlement of result.settlements) {
+            uniqueUserIds.add(settlement.payerId);
+            uniqueUserIds.add(settlement.payeeId);
+        }
+        const memberProfiles = await this.userService.resolveGroupMemberProfiles(groupId, Array.from(uniqueUserIds));
+        const profileMap = new Map(memberProfiles.map((p) => [p.uid, p]));
 
-                // Compute lock status
-                const isLocked = !currentMemberIds.includes(settlement.payerId)
-                    || !currentMemberIds.includes(settlement.payeeId);
+        // userReactions are now denormalized on the settlement document - no N+1 queries needed
+        const settlements: SettlementWithMembers[] = result.settlements.map((settlement) => {
+            const payerData = profileMap.get(settlement.payerId)!;
+            const payeeData = profileMap.get(settlement.payeeId)!;
 
-                return {
-                    id: settlement.id,
-                    groupId: settlement.groupId,
-                    payer: payerData,
-                    payee: payeeData,
-                    amount: settlement.amount,
-                    currency: settlement.currency,
-                    date: settlement.date,
-                    note: settlement.note,
-                    createdAt: settlement.createdAt,
-                    deletedAt: settlement.deletedAt,
-                    deletedBy: settlement.deletedBy,
-                    supersededBy: settlement.supersededBy,
-                    isLocked,
-                    reactionCounts: settlement.reactionCounts,
-                    userReactions,
-                } as SettlementWithMembers;
-            }),
-        );
+            // Compute lock status
+            const isLocked = !currentMemberIds.includes(settlement.payerId)
+                || !currentMemberIds.includes(settlement.payeeId);
 
-        const hasMore = result.hasMore;
-        const nextCursor = result.nextCursor;
+            return {
+                id: settlement.id,
+                groupId: settlement.groupId,
+                payer: payerData,
+                payee: payeeData,
+                amount: settlement.amount,
+                currency: settlement.currency,
+                date: settlement.date,
+                note: settlement.note,
+                createdAt: settlement.createdAt,
+                deletedAt: settlement.deletedAt,
+                deletedBy: settlement.deletedBy,
+                supersededBy: settlement.supersededBy,
+                isLocked,
+                reactionCounts: settlement.reactionCounts,
+                userReactions: settlement.userReactions,
+            } as SettlementWithMembers;
+        });
 
         return {
             settlements,
-            hasMore,
-            nextCursor,
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor,
         };
     }
 }

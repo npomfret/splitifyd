@@ -58,8 +58,8 @@ export { GroupDocumentSchema, GroupReadDocumentSchema } from './group';
 // Group membership schemas
 export { TopLevelGroupMemberSchema } from './group-membership';
 
-// Reaction schemas
-export { ReactionCountsSchema, ReactionDataSchema, ReactionDocumentSchema, ReactionEmojiSchema, ReactionIdSchema } from './reaction';
+// Reaction schemas (denormalized on parent documents - no subcollection)
+export { ReactionCountsSchema, ReactionEmojiSchema, UserReactionsMapSchema } from './reaction';
 
 // Tenant schemas
 export { TenantDocumentSchema, TenantImageDocumentSchema } from './tenant';

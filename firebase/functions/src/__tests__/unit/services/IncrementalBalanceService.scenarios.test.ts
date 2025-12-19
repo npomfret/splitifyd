@@ -52,7 +52,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // User1 pays $200 expense → User2 owes User1 $100
             const usdExpense = new ExpenseDTOBuilder()
@@ -75,7 +75,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -100,7 +100,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -142,7 +142,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // Expense 1: User1 pays $150, User2 owes $75
             const expense1 = new ExpenseDTOBuilder()
@@ -164,7 +164,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -189,7 +189,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -214,7 +214,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -288,7 +288,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withVersion(5)
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION ===
             // User2 makes EUR settlement
@@ -306,7 +306,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -337,7 +337,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION ===
             // User2 pays partial amount
@@ -356,7 +356,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -403,7 +403,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 )
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION 1 ===
             // First partial settlement: User2 pays €40 (40% of debt)
@@ -421,7 +421,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -452,7 +452,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -482,7 +482,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -504,7 +504,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION ===
             // User2 overpays
@@ -523,7 +523,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -547,7 +547,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 .withSimpleUSDDebt(user1, user2, 100)
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION ===
             // User2 pays exact amount owed
@@ -566,7 +566,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
 
             // === ASSERT ===
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -641,7 +641,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
                 )
                 .build();
 
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // === ACTION 1 ===
             // Partial USD settlement: User2 pays User1 $60 USD
@@ -659,7 +659,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -697,7 +697,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -747,7 +747,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             // User1 pays $200 USD expense → User2 owes User1 $100 USD
             const originalExpense = new ExpenseDTOBuilder()
@@ -769,7 +769,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -806,7 +806,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -849,7 +849,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             const initialBalance = new GroupBalanceDTOBuilder()
                 .withVersion(0)
                 .build();
-            stubDb.seed(`groups/${groupId}/metadata/balance`, initialBalance);
+            stubDb.seed(`balances/${groupId}`, initialBalance);
 
             const expense = new ExpenseDTOBuilder()
                 .withExpenseId('expense-1')
@@ -870,7 +870,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             let currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -897,7 +897,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             currentBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });
@@ -923,7 +923,7 @@ describe('IncrementalBalanceService - Scenarios', () => {
             });
 
             const finalBalance = await stubDb.runTransaction(async (transaction) => {
-                const balanceRef = stubDb.doc(`groups/${groupId}/metadata/balance`);
+                const balanceRef = stubDb.doc(`balances/${groupId}`);
                 const balanceSnap = await transaction.get(balanceRef);
                 return balanceSnap.data();
             });

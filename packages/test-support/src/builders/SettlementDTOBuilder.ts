@@ -1,4 +1,4 @@
-import type { ReactionCounts, ReactionEmoji, SettlementDTO, UserId } from '@billsplit-wl/shared';
+import type { ReactionCounts, ReactionEmoji, SettlementDTO, UserId, UserReactionsMap } from '@billsplit-wl/shared';
 import { Amount, GroupId, SettlementId, toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
@@ -118,7 +118,7 @@ export class SettlementDTOBuilder {
         return this;
     }
 
-    withUserReactions(userReactions: ReactionEmoji[]): this {
+    withUserReactions(userReactions: UserReactionsMap): this {
         this.settlement.userReactions = userReactions;
         return this;
     }

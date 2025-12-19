@@ -787,7 +787,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     setGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, balance: GroupBalanceDTO): void {
-        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
+        const balanceRef = this.db.collection(FirestoreCollections.BALANCES).doc(groupId);
 
         // Convert DTO to Firestore document (ISO strings → Timestamps)
         const convertedData = this.convertISOToTimestamps(balance);
@@ -801,7 +801,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     async getGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId) {
-        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
+        const balanceRef = this.db.collection(FirestoreCollections.BALANCES).doc(groupId);
 
         const doc = await transaction.get(balanceRef);
 
@@ -820,7 +820,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     updateGroupBalanceInTransaction(transaction: ITransaction, groupId: GroupId, currentBalance: GroupBalanceDTO, updater: (current: GroupBalanceDTO) => GroupBalanceDTO): void {
-        const balanceRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('metadata').doc('balance');
+        const balanceRef = this.db.collection(FirestoreCollections.BALANCES).doc(groupId);
 
         // Apply update function
         const newBalance = updater(currentBalance);

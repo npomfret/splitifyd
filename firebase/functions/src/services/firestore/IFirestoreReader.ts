@@ -380,6 +380,13 @@ export interface IFirestoreReader {
      */
     getGroupBalance(groupId: GroupId): Promise<GroupBalanceDTO>;
 
+    /**
+     * Batch fetch balances for multiple groups in a single round-trip
+     * @param groupIds - Array of group IDs to fetch balances for
+     * @returns Map of groupId to GroupBalanceDTO (excludes groups without balance docs)
+     */
+    getBalancesByGroupIds(groupIds: GroupId[]): Promise<Map<GroupId, GroupBalanceDTO>>;
+
     // ========================================================================
     // System Document Operations
     // ========================================================================
@@ -512,41 +519,5 @@ export interface IFirestoreReader {
      */
     getTenantImage(tenantId: TenantId, imageId: TenantImageId): Promise<TenantImageDTO | null>;
 
-    // ========================================================================
-    // Reaction Operations
-    // ========================================================================
-
-    /**
-     * Get current user's reactions for an expense
-     * @param expenseId - The expense ID
-     * @param userId - The user ID
-     * @returns Array of emoji strings the user has reacted with
-     */
-    getUserReactionsForExpense(expenseId: ExpenseId, userId: UserId): Promise<ReactionEmoji[]>;
-
-    /**
-     * Get current user's reactions for a settlement
-     * @param settlementId - The settlement ID
-     * @param userId - The user ID
-     * @returns Array of emoji strings the user has reacted with
-     */
-    getUserReactionsForSettlement(settlementId: SettlementId, userId: UserId): Promise<ReactionEmoji[]>;
-
-    /**
-     * Get current user's reactions for a group comment
-     * @param groupId - The group ID
-     * @param commentId - The comment ID
-     * @param userId - The user ID
-     * @returns Array of emoji strings the user has reacted with
-     */
-    getUserReactionsForGroupComment(groupId: GroupId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]>;
-
-    /**
-     * Get current user's reactions for an expense comment
-     * @param expenseId - The expense ID
-     * @param commentId - The comment ID
-     * @param userId - The user ID
-     * @returns Array of emoji strings the user has reacted with
-     */
-    getUserReactionsForExpenseComment(expenseId: ExpenseId, commentId: CommentId, userId: UserId): Promise<ReactionEmoji[]>;
+    // Note: getUserReactionsFor* methods removed - reactions are now denormalized on parent documents
 }
