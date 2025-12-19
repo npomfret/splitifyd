@@ -14,9 +14,10 @@ interface BaseLayoutProps {
     headerVariant?: 'default' | 'minimal' | 'dashboard';
     showHeader?: boolean;
     showFooter?: boolean;
+    showHeaderAuth?: boolean;
 }
 
-export function BaseLayout({ children, title, description, canonical, ogImage, structuredData, headerVariant = 'default', showHeader = true, showFooter = true }: BaseLayoutProps) {
+export function BaseLayout({ children, title, description, canonical, ogImage, structuredData, headerVariant = 'default', showHeader = true, showFooter = true, showHeaderAuth = true }: BaseLayoutProps) {
     const { t } = useTranslation();
 
     return (
@@ -30,7 +31,7 @@ export function BaseLayout({ children, title, description, canonical, ogImage, s
                 {t('accessibility.skipToContent')}
             </a>
 
-            {showHeader && <Header variant={headerVariant} />}
+            {showHeader && <Header variant={headerVariant} showAuth={showHeaderAuth} />}
 
             <main id='main-content' className='flex-1' tabIndex={-1}>
                 {children}
