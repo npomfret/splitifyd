@@ -1,4 +1,5 @@
 import {apiClient} from '@/app/apiClient.ts';
+import {useAsyncAction} from '@/app/hooks';
 import {useAuthRequired} from '@/app/hooks/useAuthRequired.ts';
 import {useModalOpen} from '@/app/hooks/useModalOpen';
 import {CurrencyService} from '@/app/services/currencyService.ts';
@@ -60,9 +61,10 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
     const {t} = useTranslation();
     const authStore = useAuthRequired();
 
+    // Validation error for sync validation (form validation before submit)
+    const [validationError, setValidationError] = useState<string | null>(null);
+
     // Component-local signals - initialized within useState to avoid stale state across instances
-    const [isSubmittingSignal] = useState(() => signal(false));
-    const [validationErrorSignal] = useState(() => signal<string | null>(null));
     const [warningMessageSignal] = useState(() => signal<string | null>(null));
     const [payerIdSignal] = useState(() => signal<UserId | ''>(''));
     const [payeeIdSignal] = useState(() => signal<UserId | ''>(''));
@@ -73,8 +75,6 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
     const [amountPrecisionErrorSignal] = useState(() => signal<string | null>(null));
 
     // Extract signal values for use in render
-    const isSubmitting = isSubmittingSignal.value;
-    const validationError = validationErrorSignal.value;
     const warningMessage = warningMessageSignal.value;
     const payerId = payerIdSignal.value;
     const payeeId = payeeIdSignal.value;
@@ -106,8 +106,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
             if (editMode && settlementToEdit) {
                 // Check if settlement is locked
                 if (settlementToEdit.isLocked) {
-                    validationErrorSignal.value = t('settlementForm.errors.settlementLocked');
-                    isSubmittingSignal.value = false;
+                    setValidationError(t('settlementForm.errors.settlementLocked'));
                     return;
                 }
 
@@ -149,7 +148,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                 dateSignal.value = new Date().toISOString().split('T')[0];
                 noteSignal.value = '';
             }
-            validationErrorSignal.value = null;
+            setValidationError(null);
             amountPrecisionErrorSignal.value = null;
         }, [editMode, settlementToEdit, preselectedDebt, currentUser, balances.value, t]),
     });
@@ -304,19 +303,9 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
         return null;
     };
 
-    const handleSubmit = async (e: Event) => {
-        e.preventDefault();
-
-        const formValidationError = validateForm();
-        if (formValidationError) {
-            validationErrorSignal.value = formValidationError;
-            return;
-        }
-
-        isSubmittingSignal.value = true;
-        validationErrorSignal.value = null;
-
-        try {
+    // Async action for submitting the settlement
+    const submitAction = useAsyncAction(
+        async () => {
             if (editMode && settlementToEdit) {
                 // Update existing settlement - only send fields that can be updated
                 const updateData = {
@@ -343,18 +332,34 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                 };
                 await apiClient.createSettlement(settlementData);
             }
-
-            // Activity feed handles refresh automatically via SSE
-            if (onSuccess) {
-                onSuccess();
-            }
-            onClose();
-        } catch (error: unknown) {
-            validationErrorSignal.value = translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed'));
-        } finally {
-            isSubmittingSignal.value = false;
+        },
+        {
+            onSuccess: () => {
+                // Activity feed handles refresh automatically via SSE
+                onSuccess?.();
+                onClose();
+            },
+            onError: (error) => {
+                return translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed'));
+            },
         }
+    );
+
+    const handleSubmit = async (e: Event) => {
+        e.preventDefault();
+
+        const formValidationError = validateForm();
+        if (formValidationError) {
+            setValidationError(formValidationError);
+            return;
+        }
+
+        setValidationError(null);
+        await submitAction.execute();
     };
+
+    // Combined error display (validation errors or API errors)
+    const displayError = validationError || submitAction.error;
 
     // Don't render if user is not authenticated
     if (!currentUser) {
@@ -486,7 +491,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                     payerIdSignal.value = value ? toUserId(value) : '';
                                 }}
                                 className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
-                                disabled={isSubmitting}
+                                disabled={submitAction.isLoading}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
                                 {members.map((member: GroupMember) => (
@@ -511,7 +516,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                     payeeIdSignal.value = value ? toUserId(value) : '';
                                 }}
                                 className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
-                                disabled={isSubmitting}
+                                disabled={submitAction.isLoading}
                             >
                                 <option value=''>{t('settlementForm.selectPersonPlaceholder')}</option>
                                 {members
@@ -541,7 +546,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                 }}
                                 label={t('settlementForm.amountLabel')}
                                 required
-                                disabled={isSubmitting}
+                                disabled={submitAction.isLoading}
                                 placeholder={t('settlementForm.amountPlaceholder')}
                                 recentCurrencies={CurrencyService.getInstance().getRecentCurrencies()}
                             />
@@ -565,7 +570,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                     dateSignal.value = (e.target as HTMLInputElement).value;
                                 }}
                                 max={new Date().toISOString().split('T')[0]}
-                                disabled={isSubmitting}
+                                disabled={submitAction.isLoading}
                                 required
                                 className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
@@ -585,7 +590,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                 onInput={(e: Event) => {
                                     noteSignal.value = (e.target as HTMLInputElement).value;
                                 }}
-                                disabled={isSubmitting}
+                                disabled={submitAction.isLoading}
                                 maxLength={500}
                                 className='w-full px-3 py-2 border border-border-default rounded-md bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary transition-colors duration-200'
                                 autoComplete='off'
@@ -602,27 +607,27 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                         )}
 
                         {/* Error Message */}
-                        {validationError && (
+                        {displayError && (
                             <div className='p-3 bg-surface-error border border-border-error rounded-md'>
                                 <p className='text-sm text-semantic-error' role='alert'>
-                                    {validationError}
+                                    {displayError}
                                 </p>
                             </div>
                         )}
 
                         {/* Action Buttons */}
                         <div className='flex gap-3 pt-2'>
-                            <Button type='button' variant='secondary' onClick={onClose} disabled={isSubmitting} className='flex-1'>
+                            <Button type='button' variant='secondary' onClick={onClose} disabled={submitAction.isLoading} className='flex-1'>
                                 {t('settlementForm.cancelButton')}
                             </Button>
                             <Button
                                 type='submit'
                                 variant='primary'
-                                disabled={!isFormValid || isSubmitting || (editMode && settlementToEdit?.isLocked)}
-                                loading={isSubmitting}
+                                disabled={!isFormValid || submitAction.isLoading || (editMode && settlementToEdit?.isLocked)}
+                                loading={submitAction.isLoading}
                                 className='flex-1'
                             >
-                                {isSubmitting
+                                {submitAction.isLoading
                                     ? editMode
                                         ? t('settlementForm.updatingButton')
                                         : t('settlementForm.recordingButton')

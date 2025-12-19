@@ -229,11 +229,11 @@ Phase 4 planned: Additional standardization based on codebase research.
 
 ### useAsyncAction - Migration Candidates
 
-Components NOT using useAsyncAction that should:
-- [ ] `CommentInput.tsx` - Manual isSubmitting + try/catch
-- [ ] `SettlementForm.tsx` - Multiple signal-based loading/error states
-- [ ] `UserEditorModal.tsx` - Multiple independent state variables
-- [ ] `TenantEditorModal.tsx` - Multiple independent state variables
+Components migrated to useAsyncAction:
+- [x] `CommentInput.tsx` - Migrated from manual isSubmitting + try/catch
+- [x] `SettlementForm.tsx` - Migrated from signal-based loading/error states
+- [x] `UserEditorModal.tsx` - Migrated to 4 useAsyncAction hooks (saveProfile, saveRole, loadAuth, loadFirestore)
+- [x] `TenantEditorModal.tsx` - Migrated to 4 useAsyncAction hooks (save, publish, uploadLogo, uploadFavicon)
 
 ### ListStateRenderer - Migration Candidates
 

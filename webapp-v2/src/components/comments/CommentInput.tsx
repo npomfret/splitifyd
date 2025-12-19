@@ -1,6 +1,7 @@
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { useAsyncAction } from '@/app/hooks';
 import { Button, Tooltip } from '../ui';
 
 interface CommentInputProps {
@@ -12,14 +13,30 @@ interface CommentInputProps {
 
 export function CommentInput({ onSubmit, disabled = false, placeholder, className = '' }: CommentInputProps) {
     const { t } = useTranslation();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [text, setText] = useState('');
-
+    const [validationError, setValidationError] = useState<string | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const remainingChars = 500 - text.length;
     const isOverLimit = remainingChars < 0;
+
+    const submitAction = useAsyncAction(
+        async (trimmedText: string) => {
+            await onSubmit(trimmedText);
+        },
+        {
+            onSuccess: () => {
+                setText('');
+                if (textareaRef.current) {
+                    textareaRef.current.style.height = 'auto';
+                }
+            },
+            onError: (err) => {
+                if (err instanceof Error) return err.message;
+                return t('comments.commentInput.addFailed');
+            },
+        }
+    );
 
     // Auto-resize textarea based on content
     useEffect(() => {
@@ -40,28 +57,15 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
         }
 
         if (isOverLimit) {
-            setError(t('comments.commentInput.tooLong'));
+            setValidationError(t('comments.commentInput.tooLong'));
             return;
         }
 
-        setIsSubmitting(true);
-        setError(null);
-
-        try {
-            await onSubmit(trimmedText);
-            setText('');
-            setError(null);
-
-            // Reset textarea height
-            if (textareaRef.current) {
-                textareaRef.current.style.height = 'auto';
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : t('comments.commentInput.addFailed'));
-        } finally {
-            setIsSubmitting(false);
-        }
+        setValidationError(null);
+        await submitAction.execute(trimmedText);
     };
+
+    const displayError = validationError || submitAction.error;
 
     const handleKeyDown = (e: KeyboardEvent) => {
         // Submit on Enter, but allow Shift+Enter for new lines
@@ -82,7 +86,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                     }}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder || t('comments.commentInput.placeholder')}
-                    disabled={disabled || isSubmitting}
+                    disabled={disabled || submitAction.isLoading}
                     className={`
                         w-full px-4 py-3 pr-12
                         border rounded-full
@@ -102,8 +106,8 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 <Tooltip content={t('comments.input.sendAriaLabel')} className='absolute end-2 bottom-2'>
                     <Button
                         type='submit'
-                        disabled={!text.trim() || isOverLimit || disabled || isSubmitting}
-                        loading={isSubmitting}
+                        disabled={!text.trim() || isOverLimit || disabled || submitAction.isLoading}
+                        loading={submitAction.isLoading}
                         variant='ghost'
                         size='sm'
                         ariaLabel={t('comments.input.sendAriaLabel')}
@@ -115,10 +119,10 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
 
             <div className='flex items-center justify-between text-xs'>
                 <div className='text-text-muted'>
-                    {error
+                    {displayError
                         ? (
                             <span className='text-semantic-error' role='alert'>
-                                {error}
+                                {displayError}
                             </span>
                         )
                         : <span className='help-text-xs'>{t('comments.commentInput.helpText')}</span>}

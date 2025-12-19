@@ -1,4 +1,5 @@
 import { apiClient } from '@/app/apiClient';
+import { useAsyncAction } from '@/app/hooks';
 import { useModalOpenOrChange } from '@/app/hooks/useModalOpen';
 import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
 import { Modal, ModalFooter, ModalHeader } from '@/components/ui/Modal';
@@ -22,17 +23,84 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [selectedRole, setSelectedRole] = useState<SystemUserRole>(user.role ?? SystemUserRoles.SYSTEM_USER);
-    const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [firebaseAuthData, setFirebaseAuthData] = useState<any | null>(null);
     const [firestoreData, setFirestoreData] = useState<any | null>(null);
-    const [loadingAuth, setLoadingAuth] = useState(false);
-    const [loadingFirestore, setLoadingFirestore] = useState(false);
 
     // Profile tab state
     const [displayName, setDisplayName] = useState(String(user.displayName ?? ''));
     const [email, setEmail] = useState(String(user.email ?? ''));
+
+    // Async action for saving profile
+    const saveProfileAction = useAsyncAction(
+        async (updates: UpdateUserProfileAdminRequest) => {
+            await apiClient.updateUserProfileAdmin(user.uid, updates);
+        },
+        {
+            onSuccess: () => {
+                setSuccessMessage(t('admin.userEditor.success.profileUpdated'));
+                setTimeout(() => {
+                    onSave();
+                    onClose();
+                }, 1000);
+            },
+            onError: (error) => {
+                logError('Failed to update user profile', error);
+                return error instanceof Error ? error.message : t('admin.userEditor.errors.profileUpdate');
+            },
+        }
+    );
+
+    // Async action for saving role
+    const saveRoleAction = useAsyncAction(
+        async (role: SystemUserRole) => {
+            await apiClient.updateUserRole(user.uid, { role });
+        },
+        {
+            onSuccess: () => {
+                setSuccessMessage(t('admin.userEditor.success.roleUpdated'));
+                setTimeout(() => {
+                    onSave();
+                    onClose();
+                }, 1000);
+            },
+            onError: (error) => {
+                logError('Failed to update user role', error);
+                return error instanceof Error ? error.message : t('admin.userEditor.errors.roleUpdate');
+            },
+        }
+    );
+
+    // Async action for loading Firebase Auth data
+    const loadAuthAction = useAsyncAction(
+        async () => apiClient.getUserAuth(user.uid),
+        {
+            onSuccess: (data) => setFirebaseAuthData(data),
+            onError: (error) => {
+                logError('Failed to load Firebase Auth data', error);
+                setFirebaseAuthData({ error: t('admin.userEditor.errors.loadData') });
+            },
+        }
+    );
+
+    // Async action for loading Firestore data
+    const loadFirestoreAction = useAsyncAction(
+        async () => apiClient.getUserFirestore(user.uid),
+        {
+            onSuccess: (data) => setFirestoreData(data),
+            onError: (error) => {
+                logError('Failed to load Firestore data', error);
+                setFirestoreData({ error: t('admin.userEditor.errors.loadData') });
+            },
+        }
+    );
+
+    // Derived loading state for save operations
+    const isSaving = saveProfileAction.isLoading || saveRoleAction.isLoading;
+
+    // Combined error from actions (for display)
+    const displayError = errorMessage || saveProfileAction.error || saveRoleAction.error;
 
     // Reset form when modal opens or user changes
     useModalOpenOrChange(open, user.uid, useCallback(() => {
@@ -44,41 +112,32 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         setFirebaseAuthData(null);
         setFirestoreData(null);
         setActiveTab('profile');
-    }, [user.displayName, user.email, user.role]));
+        // Reset async action states
+        saveProfileAction.reset();
+        saveRoleAction.reset();
+        loadAuthAction.reset();
+        loadFirestoreAction.reset();
+    }, [user.displayName, user.email, user.role, saveProfileAction, saveRoleAction, loadAuthAction, loadFirestoreAction]));
 
     const handleSaveProfile = async () => {
-        setIsSaving(true);
         setErrorMessage('');
         setSuccessMessage('');
 
-        try {
-            const updates: UpdateUserProfileAdminRequest = {};
+        const updates: UpdateUserProfileAdminRequest = {};
 
-            if (displayName.trim() !== String(user.displayName ?? '')) {
-                updates.displayName = toDisplayName(displayName.trim());
-            }
-            if (email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase()) {
-                updates.email = toEmail(email.trim().toLowerCase());
-            }
-
-            if (Object.keys(updates).length === 0) {
-                setErrorMessage(t('admin.userEditor.errors.noChanges'));
-                setIsSaving(false);
-                return;
-            }
-
-            await apiClient.updateUserProfileAdmin(user.uid, updates);
-            setSuccessMessage(t('admin.userEditor.success.profileUpdated'));
-            setTimeout(() => {
-                onSave();
-                onClose();
-            }, 1000);
-        } catch (error) {
-            logError('Failed to update user profile', error);
-            setErrorMessage(error instanceof Error ? error.message : t('admin.userEditor.errors.profileUpdate'));
-        } finally {
-            setIsSaving(false);
+        if (displayName.trim() !== String(user.displayName ?? '')) {
+            updates.displayName = toDisplayName(displayName.trim());
         }
+        if (email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase()) {
+            updates.email = toEmail(email.trim().toLowerCase());
+        }
+
+        if (Object.keys(updates).length === 0) {
+            setErrorMessage(t('admin.userEditor.errors.noChanges'));
+            return;
+        }
+
+        await saveProfileAction.execute(updates);
     };
 
     const handleSaveRole = async () => {
@@ -87,53 +146,19 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
             return;
         }
 
-        setIsSaving(true);
         setErrorMessage('');
         setSuccessMessage('');
-
-        try {
-            await apiClient.updateUserRole(user.uid, { role: selectedRole });
-            setSuccessMessage(t('admin.userEditor.success.roleUpdated'));
-            setTimeout(() => {
-                onSave();
-                onClose();
-            }, 1000);
-        } catch (error) {
-            logError('Failed to update user role', error);
-            setErrorMessage(error instanceof Error ? error.message : t('admin.userEditor.errors.roleUpdate'));
-        } finally {
-            setIsSaving(false);
-        }
+        await saveRoleAction.execute(selectedRole);
     };
 
     const loadFirebaseAuthData = async () => {
         if (firebaseAuthData) return; // Already loaded
-
-        setLoadingAuth(true);
-        try {
-            const authData = await apiClient.getUserAuth(user.uid);
-            setFirebaseAuthData(authData);
-        } catch (error) {
-            logError('Failed to load Firebase Auth data', error);
-            setFirebaseAuthData({ error: t('admin.userEditor.errors.loadData') });
-        } finally {
-            setLoadingAuth(false);
-        }
+        await loadAuthAction.execute();
     };
 
     const loadFirestoreData = async () => {
         if (firestoreData) return; // Already loaded
-
-        setLoadingFirestore(true);
-        try {
-            const firestoreDoc = await apiClient.getUserFirestore(user.uid);
-            setFirestoreData(firestoreDoc);
-        } catch (error) {
-            logError('Failed to load Firestore data', error);
-            setFirestoreData({ error: t('admin.userEditor.errors.loadData') });
-        } finally {
-            setLoadingFirestore(false);
-        }
+        await loadFirestoreAction.execute();
     };
 
     const handleTabChange = (tab: TabType) => {
@@ -221,7 +246,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 {/* Content */}
                 <div className='flex-1 overflow-y-auto px-6 py-6'>
                     <div className='mb-4'>
-                        {errorMessage && <Alert type='error' message={errorMessage} />}
+                        {displayError && <Alert type='error' message={displayError} />}
                         {successMessage && <Alert type='success' message={successMessage} />}
                     </div>
 
@@ -298,7 +323,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Firebase Auth Document Tab */}
                     {activeTab === 'firebase-auth' && (
                         <div>
-                            {loadingAuth
+                            {loadAuthAction.isLoading
                                 ? (
                                     <div className='flex justify-center py-8'>
                                         <LoadingSpinner size='md' />
@@ -319,7 +344,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                     {/* Firestore Document Tab */}
                     {activeTab === 'firestore' && (
                         <div>
-                            {loadingFirestore
+                            {loadFirestoreAction.isLoading
                                 ? (
                                     <div className='flex justify-center py-8'>
                                         <LoadingSpinner size='md' />

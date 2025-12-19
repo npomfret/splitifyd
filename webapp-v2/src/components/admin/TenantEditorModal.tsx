@@ -1,4 +1,5 @@
 import { apiClient } from '@/app/apiClient';
+import { useAsyncAction } from '@/app/hooks';
 import { useModalOpenOrChange } from '@/app/hooks/useModalOpen';
 import { AdminFormSection, AdminFormToggle, ModeToggle } from '@/components/admin/forms';
 import { ImagePicker } from '@/components/admin/ImagePicker';
@@ -29,10 +30,8 @@ type EditorMode = 'basic' | 'advanced';
 export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: TenantEditorModalProps) {
     const { t } = useTranslation();
     const [formData, setFormData] = useState<TenantData>(EMPTY_TENANT_DATA);
-    const [isSaving, setIsSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const [isPublishing, setIsPublishing] = useState(false);
     const [newDomain, setNewDomain] = useState('');
     const [imagePickerOpen, setImagePickerOpen] = useState<'logo' | 'favicon' | null>(null);
     const [creationMode, setCreationMode] = useState<CreationMode>('empty');
@@ -128,6 +127,111 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
         }
     }, [successMessage, errorMessage]);
 
+    // Helper to get error message from API error
+    const getErrorMessage = (error: any, defaultKey: string): string => {
+        if (error.code === 'INVALID_TENANT_PAYLOAD') return t('admin.tenantEditor.errors.invalidPayload');
+        if (error.code === 'PERMISSION_DENIED') return t('admin.tenantEditor.errors.permissionDenied');
+        if (error.code === 'DUPLICATE_DOMAIN') return error.message || t('admin.tenantEditor.errors.duplicateDomain');
+        if (error.code === 'TENANT_NOT_FOUND') return t('admin.tenantEditor.errors.tenantNotFound');
+        if (error.code === 'TENANT_TOKENS_MISSING') return t('admin.tenantEditor.errors.tokensMissing');
+        return error.message || t(defaultKey);
+    };
+
+    // Async action for saving tenant (includes auto-publish attempt)
+    const saveAction = useAsyncAction(
+        async (requestData: AdminUpsertTenantRequest) => {
+            const result = await apiClient.adminUpsertTenant(requestData);
+            const isCreated = result.created;
+
+            let publishSuccess = true;
+            try {
+                await apiClient.publishTenantTheme({ tenantId: requestData.tenantId });
+            } catch (publishError) {
+                logError('Auto-publish after save failed', publishError);
+                publishSuccess = false;
+            }
+
+            return { isCreated, publishSuccess };
+        },
+        {
+            onSuccess: ({ isCreated, publishSuccess }) => {
+                if (publishSuccess) {
+                    setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdAndPublished') : t('admin.tenantEditor.success.updatedAndPublished'));
+                } else {
+                    setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdPublishFailed') : t('admin.tenantEditor.success.updatedPublishFailed'));
+                }
+                onSave();
+                setTimeout(() => {
+                    onClose();
+                    setFormData({ ...EMPTY_TENANT_DATA });
+                }, 1500);
+            },
+            onError: (error) => {
+                logError('Failed to save tenant', error);
+                return getErrorMessage(error, 'admin.tenantEditor.errors.saveFailed');
+            },
+        }
+    );
+
+    // Async action for publishing theme
+    const publishAction = useAsyncAction(
+        async (tenantId: string) => {
+            await apiClient.publishTenantTheme({ tenantId });
+        },
+        {
+            onSuccess: () => {
+                setSuccessMessage(t('admin.tenantEditor.success.themePublished'));
+            },
+            onError: (error) => {
+                logError('Failed to publish tenant theme', error);
+                return getErrorMessage(error, 'admin.tenantEditor.errors.publishFailed');
+            },
+        }
+    );
+
+    // Async action for uploading logo
+    const uploadLogoAction = useAsyncAction(
+        async (file: File) => {
+            const result = await apiClient.uploadTenantImage(formData.tenantId, 'logo', file);
+            return result.url;
+        },
+        {
+            onSuccess: (url) => {
+                setFormData((prev) => ({ ...prev, logoUrl: url }));
+                setSuccessMessage(t('admin.tenantEditor.success.logoUploaded'));
+            },
+            onError: (error) => {
+                logError('Failed to upload logo', error);
+                return (error as any).message || t('admin.tenantEditor.errors.uploadFailed', { type: 'logo' });
+            },
+        }
+    );
+
+    // Async action for uploading favicon
+    const uploadFaviconAction = useAsyncAction(
+        async (file: File) => {
+            const result = await apiClient.uploadTenantImage(formData.tenantId, 'favicon', file);
+            return result.url;
+        },
+        {
+            onSuccess: (url) => {
+                setFormData((prev) => ({ ...prev, faviconUrl: url }));
+                setSuccessMessage(t('admin.tenantEditor.success.faviconUploaded'));
+            },
+            onError: (error) => {
+                logError('Failed to upload favicon', error);
+                return (error as any).message || t('admin.tenantEditor.errors.uploadFailed', { type: 'favicon' });
+            },
+        }
+    );
+
+    // Derived loading states
+    const isSaving = saveAction.isLoading;
+    const isPublishing = publishAction.isLoading;
+
+    // Combined error from actions
+    const displayError = errorMessage || saveAction.error || publishAction.error || uploadLogoAction.error || uploadFaviconAction.error;
+
     const handleSave = async () => {
         const validationError = validateTenantData(formData, t);
         if (validationError) {
@@ -143,62 +247,32 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             }
         }
 
-        setIsSaving(true);
         setErrorMessage('');
         setSuccessMessage('');
 
-        try {
-            const normalizedDomains = Array.from(new Set(formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))));
+        const normalizedDomains = Array.from(new Set(formData.domains.map(d => d.trim().toLowerCase().replace(/:\d+$/, ''))));
 
-            const branding: Record<string, unknown> = {
-                primaryColor: formData.primaryColor,
-                secondaryColor: formData.secondaryColor,
-                accentColor: formData.accentColor,
-                showAppNameInHeader: formData.showAppNameInHeader,
-            };
+        const branding: Record<string, unknown> = {
+            primaryColor: formData.primaryColor,
+            secondaryColor: formData.secondaryColor,
+            accentColor: formData.accentColor,
+            showAppNameInHeader: formData.showAppNameInHeader,
+        };
 
-            const brandingTokens = buildBrandingTokensFromForm(formData);
+        const brandingTokens = buildBrandingTokensFromForm(formData);
 
-            const requestData = {
-                tenantId: formData.tenantId,
-                branding,
-                marketingFlags: {
-                    showMarketingContent: formData.showMarketingContent,
-                    showPricingPage: formData.showPricingPage,
-                },
-                brandingTokens,
-                domains: normalizedDomains,
-            } as AdminUpsertTenantRequest;
+        const requestData = {
+            tenantId: formData.tenantId,
+            branding,
+            marketingFlags: {
+                showMarketingContent: formData.showMarketingContent,
+                showPricingPage: formData.showPricingPage,
+            },
+            brandingTokens,
+            domains: normalizedDomains,
+        } as AdminUpsertTenantRequest;
 
-            const result = await apiClient.adminUpsertTenant(requestData);
-            const isCreated = result.created;
-
-            try {
-                await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
-                setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdAndPublished') : t('admin.tenantEditor.success.updatedAndPublished'));
-            } catch (publishError: any) {
-                setSuccessMessage(isCreated ? t('admin.tenantEditor.success.createdPublishFailed') : t('admin.tenantEditor.success.updatedPublishFailed'));
-                logError('Auto-publish after save failed', publishError);
-            }
-
-            onSave();
-            setTimeout(() => {
-                onClose();
-                setFormData({ ...EMPTY_TENANT_DATA });
-            }, 1500);
-        } catch (error: any) {
-            const userFriendlyMessage = error.code === 'INVALID_TENANT_PAYLOAD'
-                ? t('admin.tenantEditor.errors.invalidPayload')
-                : error.code === 'PERMISSION_DENIED'
-                ? t('admin.tenantEditor.errors.permissionDenied')
-                : error.code === 'DUPLICATE_DOMAIN'
-                ? error.message || t('admin.tenantEditor.errors.duplicateDomain')
-                : error.message || t('admin.tenantEditor.errors.saveFailed');
-            setErrorMessage(userFriendlyMessage);
-            logError('Failed to save tenant', error);
-        } finally {
-            setIsSaving(false);
-        }
+        await saveAction.execute(requestData);
     };
 
     const handlePublish = async () => {
@@ -206,24 +280,9 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             setErrorMessage(t('admin.tenantEditor.validation.tenantIdRequiredForPublish'));
             return;
         }
-        setIsPublishing(true);
         setErrorMessage('');
         setSuccessMessage('');
-
-        try {
-            await apiClient.publishTenantTheme({ tenantId: formData.tenantId });
-            setSuccessMessage(t('admin.tenantEditor.success.themePublished'));
-        } catch (error: any) {
-            const userFriendlyMessage = error.code === 'TENANT_NOT_FOUND'
-                ? t('admin.tenantEditor.errors.tenantNotFound')
-                : error.code === 'TENANT_TOKENS_MISSING'
-                ? t('admin.tenantEditor.errors.tokensMissing')
-                : error.message || t('admin.tenantEditor.errors.publishFailed');
-            setErrorMessage(userFriendlyMessage);
-            logError('Failed to publish tenant theme', error);
-        } finally {
-            setIsPublishing(false);
-        }
+        await publishAction.execute(formData.tenantId);
     };
 
     const handleCancel = () => {
@@ -254,14 +313,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             setErrorMessage(t('admin.tenantEditor.validation.saveTenantFirst'));
             return;
         }
-        try {
-            const result = await apiClient.uploadTenantImage(formData.tenantId, 'logo', file);
-            setFormData({ ...formData, logoUrl: result.url });
-            setSuccessMessage(t('admin.tenantEditor.success.logoUploaded'));
-        } catch (error: any) {
-            setErrorMessage(error.message || t('admin.tenantEditor.errors.uploadFailed', { type: 'logo' }));
-            logError('Failed to upload logo', error);
-        }
+        await uploadLogoAction.execute(file);
     };
 
     const handleFaviconUpload = async (file: File) => {
@@ -269,14 +321,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
             setErrorMessage(t('admin.tenantEditor.validation.saveTenantFirst'));
             return;
         }
-        try {
-            const result = await apiClient.uploadTenantImage(formData.tenantId, 'favicon', file);
-            setFormData({ ...formData, faviconUrl: result.url });
-            setSuccessMessage(t('admin.tenantEditor.success.faviconUploaded'));
-        } catch (error: any) {
-            setErrorMessage(error.message || t('admin.tenantEditor.errors.uploadFailed', { type: 'favicon' }));
-            logError('Failed to upload favicon', error);
-        }
+        await uploadFaviconAction.execute(file);
     };
 
     const update = (partial: Partial<TenantData>) => setFormData((prev) => ({ ...prev, ...partial }));
@@ -328,7 +373,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                     <div className='flex-1 min-h-0 overflow-y-auto px-6 py-4'>
                         <div className='space-y-4'>
                             {successMessage && <Alert type='success' message={successMessage} />}
-                            {errorMessage && <Alert type='error' message={errorMessage} />}
+                            {displayError && <Alert type='error' message={displayError} />}
 
                             {/* Creation Mode Selection - Create Mode Only */}
                             {mode === 'create' && (
