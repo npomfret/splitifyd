@@ -1636,6 +1636,15 @@
       "welcomeMessage": "¡Gracias por registrarte en {{appName}}! Estamos emocionados de tenerte con nosotros.",
       "instruction": "Con {{appName}}, puedes dividir gastos fácilmente con amigos, familiares y compañeros de piso. Crea grupos, añade gastos y deja que calculemos quién debe qué.",
       "buttonText": "Comenzar"
+    },
+    "verification": {
+      "subject": "{{appName}}: Verifica tu dirección de correo electrónico",
+      "ignoreNotice": "Ignora este correo si no creaste una cuenta en {{domain}}.",
+      "greeting": "Hola {{displayName}},",
+      "instruction": "Por favor verifica tu dirección de correo electrónico para completar tu registro en {{appName}}.",
+      "buttonText": "Verificar correo",
+      "linkLabel": "O copia y pega este enlace en tu navegador:",
+      "expiryNotice": "Este enlace expirará en 24 horas."
     }
   }
 }

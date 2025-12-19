@@ -63,7 +63,7 @@ import { LoggerContext } from '../../utils/logger-context';
 import { EmailTemplateService, type EmailMessage, type IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
-import type { PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';
+import type { EmailVerificationEmailContext, PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -610,5 +610,72 @@ export class FirebaseAuthService implements IAuthService {
             },
             context,
         );
+    }
+
+    async sendEmailVerification(email: Email, verificationContext: EmailVerificationEmailContext): Promise<void> {
+        const context = this.createContext('sendEmailVerification', email);
+
+        LoggerContext.update({
+            operation: 'sendEmailVerification',
+            email,
+            baseUrl: verificationContext.baseUrl,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.sendEmailVerification',
+            async () => {
+                const user = await this.getUserByEmail(email);
+                if (!user) {
+                    logger.info('Email verification email silently succeeded for non-existent email', { ...context });
+                    return;
+                }
+
+                let firebaseLink: string;
+                try {
+                    firebaseLink = await this.auth.generateEmailVerificationLink(email);
+                } catch (error) {
+                    const mappedError = this.mapFirebaseError(error, context);
+                    logger.error('Email verification link generation failed', mappedError, { ...context });
+                    throw mappedError;
+                }
+
+                const oobCode = this.extractOobCode(firebaseLink);
+                const verificationLink = this.buildTenantVerificationLink(verificationContext.baseUrl, oobCode);
+
+                const domain = this.extractDomain(verificationContext.baseUrl);
+
+                const emailContent = this.emailTemplateService.generateEmailVerificationEmail({
+                    appName: verificationContext.appName,
+                    displayName: verificationContext.displayName,
+                    domain,
+                    verificationLink,
+                });
+
+                const messageStream = process.env['__POSTMARK_MESSAGE_STREAM'];
+                if (!messageStream) {
+                    throw Errors.serviceError(ErrorDetail.EMAIL_SERVICE_ERROR);
+                }
+
+                const message: EmailMessage = {
+                    to: email,
+                    from: verificationContext.supportEmail,
+                    subject: emailContent.subject,
+                    textBody: emailContent.textBody,
+                    htmlBody: emailContent.htmlBody,
+                    messageStream,
+                };
+
+                await this.emailService.sendEmail(message);
+
+                logger.info('Email verification email sent successfully', { ...context, email });
+            },
+            context,
+        );
+    }
+
+    private buildTenantVerificationLink(baseUrl: string, oobCode: string): string {
+        const normalized = baseUrl.replace(/\/$/, '');
+        const params = new URLSearchParams({ mode: 'verifyEmail', oobCode });
+        return `${normalized}/__/auth/action?${params.toString()}`;
     }
 }

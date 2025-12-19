@@ -1637,6 +1637,15 @@
       "welcomeMessage": "Grazie per esserti registrato su {{appName}}! Siamo entusiasti di averti a bordo.",
       "instruction": "Con {{appName}}, puoi dividere facilmente le spese con amici, familiari e coinquilini. Crea gruppi, aggiungi spese e lascia che calcoliamo chi deve cosa a chi.",
       "buttonText": "Inizia"
+    },
+    "verification": {
+      "subject": "{{appName}}: Verifica il tuo indirizzo email",
+      "ignoreNotice": "Ignora questa email se non hai creato un account su {{domain}}.",
+      "greeting": "Ciao {{displayName}},",
+      "instruction": "Per favore verifica il tuo indirizzo email per completare la registrazione a {{appName}}.",
+      "buttonText": "Verifica email",
+      "linkLabel": "Oppure copia e incolla questo link nel tuo browser:",
+      "expiryNotice": "Questo link scadrà tra 24 ore."
     }
   }
 }

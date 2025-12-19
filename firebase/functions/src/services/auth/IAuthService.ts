@@ -52,6 +52,26 @@ export interface WelcomeEmailContext {
     displayName: string;
 }
 
+export interface EmailVerificationEmailContext {
+    /**
+     * Public base URL for the tenant domain (scheme + host, optional port).
+     * Example: https://demo.sidebadger.me or http://localhost:5002
+     */
+    baseUrl: string;
+    /**
+     * Tenant app name for email copy.
+     */
+    appName: string;
+    /**
+     * Support email for the tenant.
+     */
+    supportEmail: Email;
+    /**
+     * User's display name for personalization.
+     */
+    displayName: string;
+}
+
 export interface IAuthService {
     // ========================================================================
     // User Management Operations
@@ -149,4 +169,13 @@ export interface IAuthService {
      * @throws ApiError if operation fails
      */
     sendWelcomeEmail(email: Email, context: WelcomeEmailContext): Promise<void>;
+
+    /**
+     * Send an email verification email to a user
+     * @param email - User email address
+     * @param context - Tenant-aware email context (domain, app name, support email, display name)
+     * @returns Promise that resolves when email is sent
+     * @throws ApiError if operation fails
+     */
+    sendEmailVerification(email: Email, context: EmailVerificationEmailContext): Promise<void>;
 }

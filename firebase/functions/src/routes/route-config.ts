@@ -316,6 +316,14 @@ const routeDefinitions: RouteDefinition[] = [
         category: 'auth',
     },
 
+    // === Email Verification ===
+    {
+        method: 'POST',
+        path: '/email-verification',
+        handlerName: 'sendEmailVerification',
+        category: 'auth',
+    },
+
     // === Expenses ===
     {
         method: 'POST',

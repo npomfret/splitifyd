@@ -22,6 +22,7 @@ import {
     CurrentPolicyResponse,
     DeletePolicyVersionResponse,
     DisplayName,
+    EmailVerificationRequest,
     EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -1173,6 +1174,12 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async sendPasswordResetEmailWithOptions(request: PasswordResetRequest, options: Partial<StubRequestOptions>): Promise<void> {
         const req = createStubRequest('', request, {}, options);
         const res = await this.dispatchByHandler('sendPasswordResetEmail', req);
+        this.throwIfError(res);
+    }
+
+    async sendEmailVerification(request: EmailVerificationRequest): Promise<void> {
+        const req = createStubRequest('', request, {}, {});
+        const res = await this.dispatchByHandler('sendEmailVerification', req);
         this.throwIfError(res);
     }
 

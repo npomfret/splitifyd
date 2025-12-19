@@ -6,29 +6,17 @@ Implement transactional emails for authentication flows using Postmark as the em
 
 ## Current State
 
-Password reset and welcome emails are fully implemented with:
+Password reset, welcome, and email verification emails are fully implemented with:
 - `EmailTemplateService` - i18n-aware template generation with XSS protection
 - `PostmarkEmailService` - REST API integration with message stream routing
 - Translations in all 13 supported languages
-- Unit tests and integration test (Postmark sandbox)
+- Unit tests and integration tests (Postmark sandbox)
 - Welcome email sent automatically during registration (best-effort, non-blocking)
+- Email verification available via POST /api/email-verification endpoint
 
 ## Remaining Emails
 
-### 1. Email Verification (confirm your email address)
-
-Sent to verify email ownership. Uses Firebase's email verification flow.
-
-**Content:**
-- Request to verify email
-- Verification link (Firebase action URL with oobCode)
-- Expiry notice
-- Ignore notice if not requested
-- Support contact
-
-**Trigger:** After registration OR when user requests verification resend
-
-### 2. Email Change Confirmation
+### 1. Email Change Confirmation
 
 Sent when user changes their email address. May need to send to both old and new addresses.
 
@@ -52,12 +40,12 @@ Sent when user changes their email address. May need to send to both old and new
 - [x] Integrate into registration flow (via `AuthHandlers.register`)
 - [x] Add integration test
 
-### Email Verification
-- [ ] Add `email.verification.*` translation keys to all locale files
-- [ ] Add `generateEmailVerificationEmail()` method to `EmailTemplateService`
-- [ ] Add unit tests for verification email template
-- [ ] Implement send verification endpoint (or integrate with Firebase email verification)
-- [ ] Add integration test
+### Email Verification ✅
+- [x] Add `email.verification.*` translation keys to all locale files
+- [x] Add `generateEmailVerificationEmail()` method to `EmailTemplateService`
+- [x] Add unit tests for verification email template
+- [x] Implement `sendEmailVerification()` in AuthService with API endpoint
+- [x] Add integration test
 
 ### Email Change Confirmation
 - [ ] Add `email.emailChange.*` translation keys to all locale files

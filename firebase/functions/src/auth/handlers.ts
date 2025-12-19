@@ -1,4 +1,4 @@
-import type { LoginRequest, LoginResponse, PasswordResetRequest, UserRegistration } from '@billsplit-wl/shared';
+import type { EmailVerificationRequest, LoginRequest, LoginResponse, PasswordResetRequest, UserRegistration } from '@billsplit-wl/shared';
 import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
@@ -8,7 +8,7 @@ import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 import type { UserService } from '../services/UserService2';
-import { validateLoginRequest, validatePasswordResetRequest } from './validation';
+import { validateEmailVerificationRequest, validateLoginRequest, validatePasswordResetRequest } from './validation';
 
 interface ValidatedHostInfo {
     /**
@@ -229,5 +229,44 @@ export class AuthHandlers {
         }
 
         res.status(HTTP_STATUS.CREATED).json(result);
+    };
+
+    /**
+     * Send an email verification email to the specified email address.
+     * Returns 204 No Content even for non-existent emails to prevent enumeration.
+     */
+    sendEmailVerification = async (req: Request, res: Response): Promise<void> => {
+        const validated = validateEmailVerificationRequest(req.body as EmailVerificationRequest);
+
+        const hostInfo = this.resolveAndValidateRequestHost(req);
+        const tenantContext = await this.tenantRegistry.resolveTenant({ host: hostInfo.host });
+        if (tenantContext.source !== 'domain') {
+            throw Errors.invalidRequest(ErrorDetail.HOST_MISMATCH);
+        }
+
+        const legal = tenantContext.config?.brandingTokens?.tokens?.legal;
+        if (!legal?.appName || !legal.supportEmail) {
+            throw Errors.serviceError(ErrorDetail.TENANT_MISSING_CONFIG);
+        }
+
+        const protoHeader = Array.isArray(req.headers['x-forwarded-proto'])
+            ? req.headers['x-forwarded-proto'][0]
+            : (req.headers['x-forwarded-proto'] as string | undefined);
+        const protocol = protoHeader?.split(',')[0]?.trim().toLowerCase() === 'http' ? 'http' : 'https';
+        const baseUrl = `${protocol}://${hostInfo.publicHost}`;
+
+        // Get user to obtain display name
+        const user = await this.authService.getUserByEmail(toEmail(validated.email));
+        const displayName = user?.displayName ?? 'User';
+
+        // The service handles non-existent emails silently
+        await this.authService.sendEmailVerification(toEmail(validated.email), {
+            baseUrl,
+            appName: legal.appName,
+            supportEmail: toEmail(legal.supportEmail),
+            displayName,
+        });
+
+        res.status(HTTP_STATUS.NO_CONTENT).send();
     };
 }

@@ -1141,6 +1141,15 @@ export interface PasswordResetRequest {
     email: Email;
 }
 
+/**
+ * Email verification request payload.
+ * Used for POST /api/email-verification endpoint.
+ * Returns 204 No Content (even for non-existent emails to prevent enumeration).
+ */
+export interface EmailVerificationRequest {
+    email: Email;
+}
+
 export type HealthStatus = 'healthy' | 'unhealthy';
 
 export interface HealthCheckResult {
@@ -2023,4 +2032,15 @@ export interface WelcomeEmailVariables {
     appName: string;
     displayName: string;
     dashboardLink: string;
+}
+
+/**
+ * Variables for email verification email interpolation.
+ * Used by EmailTemplateService to generate email verification emails.
+ */
+export interface EmailVerificationEmailVariables {
+    appName: string;
+    displayName: string;
+    domain: string;
+    verificationLink: string;
 }

@@ -4,5 +4,5 @@ export { PostmarkEmailService } from './PostmarkEmailService';
 export { PostmarkTokenProvider } from './postmark/PostmarkTokenProvider';
 export { EmailTemplateService } from './EmailTemplateService';
 export type { EmailContent } from './EmailTemplateService';
-export type { PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
+export type { EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 

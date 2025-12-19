@@ -21,6 +21,7 @@ import type {
     DeletePolicyVersionResponse,
     DisplayName,
     Email,
+    EmailVerificationRequest,
     EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -166,6 +167,13 @@ export interface PublicAPI {
      * Public endpoint - no authentication required
      */
     sendPasswordResetEmail(request: PasswordResetRequest): Promise<void>;
+
+    /**
+     * Send an email verification email to the specified email address.
+     * Returns 204 No Content even for non-existent emails (to prevent enumeration).
+     * Public endpoint - no authentication required
+     */
+    sendEmailVerification(request: EmailVerificationRequest): Promise<void>;
 }
 
 /**

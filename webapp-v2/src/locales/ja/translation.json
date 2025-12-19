@@ -1637,6 +1637,15 @@
       "welcomeMessage": "{{appName}}にご登録いただきありがとうございます！ご参加いただけて嬉しく思います。",
       "instruction": "{{appName}}を使えば、友人、家族、ルームメイトとの費用を簡単に分割できます。グループを作成し、費用を追加すれば、誰が誰にいくら払うべきかを計算します。",
       "buttonText": "始める"
+    },
+    "verification": {
+      "subject": "{{appName}}: メールアドレスを確認してください",
+      "ignoreNotice": "{{domain}}でアカウントを作成していない場合は、このメールを無視してください。",
+      "greeting": "{{displayName}}さん、こんにちは",
+      "instruction": "{{appName}}への登録を完了するために、メールアドレスを確認してください。",
+      "buttonText": "メールを確認",
+      "linkLabel": "または、このリンクをブラウザにコピー＆ペーストしてください：",
+      "expiryNotice": "このリンクは24時間後に期限切れになります。"
     }
   }
 }

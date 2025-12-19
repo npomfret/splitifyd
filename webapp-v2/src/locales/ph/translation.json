@@ -1637,6 +1637,15 @@
       "welcomeMessage": "Salamat sa pag-sign up sa {{appName}}! Masaya kaming kasama ka.",
       "instruction": "Sa {{appName}}, madali mong maihahati ang mga gastos sa mga kaibigan, pamilya, at roommate. Gumawa ng mga grupo, magdagdag ng mga gastos, at hayaan naming kalkulahin kung sino ang may utang sa kanino.",
       "buttonText": "Magsimula"
+    },
+    "verification": {
+      "subject": "{{appName}}: I-verify ang iyong email address",
+      "ignoreNotice": "Balewalain ang email na ito kung hindi ka gumawa ng account sa {{domain}}.",
+      "greeting": "Kumusta {{displayName}},",
+      "instruction": "Paki-verify ang iyong email address upang makumpleto ang iyong pagpaparehistro sa {{appName}}.",
+      "buttonText": "I-verify ang Email",
+      "linkLabel": "O kopyahin at i-paste ang link na ito sa iyong browser:",
+      "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 24 na oras."
     }
   }
 }

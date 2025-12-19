@@ -1,4 +1,4 @@
-import { LoginRequest, LoginRequestSchema, PasswordResetRequest, PasswordResetRequestSchema, RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
+import { EmailVerificationRequest, EmailVerificationRequestSchema, LoginRequest, LoginRequestSchema, PasswordResetRequest, PasswordResetRequestSchema, RegisterRequestSchema, UserRegistration } from '@billsplit-wl/shared';
 import { z } from 'zod';
 import { ErrorDetail, Errors } from '../errors';
 import { createRequestValidator } from '../validation/common';
@@ -142,3 +142,27 @@ export const validatePasswordResetRequest = createRequestValidator({
     }),
     mapError: mapPasswordResetError,
 }) as (body: PasswordResetRequest) => PasswordResetRequest;
+
+// ========================================================================
+// Email Verification Validation
+// ========================================================================
+
+const mapEmailVerificationError = (error: z.ZodError): never => {
+    const firstError = error.issues[0];
+    const field = firstError.path[0];
+
+    if (field === 'email') {
+        throw Errors.validationError('email', ErrorDetail.INVALID_EMAIL);
+    }
+
+    throw Errors.validationError(String(field));
+};
+
+export const validateEmailVerificationRequest = createRequestValidator({
+    schema: EmailVerificationRequestSchema,
+    preValidate: (payload: unknown) => payload ?? {},
+    transform: (value) => ({
+        email: value.email.trim().toLowerCase(),
+    }),
+    mapError: mapEmailVerificationError,
+}) as (body: EmailVerificationRequest) => EmailVerificationRequest;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    EmailVerificationEmailVariablesBuilder,
     PasswordResetEmailVariablesBuilder,
     WelcomeEmailVariablesBuilder,
 } from '@billsplit-wl/test-support';
@@ -293,6 +294,145 @@ describe('EmailTemplateService', () => {
 
             expect(result.subject).toContain(variables.appName);
             expect(result.textBody).toContain('Get Started');
+        });
+    });
+
+    describe('generateEmailVerificationEmail', () => {
+        it('generates email with all required parts', () => {
+            const result = service.generateEmailVerificationEmail(new EmailVerificationEmailVariablesBuilder().build());
+
+            expect(result).toHaveProperty('subject');
+            expect(result).toHaveProperty('textBody');
+            expect(result).toHaveProperty('htmlBody');
+        });
+
+        it('interpolates appName in subject', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.subject).toContain(variables.appName);
+        });
+
+        it('interpolates all variables in text body', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.textBody).toContain(variables.appName);
+            expect(result.textBody).toContain(variables.displayName);
+            expect(result.textBody).toContain(variables.verificationLink);
+        });
+
+        it('interpolates all variables in HTML body', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).toContain(variables.appName);
+            expect(result.htmlBody).toContain(variables.displayName);
+        });
+
+        it('generates valid HTML structure', () => {
+            const result = service.generateEmailVerificationEmail(new EmailVerificationEmailVariablesBuilder().build());
+
+            expect(result.htmlBody).toContain('<!DOCTYPE html>');
+            expect(result.htmlBody).toContain('<html>');
+            expect(result.htmlBody).toContain('</html>');
+            expect(result.htmlBody).toContain('<body');
+            expect(result.htmlBody).toContain('</body>');
+        });
+
+        it('includes verification link as clickable button in HTML', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables);
+
+            const escapedLink = variables.verificationLink.replace(/&/g, '&amp;');
+            expect(result.htmlBody).toContain(`href="${escapedLink}"`);
+        });
+    });
+
+    describe('verification email HTML escaping (XSS prevention)', () => {
+        it('escapes HTML special characters in appName', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder()
+                .withAppName('<script>alert("xss")</script>')
+                .build();
+
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).not.toContain('<script>');
+            expect(result.htmlBody).toContain('&lt;script&gt;');
+        });
+
+        it('escapes HTML special characters in displayName', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder()
+                .withDisplayName('<img src=x onerror=alert(1)>')
+                .build();
+
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).not.toContain('<img');
+            expect(result.htmlBody).toContain('&lt;img');
+        });
+
+        it('escapes quotes in href attributes', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder()
+                .withVerificationLink('javascript:alert("xss")')
+                .build();
+
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).toContain('href="javascript:alert(&quot;xss&quot;)"');
+        });
+
+        it('escapes ampersands correctly', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder()
+                .withAppName('Tom & Jerry')
+                .build();
+
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).toContain('Tom &amp; Jerry');
+        });
+
+        it('escapes single quotes', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder()
+                .withDisplayName("Tom's Account")
+                .build();
+
+            const result = service.generateEmailVerificationEmail(variables);
+
+            expect(result.htmlBody).toContain("Tom&#x27;s Account");
+        });
+    });
+
+    describe('verification email text body formatting', () => {
+        it('includes verification link on its own line', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables);
+            const lines = result.textBody.split('\n');
+
+            const linkLine = lines.find(line => line.includes(variables.verificationLink));
+            expect(linkLine).toBeDefined();
+        });
+
+        it('includes expiry notice', () => {
+            const result = service.generateEmailVerificationEmail(new EmailVerificationEmailVariablesBuilder().build());
+
+            expect(result.textBody).toMatch(/expire|hour/i);
+        });
+
+        it('includes ignore notice', () => {
+            const result = service.generateEmailVerificationEmail(new EmailVerificationEmailVariablesBuilder().build());
+
+            expect(result.textBody).toMatch(/ignore|didn't create/i);
+        });
+    });
+
+    describe('verification email fallback behavior', () => {
+        it('uses fallback translations for non-existent language', () => {
+            const variables = new EmailVerificationEmailVariablesBuilder().build();
+            const result = service.generateEmailVerificationEmail(variables, 'xx-nonexistent');
+
+            expect(result.subject).toContain(variables.appName);
+            expect(result.textBody).toContain('Verify Email');
         });
     });
 });

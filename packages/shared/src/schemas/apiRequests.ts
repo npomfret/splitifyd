@@ -318,6 +318,10 @@ export const PasswordResetRequestSchema = z.object({
     email: EmailSchema,
 });
 
+export const EmailVerificationRequestSchema = z.object({
+    email: EmailSchema,
+});
+
 // ---------------------------------------------------------------------------
 // Expense requests
 // ---------------------------------------------------------------------------

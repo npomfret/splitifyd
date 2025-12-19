@@ -1636,6 +1636,15 @@
       "welcomeMessage": "Thanks for signing up for {{appName}}! We're excited to have you on board.",
       "instruction": "With {{appName}}, you can easily split expenses with friends, family, and roommates. Create groups, add expenses, and let us calculate who owes what.",
       "buttonText": "Get Started"
+    },
+    "verification": {
+      "subject": "{{appName}}: Verify your email address",
+      "ignoreNotice": "Ignore this email if you didn't create an account on {{domain}}.",
+      "greeting": "Hi {{displayName}},",
+      "instruction": "Please verify your email address to complete your {{appName}} registration.",
+      "buttonText": "Verify Email",
+      "linkLabel": "Or copy and paste this link into your browser:",
+      "expiryNotice": "This link will expire in 24 hours."
     }
   }
 }

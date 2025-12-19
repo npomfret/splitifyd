@@ -549,6 +549,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         register: authHandlers.register,
         login: authHandlers.login,
         sendPasswordResetEmail: authHandlers.sendPasswordResetEmail,
+        sendEmailVerification: authHandlers.sendEmailVerification,
 
         // Public policy handlers (for policy acceptance modal)
         getCurrentPolicy: async (req, res) => {

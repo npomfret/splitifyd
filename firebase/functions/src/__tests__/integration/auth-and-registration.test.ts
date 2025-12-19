@@ -258,4 +258,20 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             expect(result.user).toHaveProperty('uid');
         });
     });
+
+    describe('Email Verification', () => {
+        test('should send email verification email via Postmark sandbox', async () => {
+            // Register a user with email matching sender domain
+            // Postmark sandbox requires recipient domain to match sender domain (sidebadger.me)
+            const testEmail = `verify-${Date.now()}@sidebadger.me`;
+            const userData = new UserRegistrationBuilder().withEmail(testEmail).build();
+            await apiDriver.register(userData);
+
+            // Request email verification - this hits the real Postmark API (sandboxed via sidebadger-me-blackhole)
+            // Email is processed by Postmark but not actually delivered
+            await expect(
+                apiDriver.sendEmailVerification({ email: userData.email }),
+            ).resolves.not.toThrow();
+        });
+    });
 });

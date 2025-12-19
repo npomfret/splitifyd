@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
+import type { EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 
 /**
@@ -25,6 +25,19 @@ export interface WelcomeEmailTranslations {
     welcomeMessage: string;
     instruction: string;
     buttonText: string;
+}
+
+/**
+ * Email verification email template translations
+ */
+export interface EmailVerificationEmailTranslations {
+    subject: string;
+    ignoreNotice: string;
+    greeting: string;
+    instruction: string;
+    buttonText: string;
+    linkLabel: string;
+    expiryNotice: string;
 }
 
 /**
@@ -55,9 +68,20 @@ const FALLBACK_WELCOME_TRANSLATIONS: WelcomeEmailTranslations = {
     buttonText: 'Get Started',
 };
 
+const FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS: EmailVerificationEmailTranslations = {
+    subject: '{{appName}}: Verify your email address',
+    ignoreNotice: "Ignore this email if you didn't create an account on {{domain}}.",
+    greeting: 'Hi {{displayName}},',
+    instruction: 'Please verify your email address to complete your {{appName}} registration.',
+    buttonText: 'Verify Email',
+    linkLabel: 'Or copy and paste this link into your browser:',
+    expiryNotice: 'This link will expire in 24 hours.',
+};
+
 type EmailTranslations = {
     passwordReset: PasswordResetEmailTranslations;
     welcome: WelcomeEmailTranslations;
+    verification: EmailVerificationEmailTranslations;
 };
 
 /**
@@ -95,6 +119,93 @@ export class EmailTemplateService {
         const htmlBody = this.generateWelcomeHtmlBody(t, vars);
 
         return { subject, textBody, htmlBody };
+    }
+
+    /**
+     * Generate email verification email content with translated templates
+     */
+    generateEmailVerificationEmail(variables: EmailVerificationEmailVariables, lang: string = 'en'): EmailContent {
+        const translations = this.loadTranslations(lang);
+        const t = translations.verification;
+        const vars = this.verificationToRecord(variables);
+
+        const subject = this.interpolate(t.subject, vars);
+        const textBody = this.generateVerificationTextBody(t, vars);
+        const htmlBody = this.generateVerificationHtmlBody(t, vars);
+
+        return { subject, textBody, htmlBody };
+    }
+
+    private generateVerificationTextBody(
+        t: EmailVerificationEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        return [
+            this.interpolate(t.ignoreNotice, vars),
+            '',
+            this.interpolate(t.greeting, vars),
+            '',
+            this.interpolate(t.instruction, vars),
+            '',
+            `${this.interpolate(t.buttonText, vars)}: ${vars.verificationLink}`,
+            '',
+            this.interpolate(t.expiryNotice, vars),
+        ].join('\n');
+    }
+
+    private generateVerificationHtmlBody(
+        t: EmailVerificationEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        const escapedVars: Record<string, string> = {
+            appName: escapeHtml(vars.appName),
+            displayName: escapeHtml(vars.displayName),
+            domain: escapeHtml(vars.domain),
+            verificationLink: escapeAttribute(vars.verificationLink),
+        };
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <p style="color: #666; font-size: 14px; margin-bottom: 24px;">
+        ${this.interpolate(t.ignoreNotice, escapedVars)}
+    </p>
+
+    <p style="font-size: 18px;">${this.interpolate(t.greeting, escapedVars)}</p>
+
+    <p>${this.interpolate(t.instruction, escapedVars)}</p>
+
+    <p style="margin: 32px 0;">
+        <a href="${escapedVars.verificationLink}"
+           style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+            ${this.interpolate(t.buttonText, escapedVars)}
+        </a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">
+        ${this.interpolate(t.linkLabel, escapedVars)}<br>
+        <a href="${escapedVars.verificationLink}" style="color: #4F46E5; word-break: break-all;">${escapedVars.verificationLink}</a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">
+        ${this.interpolate(t.expiryNotice, escapedVars)}
+    </p>
+</body>
+</html>`.trim();
+    }
+
+    private verificationToRecord(vars: EmailVerificationEmailVariables): Record<string, string> {
+        return {
+            appName: vars.appName,
+            displayName: vars.displayName,
+            domain: vars.domain,
+            verificationLink: vars.verificationLink,
+        };
     }
 
     private generateWelcomeTextBody(
@@ -243,6 +354,7 @@ export class EmailTemplateService {
             ?? {
                 passwordReset: FALLBACK_PASSWORD_RESET_TRANSLATIONS,
                 welcome: FALLBACK_WELCOME_TRANSLATIONS,
+                verification: FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS,
             };
 
         this.translationsCache.set(lang, translations);

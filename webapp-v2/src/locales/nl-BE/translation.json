@@ -1637,6 +1637,15 @@
       "welcomeMessage": "Bedankt voor uw registratie bij {{appName}}! We zijn blij dat u erbij bent.",
       "instruction": "Met {{appName}} kunt u eenvoudig uitgaven delen met vrienden, familie en huisgenoten. Maak groepen aan, voeg uitgaven toe en laat ons berekenen wie wat verschuldigd is.",
       "buttonText": "Aan de slag"
+    },
+    "verification": {
+      "subject": "{{appName}}: Bevestig uw e-mailadres",
+      "ignoreNotice": "Negeer deze e-mail als u geen account hebt aangemaakt op {{domain}}.",
+      "greeting": "Hallo {{displayName}},",
+      "instruction": "Bevestig uw e-mailadres om uw registratie bij {{appName}} te voltooien.",
+      "buttonText": "E-mail bevestigen",
+      "linkLabel": "Of kopieer en plak deze link in uw browser:",
+      "expiryNotice": "Deze link verloopt over 24 uur."
     }
   }
 }

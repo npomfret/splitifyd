@@ -1636,6 +1636,15 @@
       "welcomeMessage": "Vielen Dank für Ihre Anmeldung bei {{appName}}! Wir freuen uns, Sie an Bord zu haben.",
       "instruction": "Mit {{appName}} können Sie ganz einfach Ausgaben mit Freunden, Familie und Mitbewohnern teilen. Erstellen Sie Gruppen, fügen Sie Ausgaben hinzu und lassen Sie uns berechnen, wer wem was schuldet.",
       "buttonText": "Loslegen"
+    },
+    "verification": {
+      "subject": "{{appName}}: E-Mail-Adresse bestätigen",
+      "ignoreNotice": "Ignorieren Sie diese E-Mail, wenn Sie kein Konto bei {{domain}} erstellt haben.",
+      "greeting": "Hallo {{displayName}},",
+      "instruction": "Bitte bestätigen Sie Ihre E-Mail-Adresse, um Ihre {{appName}}-Registrierung abzuschließen.",
+      "buttonText": "E-Mail bestätigen",
+      "linkLabel": "Oder kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
+      "expiryNotice": "Dieser Link läuft in 24 Stunden ab."
     }
   }
 }

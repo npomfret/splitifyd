@@ -26,6 +26,7 @@ import type {
     CreateSettlementRequest,
     CurrentPolicyResponse,
     DeletePolicyVersionResponse,
+    EmailVerificationRequest,
     EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -1017,6 +1018,15 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
     async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
         await this.request({
             endpoint: '/password-reset',
+            method: 'POST',
+            body: request,
+            skipAuth: true,
+        });
+    }
+
+    async sendEmailVerification(request: EmailVerificationRequest): Promise<void> {
+        await this.request({
+            endpoint: '/email-verification',
             method: 'POST',
             body: request,
             skipAuth: true,

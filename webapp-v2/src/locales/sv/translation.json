@@ -1637,6 +1637,15 @@
       "welcomeMessage": "Tack för att du registrerade dig på {{appName}}! Vi är glada att ha dig med.",
       "instruction": "Med {{appName}} kan du enkelt dela utgifter med vänner, familj och rumskamrater. Skapa grupper, lägg till utgifter och låt oss beräkna vem som är skyldig vad.",
       "buttonText": "Kom igång"
+    },
+    "verification": {
+      "subject": "{{appName}}: Verifiera din e-postadress",
+      "ignoreNotice": "Ignorera detta e-postmeddelande om du inte skapade ett konto på {{domain}}.",
+      "greeting": "Hej {{displayName}},",
+      "instruction": "Vänligen verifiera din e-postadress för att slutföra din registrering på {{appName}}.",
+      "buttonText": "Verifiera e-post",
+      "linkLabel": "Eller kopiera och klistra in denna länk i din webbläsare:",
+      "expiryNotice": "Denna länk upphör att gälla om 24 timmar."
     }
   }
 }

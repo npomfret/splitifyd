@@ -22,6 +22,7 @@ import {
     type CurrentPolicyResponse,
     type DeletePolicyVersionResponse,
     DisplayName,
+    type EmailVerificationRequest,
     type EnvironmentDiagnosticsResponse,
     ExpenseDTO,
     ExpenseFullDetailsDTO,
@@ -496,6 +497,10 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
     async sendPasswordResetEmail(request: PasswordResetRequest): Promise<void> {
         await this.apiRequest('/password-reset', 'POST', request);
+    }
+
+    async sendEmailVerification(request: EmailVerificationRequest): Promise<void> {
+        await this.apiRequest('/email-verification', 'POST', request);
     }
 
     async leaveGroup(groupId: GroupId | string, token: AuthToken): Promise<void> {
