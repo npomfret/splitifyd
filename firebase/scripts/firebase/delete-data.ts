@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 /**
  * Usage:
- *   ./firebase/scripts/firebase/delete-data.ts <emulator|production> [collectionId...]
+ *   ./firebase/scripts/firebase/delete-data.ts <emulator|staging> [collectionId...]
  *
  * If collection IDs are supplied, only those collections (minus protected ones) are deleted.
  * Otherwise, every non-protected collection will be purged.
