@@ -3,6 +3,7 @@ import { signal } from '@preact/signals';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
+import { FieldError } from './FieldError';
 
 interface ImageUploadFieldProps {
     label: string;
@@ -323,9 +324,9 @@ export function ImageUploadField({
 
             {/* Error */}
             {error && (
-                <p className='text-sm text-semantic-error' role='alert'>
+                <FieldError id={dataTestId ? `${dataTestId}-error` : undefined} dataTestId='image-upload-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

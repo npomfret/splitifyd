@@ -3,10 +3,9 @@ import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
-import { formInput, formLabel } from './styles';
+import { formTextarea, formLabel } from './styles';
 
-interface InputProps {
-    type?: 'text' | 'email' | 'password' | 'number';
+interface TextareaProps {
     label?: string;
     error?: string;
     placeholder?: string;
@@ -17,15 +16,14 @@ interface InputProps {
     onBlur?: () => void;
     name?: string;
     id?: string;
-    autoFocus?: boolean;
     className?: string;
-    autoComplete?: string;
     dataTestId?: string;
-    inputRef?: Ref<HTMLInputElement>;
+    textareaRef?: Ref<HTMLTextAreaElement>;
+    rows?: number;
+    maxLength?: number;
 }
 
-export function Input({
-    type = 'text',
+export function Textarea({
     label,
     error,
     placeholder,
@@ -36,34 +34,34 @@ export function Input({
     onBlur,
     name,
     id,
-    autoFocus = false,
     className = '',
-    autoComplete = 'off',
     dataTestId,
-    inputRef,
-}: InputProps) {
+    textareaRef,
+    rows = 3,
+    maxLength,
+}: TextareaProps) {
     const { t } = useTranslation();
-    const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const textareaId = id || name || `textarea-${Math.random().toString(36).substr(2, 9)}`;
 
     const handleChange = useCallback(
         (e: Event) => {
-            const target = e.target as HTMLInputElement;
+            const target = e.target as HTMLTextAreaElement;
             onChange?.(target.value);
         },
         [onChange],
     );
 
-    const inputClasses = cx(
-        ...formInput.base,
-        error && formInput.error,
-        disabled && formInput.disabled,
+    const textareaClasses = cx(
+        ...formTextarea.base,
+        error && formTextarea.error,
+        disabled && formTextarea.disabled,
         className,
     );
 
     return (
         <div>
             {label && (
-                <label htmlFor={inputId} className={formLabel.base}>
+                <label htmlFor={textareaId} className={formLabel.base}>
                     {label}
                     {required && (
                         <span className={formLabel.required} data-testid='required-indicator'>
@@ -73,9 +71,8 @@ export function Input({
                 </label>
             )}
             <div className='relative'>
-                <input
-                    type={type}
-                    id={inputId}
+                <textarea
+                    id={textareaId}
                     name={name}
                     value={value}
                     onInput={handleChange}
@@ -83,17 +80,17 @@ export function Input({
                     placeholder={placeholder}
                     disabled={disabled}
                     required={required}
-                    autoFocus={autoFocus}
-                    autoComplete={autoComplete}
-                    className={inputClasses}
+                    rows={rows}
+                    maxLength={maxLength}
+                    className={textareaClasses}
                     aria-invalid={!!error}
-                    aria-describedby={error ? `${inputId}-error` : undefined}
+                    aria-describedby={error ? `${textareaId}-error` : undefined}
                     data-testid={dataTestId}
-                    ref={inputRef as Ref<HTMLInputElement>}
+                    ref={textareaRef as Ref<HTMLTextAreaElement>}
                 />
             </div>
             {error && (
-                <FieldError id={`${inputId}-error`} dataTestId='input-error-message'>
+                <FieldError id={`${textareaId}-error`} dataTestId='textarea-error-message'>
                     {error}
                 </FieldError>
             )}

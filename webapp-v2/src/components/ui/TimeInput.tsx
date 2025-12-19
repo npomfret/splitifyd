@@ -2,6 +2,7 @@ import { convertTo12HourDisplay, filterTimeSuggestions, formatTime12, formatTime
 import { useSignal } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
+import { FieldError } from './FieldError';
 
 interface TimeInputProps {
     value: string; // "14:30" format (24-hour)
@@ -9,11 +10,14 @@ interface TimeInputProps {
     label?: string;
     required?: boolean;
     error?: string;
+    disabled?: boolean;
     className?: string;
+    id?: string;
 }
 
-export function TimeInput({ value, onChange, label, required = false, error, className = '' }: TimeInputProps) {
+export function TimeInput({ value, onChange, label, required = false, error, disabled = false, className = '', id }: TimeInputProps) {
     const { t } = useTranslation();
+    const inputId = id || `time-input-${Math.random().toString(36).substr(2, 9)}`;
     const isEditing = useSignal(false);
     const inputValue = useSignal(convertTo12HourDisplay(value));
     const showSuggestions = useSignal(false);
@@ -34,6 +38,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
 
     // Handle click on label to start editing
     const handleLabelClick = () => {
+        if (disabled) return;
         isEditing.value = true;
         showSuggestions.value = true;
         suggestions.value = filterTimeSuggestions(inputValue.value, allSuggestions);
@@ -149,9 +154,12 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     <button
                         type='button'
                         onClick={handleLabelClick}
-                        className={`text-start px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-xs text-text-primary hover:bg-surface-muted transition-colors ${
-                            error ? 'border-semantic-error' : 'border-border-default'
-                        }`}
+                        disabled={disabled}
+                        className={`text-start px-3 py-2 border rounded-lg w-full bg-surface-raised backdrop-blur-xs text-text-primary transition-colors ${
+                            disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-surface-muted'
+                        } ${error ? 'border-semantic-error' : 'border-border-default'}`}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `${inputId}-error` : undefined}
                     >
                         {t('uiComponents.timeInput.at')}
                         {inputValue.value}
@@ -161,6 +169,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     // Edit mode - input field
                     <input
                         ref={inputRef}
+                        id={inputId}
                         type='text'
                         value={inputValue.value}
                         onInput={handleInputChange}
@@ -168,9 +177,12 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         onKeyDown={handleKeyDown}
                         placeholder={t('uiComponents.timeInput.placeholder')}
                         autoComplete='off'
+                        disabled={disabled}
                         className={`w-full px-3 py-2 border rounded-lg bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200 ${
-                            error ? 'border-semantic-error' : 'border-border-default'
-                        }`}
+                            disabled ? 'opacity-60 cursor-not-allowed' : ''
+                        } ${error ? 'border-semantic-error' : 'border-border-default'}`}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? `${inputId}-error` : undefined}
                     />
                 )}
 
@@ -194,9 +206,9 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
             )}
 
             {error && (
-                <p className='text-sm text-semantic-error mt-1' role='alert'>
+                <FieldError id={`${inputId}-error`} dataTestId='time-input-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

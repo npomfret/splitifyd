@@ -1,5 +1,6 @@
 import { cx } from '@/utils/cx.ts';
 import type { ComponentChildren, Ref } from 'preact';
+import { FieldError } from './FieldError';
 
 interface CheckboxProps {
     /** Checkbox label (can be a string or JSX) */
@@ -103,13 +104,9 @@ export function Checkbox({
                 )}
             </Wrapper>
             {error && (
-                <p
-                    id={`${checkboxId}-error`}
-                    className='mt-1 text-sm text-semantic-error'
-                    role='alert'
-                >
+                <FieldError id={`${checkboxId}-error`} dataTestId='checkbox-error-message'>
                     {error}
-                </p>
+                </FieldError>
             )}
         </div>
     );

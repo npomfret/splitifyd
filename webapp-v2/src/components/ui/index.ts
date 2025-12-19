@@ -30,6 +30,7 @@ export { SidebarCard } from './SidebarCard';
 export { SkeletonCard, SkeletonCommentItem, SkeletonMemberItem, SkeletonSettlementItem } from './Skeleton';
 export { Stack } from './Stack';
 export { Switch } from './Switch';
+export { Textarea } from './Textarea';
 export { TimeInput } from './TimeInput';
 export { Tooltip } from './Tooltip';
 export { Typography } from './Typography';

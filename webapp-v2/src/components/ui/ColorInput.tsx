@@ -23,7 +23,7 @@ export function ColorInput({
                 {label}
             </label>
             <div className='flex items-center gap-2'>
-                <div className='relative h-8 w-12 shrink-0 rounded border-2 border-gray-400 overflow-hidden checkerboard-bg'>
+                <div className='relative h-8 w-12 shrink-0 rounded border-2 border-border-strong overflow-hidden checkerboard-bg'>
                     <input
                         id={id}
                         type='color'
@@ -73,7 +73,7 @@ export function RgbaColorInput({
                 {label}
             </label>
             <div className='flex items-center gap-2'>
-                <div className='relative h-8 w-12 shrink-0 rounded border-2 border-gray-400 overflow-hidden checkerboard-bg'>
+                <div className='relative h-8 w-12 shrink-0 rounded border-2 border-border-strong overflow-hidden checkerboard-bg'>
                     <div
                         className='absolute inset-0'
                         style={{ backgroundColor: value || 'transparent' }}

@@ -4,6 +4,7 @@ import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
 import { ChevronDownIcon } from './icons';
+import { formSelect, formLabel } from './styles';
 
 interface SelectOption {
     value: string;
@@ -55,28 +56,20 @@ export function Select({
         [onChange],
     );
 
-    const baseSelectClasses = [
-        'block w-full rounded-md border border-border-default px-3 py-2 pr-10 shadow-sm',
-        'text-text-primary',
-        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
-        'sm:text-sm sm:leading-6 transition-colors duration-200 bg-surface-raised backdrop-blur-xs',
-        'appearance-none cursor-pointer',
-    ];
-
-    const stateClasses = error
-        ? 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error'
-        : '';
-    const disabledClasses = disabled ? 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted' : '';
-
-    const selectClasses = cx(...baseSelectClasses, stateClasses, disabledClasses, className);
+    const selectClasses = cx(
+        ...formSelect.base,
+        error && formSelect.error,
+        disabled && formSelect.disabled,
+        className,
+    );
 
     return (
         <div>
             {label && (
-                <label htmlFor={selectId} className='mb-2 block text-sm font-medium text-text-primary'>
+                <label htmlFor={selectId} className={formLabel.base}>
                     {label}
                     {required && (
-                        <span className='text-semantic-error ml-1' data-testid='required-indicator'>
+                        <span className={formLabel.required} data-testid='required-indicator'>
                             {t('common.required')}
                         </span>
                     )}

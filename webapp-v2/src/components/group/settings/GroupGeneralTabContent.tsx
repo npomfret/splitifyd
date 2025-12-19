@@ -1,6 +1,6 @@
 import { ReadonlySignal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { Alert, Button, Form, Input, Switch } from '../../ui';
+import { Alert, Button, Form, Input, Switch, Textarea } from '../../ui';
 import { GroupCurrencySettings } from './GroupCurrencySettings';
 
 interface GroupGeneralTabContentProps {
@@ -101,21 +101,16 @@ export function GroupGeneralTabContent({
                             disabled={isSubmitting}
                         />
 
-                        <div>
-                            <label htmlFor='group-description-textarea' className='block text-sm font-medium text-text-primary mb-2'>
-                                {t('editGroupModal.descriptionLabel')}
-                            </label>
-                            <textarea
-                                id='group-description-textarea'
-                                className='w-full px-3 py-2 border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none transition-colors duration-200'
-                                rows={3}
-                                placeholder={t('editGroupModal.descriptionPlaceholder')}
-                                value={groupDescription}
-                                onInput={(event) => onGroupDescriptionChange((event.target as HTMLTextAreaElement).value)}
-                                disabled={isSubmitting}
-                                maxLength={200}
-                            />
-                        </div>
+                        <Textarea
+                            id='group-description-textarea'
+                            label={t('editGroupModal.descriptionLabel')}
+                            rows={3}
+                            placeholder={t('editGroupModal.descriptionPlaceholder')}
+                            value={groupDescription}
+                            onChange={onGroupDescriptionChange}
+                            disabled={isSubmitting}
+                            maxLength={200}
+                        />
                     </div>
                 </section>
 

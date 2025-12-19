@@ -12,7 +12,7 @@ import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisp
 import { signal, useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, FormFieldLabel, Input, Select, Stack, Switch, Tooltip, Typography } from '../ui';
+import { Button, Form, FormFieldLabel, Input, Select, Stack, Switch, Textarea, Tooltip, Typography } from '../ui';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -326,15 +326,14 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 htmlFor='group-description'
                                 helpText={t('createGroupModal.groupDescriptionHelpText')}
                             />
-                            <textarea
+                            <Textarea
                                 id='group-description'
                                 name='description'
-                                className='w-full px-3 py-2 border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary placeholder:text-text-muted/70 rounded-md shadow-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary resize-none transition-colors duration-200'
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}
                                 value={groupDescriptionSignal.value}
-                                onInput={(e) => {
-                                    groupDescriptionSignal.value = (e.target as HTMLTextAreaElement).value;
+                                onChange={(value) => {
+                                    groupDescriptionSignal.value = value;
                                 }}
                                 disabled={isSubmitting}
                                 maxLength={200}

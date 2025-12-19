@@ -1,8 +1,8 @@
 import { cx } from '@/utils/cx.ts';
 import type { Ref } from 'preact';
 import { useCallback, useState } from 'preact/hooks';
-import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
+import { formFloatingInput } from './styles';
 
 interface FloatingInputProps {
     type?: 'text' | 'email' | 'password' | 'number';
@@ -41,7 +41,6 @@ export function FloatingInput({
     dataTestId,
     inputRef,
 }: FloatingInputProps) {
-    const { t } = useTranslation();
     const [isFocused, setIsFocused] = useState(false);
     const inputId = id || name || `floating-input-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -67,20 +66,11 @@ export function FloatingInput({
 
     const containerClasses = cx('relative', className);
 
-    const baseInputClasses = [
-        'block w-full rounded-md border border-border-default px-3 pt-6 pb-2 shadow-sm',
-        'text-text-primary placeholder:text-transparent',
-        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-interactive-primary focus-visible:border-interactive-primary',
-        'sm:text-sm transition-all duration-(--motion-duration-fast) ease-(--motion-easing-standard)',
-        'bg-surface-raised backdrop-blur-xs',
-    ];
-
-    const stateClasses = error
-        ? 'border-border-error text-semantic-error focus-visible:ring-semantic-error focus-visible:border-semantic-error'
-        : '';
-    const disabledClasses = disabled ? 'opacity-60 cursor-not-allowed bg-surface-muted text-text-muted' : '';
-
-    const inputClasses = cx(...baseInputClasses, stateClasses, disabledClasses);
+    const inputClasses = cx(
+        ...formFloatingInput.base,
+        error && formFloatingInput.error,
+        disabled && formFloatingInput.disabled,
+    );
 
     const baseLabelClasses = [
         'absolute start-3 text-text-secondary pointer-events-none',
