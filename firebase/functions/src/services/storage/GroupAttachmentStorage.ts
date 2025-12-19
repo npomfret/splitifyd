@@ -69,7 +69,7 @@ export interface GroupAttachmentStorage {
  * Uses firebase-admin/storage directly for full functionality (exists, getMetadata, createReadStream).
  */
 export class CloudGroupAttachmentStorage implements GroupAttachmentStorage {
-    private static readonly ATTACHMENT_EXTENSIONS = ['jpg', 'png', 'webp', 'pdf', 'bin'];
+    private static readonly ATTACHMENT_EXTENSIONS = ['jpg', 'png', 'webp', 'heic', 'heif', 'pdf', 'bin'];
 
     constructor(private readonly bucket: Bucket) {}
 

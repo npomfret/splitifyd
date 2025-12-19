@@ -11,6 +11,7 @@ import { checkForDangerousPatterns } from '../utils/security';
 const BINARY_UPLOAD_ROUTES = [
     '/admin/tenants/:tenantId/assets/:assetType',
     '/admin/tenants/:tenantId/images',
+    '/groups/:groupId/attachments',
 ];
 
 /**

@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { Button, Card, LoadingSpinner } from '../ui';
 
 const MAX_SIZE_MB = 10;
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const ACCEPT_STRING = 'image/jpeg,image/png,image/webp';
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+const ACCEPT_STRING = 'image/jpeg,image/png,image/webp,image/heic,image/heif';
 
 interface ReceiptUploaderProps {
     receiptUrl: string | null;

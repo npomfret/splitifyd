@@ -22,7 +22,10 @@ const BaseExpenseSchema = z
         splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
         participants: z.array(UserIdSchema).min(1, 'At least one participant required'),
         splits: z.array(FirestoreExpenseSplitSchema),
-        receiptUrl: z.string().url().optional().nullable(),
+        receiptUrl: z.union([
+            z.string().url(),
+            z.string().startsWith('/api/'), // Relative API paths for internal attachments
+        ]).optional().nullable(),
         location: z
             .object({
                 name: z.string().max(200),

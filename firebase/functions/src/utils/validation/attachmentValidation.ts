@@ -11,12 +11,14 @@ const MAGIC_NUMBERS = {
     png: [0x89, 0x50, 0x4e, 0x47],
     webp: [0x52, 0x49, 0x46, 0x46], // "RIFF" (WebP starts with RIFF...WEBP)
     pdf: [0x25, 0x50, 0x44, 0x46], // "%PDF"
+    heic: [0x00, 0x00, 0x00], // HEIC/HEIF files have "ftyp" at byte 4, variable first 4 bytes (box size)
 };
 
 /**
  * Content types allowed for expense receipts.
+ * Includes HEIC/HEIF for iPhone compatibility.
  */
-const RECEIPT_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const RECEIPT_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 /**
  * Content types allowed for comment attachments.
@@ -66,6 +68,30 @@ function validateAttachmentUpload(
 }
 
 /**
+ * Checks if a buffer is a valid HEIC/HEIF file.
+ * HEIC files use the ISO Base Media File Format (ISOBMFF):
+ * - Bytes 0-3: Box size (variable)
+ * - Bytes 4-7: "ftyp" (file type box marker)
+ * - Bytes 8-11: Brand code (heic, mif1, heif, heix, msf1, etc.)
+ */
+function isHeicFile(buffer: Buffer): boolean {
+    if (buffer.length < 12) {
+        return false;
+    }
+
+    // Check for "ftyp" at bytes 4-7
+    const ftypMarker = buffer.slice(4, 8).toString('ascii');
+    if (ftypMarker !== 'ftyp') {
+        return false;
+    }
+
+    // Check brand code at bytes 8-11 for HEIC/HEIF variants
+    const brand = buffer.slice(8, 12).toString('ascii');
+    const heicBrands = ['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1', 'heif'];
+    return heicBrands.includes(brand);
+}
+
+/**
  * Validates that the file's magic number (header bytes) matches the declared content type.
  *
  * @param buffer - Attachment file buffer
@@ -79,9 +105,21 @@ function validateMagicNumber(buffer: Buffer, contentType: string): void {
         throw Errors.validationError('file', 'UNSUPPORTED_FORMAT');
     }
 
+    // Special handling for HEIC/HEIF (uses ISOBMFF container, not simple magic bytes)
+    if (expectedFormats.includes('heic')) {
+        if (isHeicFile(buffer)) {
+            return; // Valid HEIC/HEIF file
+        }
+        throw Errors.validationError('file', 'CORRUPTED_FILE');
+    }
+
     let isValid = false;
 
     for (const [format, bytes] of Object.entries(MAGIC_NUMBERS)) {
+        if (format === 'heic') {
+            continue; // Handled above
+        }
+
         if (buffer.length < bytes.length) {
             continue;
         }
@@ -124,6 +162,8 @@ function getExpectedFormatsForContentType(contentType: string): string[] {
         'image/jpeg': ['jpeg'],
         'image/png': ['png'],
         'image/webp': ['webp'],
+        'image/heic': ['heic'],
+        'image/heif': ['heic'], // HEIF uses same container format as HEIC
         'application/pdf': ['pdf'],
     };
 
@@ -163,6 +203,8 @@ export function getExtensionForContentType(contentType: string): string {
         'image/jpeg': 'jpg',
         'image/png': 'png',
         'image/webp': 'webp',
+        'image/heic': 'heic',
+        'image/heif': 'heif',
         'application/pdf': 'pdf',
     };
 

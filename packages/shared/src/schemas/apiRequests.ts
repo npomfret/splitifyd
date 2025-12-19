@@ -381,6 +381,7 @@ export const CreateExpenseRequestSchema = z.object({
     receiptUrl: z
         .union([
             z.string().url('Receipt URL must be a valid URL'),
+            z.string().startsWith('/api/', 'Receipt URL must be a valid path'), // Relative API paths
             z.literal(''),
         ])
         .optional(),
@@ -417,6 +418,7 @@ export const UpdateExpenseRequestSchema = z
         receiptUrl: z
             .union([
                 z.string().url('Receipt URL must be a valid URL'),
+                z.string().startsWith('/api/', 'Receipt URL must be a valid path'), // Relative API paths
                 z.literal(''),
             ])
             .optional(),
