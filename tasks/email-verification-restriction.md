@@ -23,13 +23,13 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 
 **1. Update Firestore Security Rules:**
 - **File:** `firebase/firestore.rules`
-- **Action:** Add `&& request.auth.token.email_verified == true` to the `/users` `allow create` and `allow update` rules (the only client-write rules). This provides the foundational, data-layer security without touching server-only collections.
+- **Action:** Add `&& request.auth.token.email_verified == true` to client-write rules. Verify the actual rule paths in `firestore.rules` before modifying.
 
 **2. Add an email verification guard at the auth layer:**
-- **Files:** `packages/shared/src/shared-types.ts`, `firebase/functions/src/auth/middleware.ts`
-- **Action:** Extend `AuthenticatedUser` to include `emailVerified: boolean`, populate it from Firebase Auth `userRecord.emailVerified` during authentication, and add a write-guard middleware (or handler-level guard) that rejects mutating routes when `emailVerified` is `false`.
-- **Error Handling:** Add `EMAIL_NOT_VERIFIED` to `firebase/functions/src/errors/ErrorCode.ts` (as an `ErrorDetail`) and return `Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED)`.
-- **Allowlist:** Ensure the guard allows `register`, `login`, `password-reset`, and the new resend-verification endpoint, plus read-only routes.
+- **Files:** `packages/shared/src/shared-types.ts` (line ~624), `firebase/functions/src/auth/middleware.ts`
+- **Action:** Extend `AuthenticatedUser` interface in the shared package to include `emailVerified: boolean`. In middleware, populate it from Firebase Auth's `userRecord.emailVerified` during authentication. Add a write-guard middleware that rejects mutating routes when `emailVerified` is `false`.
+- **Error Handling:** Add `EMAIL_NOT_VERIFIED` to the `ErrorDetail` object in `firebase/functions/src/errors/ErrorCode.ts` (around line 47) and return `Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED)`.
+- **Allowlist:** Ensure the guard allows `register`, `login`, `password-reset`, and the new resend-verification endpoint, plus all read-only routes (GET requests).
 
 **3. Create Verification Resend Endpoint:**
 - **Files:** `firebase/functions/src/auth/handlers.ts`, `firebase/functions/src/routes/route-config.ts`, `packages/shared/src/api.ts`, `packages/shared/src/schemas/apiSchemas.ts`
@@ -72,3 +72,23 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 | **UI Logic** | `webapp-v2/src/stores/permissions-store.ts` | Disable UI controls based on verification status. |
 | **UI State** | `webapp-v2/src/app/stores/auth-store.ts` | Ensure `emailVerified` state is correctly managed. |
 | **API Client** | `webapp-v2/src/app/apiClient.ts` | Add method to call the new resend endpoint. |
+
+---
+
+## Testing
+
+### Backend (Critical Path)
+
+**API Unit Tests** (`firebase/functions/src/__tests__/unit/api/`):
+- Test that write endpoints reject unverified users with `EMAIL_NOT_VERIFIED` error
+- Test that read endpoints allow unverified users
+- Test that allowlisted endpoints (register, login, resend-verification) work for unverified users
+- Test the resend-verification endpoint (success, rate limiting if applicable)
+
+### Frontend
+
+**Playwright Integration Tests** (`webapp-v2/src/__tests__/integration/playwright/`):
+- Test that the verification banner appears for unverified users
+- Test that write action buttons are disabled with appropriate tooltips
+- Test the "Resend verification email" button flow
+- Test that verified users do not see the banner
