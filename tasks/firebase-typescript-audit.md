@@ -36,4 +36,4 @@
 3) Per-group balance reads in group list
 - Location: `firebase/functions/src/services/GroupService.ts:275-289`
 - Each group triggers a balance fetch. At list size 100, this is 100 extra reads.
-- Mitigation idea: batch balance reads or denormalize summary balance on the group/membership document.
+- Mitigation idea: batch balance reads (keep normalized; no caches/denormalized summaries).
