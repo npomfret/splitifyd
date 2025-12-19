@@ -23,16 +23,18 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 
 **1. Update Firestore Security Rules:**
 - **File:** `firebase/firestore.rules`
-- **Action:** Add `&& request.auth.token.email_verified == true` to all `allow write` rules. This provides the foundational, data-layer security.
+- **Action:** Add `&& request.auth.token.email_verified == true` to the `/users` `allow create` and `allow update` rules (the only client-write rules). This provides the foundational, data-layer security without touching server-only collections.
 
-**2. Enhance Permission Engine:**
-- **File:** `firebase/functions/src/permissions/permission-engine-async.ts`
-- **Action:** In the `checkPermission` method (or a higher-level entry point), add a preliminary check for the user's verification status. If `accessContext.actor.emailVerified` is `false`, immediately throw a `Errors.forbidden()` with a specific detail code like `EMAIL_NOT_VERIFIED`. This provides a clean API-level block.
+**2. Add an email verification guard at the auth layer:**
+- **Files:** `packages/shared/src/shared-types.ts`, `firebase/functions/src/auth/middleware.ts`
+- **Action:** Extend `AuthenticatedUser` to include `emailVerified: boolean`, populate it from Firebase Auth `userRecord.emailVerified` during authentication, and add a write-guard middleware (or handler-level guard) that rejects mutating routes when `emailVerified` is `false`.
+- **Error Handling:** Add `EMAIL_NOT_VERIFIED` to `firebase/functions/src/errors/ErrorCode.ts` (as an `ErrorDetail`) and return `Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED)`.
+- **Allowlist:** Ensure the guard allows `register`, `login`, `password-reset`, and the new resend-verification endpoint, plus read-only routes.
 
 **3. Create Verification Resend Endpoint:**
-- **File:** `firebase/functions/src/auth/AuthHandlers.ts` (or a new appropriate handler)
-- **Action:** Create a new authenticated `POST` endpoint, e.g., `/user/resend-verification`.
-- **Logic:** The handler will use the Firebase Admin SDK to call `auth().generateEmailVerificationLink()` and send the email using the existing `EmailTemplateService` and `PostmarkEmailService` to ensure it's themed and tracked correctly. This is preferable to Firebase's default email.
+- **Files:** `firebase/functions/src/auth/handlers.ts`, `firebase/functions/src/routes/route-config.ts`, `packages/shared/src/api.ts`, `packages/shared/src/schemas/apiSchemas.ts`
+- **Action:** Create a new authenticated `POST` endpoint, e.g., `/user/resend-verification`, with a 204 response.
+- **Logic:** Generate the verification link via the auth service, render with `EmailTemplateService`, and send via `PostmarkEmailService`. Add new email translations in `webapp-v2/src/locales/*/translation.json`.
 
 ### Phase 2: Frontend Implementation (UI/UX)
 
@@ -48,6 +50,7 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 **3. Update Client-Side Permission Engine:**
 - **File:** `webapp-v2/src/stores/permissions-store.ts` (and its `ClientPermissionEngine`)
 - **Action:** Modify the permission checks to incorporate `authStore.user?.emailVerified`. If the user is not verified, all write-related permissions should return `false`. This will automatically disable the relevant UI controls across the app.
+- **Note:** Ensure non-group write actions (settings, profile updates, invites, comments) are also disabled if they are not driven by `permissionsStore`.
 
 **4. Update API Client:**
 - **File:** `webapp-v2/src/app/apiClient.ts`
@@ -60,9 +63,9 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 | Layer | File | Purpose |
 |---|---|---|
 | **Data Security** | `firebase/firestore.rules` | Add `email_verified` check to write rules. |
-| **API Logic** | `firebase/functions/src/permissions/permission-engine-async.ts` | Block write actions for unverified users. |
+| **API Logic** | `firebase/functions/src/auth/middleware.ts` | Attach `emailVerified` and block writes for unverified users. |
 | **API Logic** | `firebase/functions/src/services/email/EmailTemplateService.ts` | Add template for verification email. |
-| **API Endpoint** | `firebase/functions/src/auth/AuthHandlers.ts` | Create handler to resend verification email. |
+| **API Endpoint** | `firebase/functions/src/auth/handlers.ts` | Create handler to resend verification email. |
 | **Shared** | `packages/shared/src/api.ts` | Define the new API endpoint interface. |
 | **UI Component** | `webapp-v2/src/components/layout/EmailVerificationBanner.tsx` | New banner component. |
 | **UI Layout** | `webapp-v2/src/components/layout/BaseLayout.tsx` | Integrate the banner. |

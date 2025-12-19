@@ -8,47 +8,44 @@ Capture and store the tenant (`TenantId`) from which a user originates during th
 
 ## Proposed Implementation Plan
 
-The implementation involves passing the `hostname` from the client during registration and storing it as a `signupTenantId` on the user's document in Firestore.
+The implementation should resolve the tenant on the server using the request host (validated against forwarded headers/origin) and store the resolved `signupTenantId` on the user's Firestore document. Additionally, capture a `signupHostname` from the browser and require it to match the validated request host to detect spoofing.
 
 ### Phase 1: Data Model and Type Updates
 
-**1. Update Shared DTOs:**
-- **File:** `packages/shared/src/shared-types.ts`
-- **Action:**
-    - Add `signupHostname?: string` to the `CreateUserRequest` interface.
-    - Add `signupTenantId: TenantId` to the `UserProfileDTO` and/or `RegisteredUser` types. This will make the data available to the client and other services.
+**1. Update User document schema:**
+- **File:** `firebase/functions/src/schemas/user.ts`
+- **Action:** Add `signupTenantId?: TenantId` to `UserDocumentSchema` (optional for backward compatibility).
+- **Note:** Decide whether this field should be surfaced in any API response types (e.g., `UserProfile`, `AdminUserProfile`). Default is to keep it server-only.
 
-**2. Update Firestore Schema:**
-- **File:** `firebase/functions/src/schemas/user.ts` (or equivalent user schema file)
-- **Action:** Add `signupTenantId: TenantIdSchema` to the `UserDocumentSchema` Zod schema. Mark it as optional (`.optional()`) for backward compatibility with existing users, but ensure it is written for all new users.
+**2. Update shared request types:**
+- **Files:** `packages/shared/src/shared-types.ts`, `packages/shared/src/schemas/apiRequests.ts`, `firebase/functions/src/auth/validation.ts`
+- **Action:** Add `signupHostname` to `UserRegistration` and validate/sanitize it. Treat it as required for registration so the server can compare it to the request host.
 
 ### Phase 2: Backend - User Creation Logic
 
-**1. Update User Creation Handler:**
-- **File:** `firebase/functions/src/auth/AuthHandlers.ts` (or wherever user registration is handled)
-- **Action:**
-    - Modify the handler to accept the new `signupHostname` field from the request body.
-    - Pass this `hostname` to the service responsible for creating the user (e.g., `FirebaseAuthService` or `UserService`).
+**1. Resolve tenant in the register handler:**
+- **Files:** `firebase/functions/src/ApplicationFactory.ts`, `firebase/functions/src/auth/handlers.ts`
+- **Action:** In the `/register` handler, resolve and validate the host (reuse `AuthHandlers` host logic or extract it into a shared utility), compare it to `signupHostname` from the request body, and reject mismatches with a clear error. Then resolve the tenant via `TenantRegistryService.resolveTenant({ host })` and pass `signupTenantId` into the registration service.
 
 **2. Update User Creation Service:**
-- **File:** `firebase/functions/src/services/FirebaseAuthService.ts` (or equivalent)
+- **File:** `firebase/functions/src/services/UserService2.ts`
 - **Action:**
-    - The service method (e.g., `createUser`) should now accept the `signupHostname`.
-    - Before creating the user document, use the `TenantService` (or equivalent tenant resolution logic) to resolve the `hostname` into a `TenantId`.
-    - If resolution fails, a decision is needed: store the raw hostname, store a `null` value, or reject the request. For now, we will assume it resolves successfully.
-    - When creating the user document in the `users` collection, include the `signupTenantId` field.
+    - Extend the registration flow to accept a `signupTenantId` (server-provided).
+    - When creating the user document in the `users` collection, include `signupTenantId`.
+    - If tenant resolution fails, return a clear error (e.g., `Errors.invalidRequest(ErrorDetail.TENANT_NOT_FOUND)`).
 
 ### Phase 3: Frontend - Pass Hostname on Signup
 
-**1. Update Registration Page Logic:**
-- **File:** `webapp-v2/src/pages/RegisterPage.tsx` (or the component handling user registration)
-- **Action:**
-    - In the `handleSubmit` or equivalent function, capture the hostname from the browser: `const signupHostname = window.location.hostname;`.
-    - Pass this `signupHostname` in the payload when calling the `apiClient`'s user creation method.
+**1. Client changes:**
+- **Files:** `webapp-v2/src/app/stores/auth-store.ts`, `webapp-v2/src/pages/RegisterPage.tsx`, `webapp-v2/src/app/apiClient.ts`
+- **Action:** Capture `window.location.hostname` and include it as `signupHostname` in the registration request.
 
-**2. Update API Client:**
-- **File:** `webapp-v2/src/app/apiClient.ts`
-- **Action:** Modify the `createUser` (or equivalent) method to include the `signupHostname` in the request body, matching the updated `CreateUserRequest` type.
+---
+
+## Testing Notes
+
+- Add or update a unit test in `firebase/functions/src/__tests__/unit/services/UserService.test.ts` (or registration tests) to ensure `signupTenantId` is persisted for new users.
+- If a new host-resolution helper is introduced, add unit coverage for host validation mismatches.
 
 ---
 
@@ -56,12 +53,12 @@ The implementation involves passing the `hostname` from the client during regist
 
 | Layer | File | Purpose |
 |---|---|---|
-| **Shared Types** | `packages/shared/src/shared-types.ts` | Add `signupHostname` to request and `signupTenantId` to DTOs. |
+| **Shared Types** | `packages/shared/src/shared-types.ts` | Add `signupHostname` to `UserRegistration`; consider whether to expose `signupTenantId` beyond Firestore. |
 | **Backend Schema**| `firebase/functions/src/schemas/user.ts` | Update `UserDocumentSchema` with the new field. |
-| **Backend Logic** | `firebase/functions/src/auth/AuthHandlers.ts` | Update registration handler to receive the hostname. |
-| **Backend Logic** | `firebase/functions/src/services/FirebaseAuthService.ts` | Update user creation service to resolve and store the tenant ID. |
-| **Frontend Logic**| `webapp-v2/src/pages/RegisterPage.tsx` | Capture `window.location.hostname` and pass it in the API call. |
-| **API Client** | `webapp-v2/src/app/apiClient.ts` | Update the `createUser` method to send the new field. |
+| **Backend Logic** | `firebase/functions/src/ApplicationFactory.ts` | Resolve tenant from host and pass `signupTenantId` into registration flow. |
+| **Backend Logic** | `firebase/functions/src/services/UserService2.ts` | Store `signupTenantId` on the user document. |
+| **Frontend Logic**| `webapp-v2/src/pages/RegisterPage.tsx` | Only update if client-provided hostname is required. |
+| **API Client** | `webapp-v2/src/app/apiClient.ts` | Only update if client-provided hostname is required. |
 
 ## Future Considerations
 
