@@ -1,3 +1,4 @@
+import { urlNeedsAuthentication } from '@/utils/attachment-utils';
 import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { signal } from '@preact/signals';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
@@ -7,16 +8,6 @@ import { AuthenticatedImage, Button, Card, LoadingSpinner } from '../ui';
 const MAX_SIZE_MB = 10;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const ACCEPT_STRING = 'image/jpeg,image/png,image/webp,image/heic,image/heif';
-
-/**
- * Checks if a URL needs authentication (API paths) vs can be used directly (data URLs, blob URLs).
- */
-function needsAuthentication(url: string): boolean {
-    if (url.startsWith('data:') || url.startsWith('blob:')) {
-        return false;
-    }
-    return url.startsWith('/api/') || url.includes('/attachments/');
-}
 
 interface ReceiptUploaderProps {
     receiptUrl: string | null;
@@ -146,7 +137,7 @@ export function ReceiptUploader({
                 {/* Preview */}
                 {hasReceipt && preview && !imageLoadFailed && (
                     <div className='relative inline-block w-fit'>
-                        {needsAuthentication(preview)
+                        {urlNeedsAuthentication(preview)
                             ? (
                                 <AuthenticatedImage
                                     src={preview}

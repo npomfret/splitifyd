@@ -1,4 +1,5 @@
 import { apiClient } from '@/app/apiClient';
+import { urlNeedsAuthentication } from '@/utils/attachment-utils';
 import { PhotoIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'preact/hooks';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -16,31 +17,6 @@ interface AuthenticatedImageProps {
     onError?: () => void;
     /** Whether to show a placeholder on error (default: true) */
     showErrorPlaceholder?: boolean;
-}
-
-/**
- * Checks if a URL requires authentication.
- * API paths need auth headers; data URLs and external URLs don't.
- */
-function needsAuthentication(url: string): boolean {
-    // Data URLs don't need auth
-    if (url.startsWith('data:')) {
-        return false;
-    }
-    // Blob URLs don't need auth
-    if (url.startsWith('blob:')) {
-        return false;
-    }
-    // API paths need auth
-    if (url.startsWith('/api/')) {
-        return true;
-    }
-    // Relative attachment paths need auth
-    if (url.includes('/attachments/')) {
-        return true;
-    }
-    // External URLs (https://) don't need our auth
-    return false;
 }
 
 /**
@@ -79,7 +55,7 @@ export function AuthenticatedImage({
         }
 
         // If the URL doesn't need auth, we can use it directly
-        if (!needsAuthentication(src)) {
+        if (!urlNeedsAuthentication(src)) {
             setObjectUrl(src);
             setLoading(false);
             return;
