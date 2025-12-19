@@ -494,6 +494,7 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
+                signupHostname: 'localhost', // normalized (default from builder)
             });
         });
 

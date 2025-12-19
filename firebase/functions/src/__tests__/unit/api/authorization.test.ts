@@ -1043,10 +1043,11 @@ describe('authorization', () => {
 
             const result = await appDriver.listAllTenants(browserAdmin);
 
-            expect(result.tenants.length).toBe(2);
-            expect(result.count).toBe(2);
+            // 3 tenants: localhost-tenant (auto-seeded for registration) + 2 created tenants
+            expect(result.tenants.length).toBe(3);
+            expect(result.count).toBe(3);
             const tenantIds = result.tenants.map((entry) => entry.tenant.tenantId);
-            expect(tenantIds).toEqual(expect.arrayContaining(['tenant-browser-1', 'tenant-browser-2']));
+            expect(tenantIds).toEqual(expect.arrayContaining(['localhost-tenant', 'tenant-browser-1', 'tenant-browser-2']));
         });
 
         it('rejects tenant listing for users without a system role', async () => {

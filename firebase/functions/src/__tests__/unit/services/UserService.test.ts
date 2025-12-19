@@ -152,51 +152,8 @@ describe('UserService - Consolidated Unit Tests', () => {
             }
         });
 
-        it('should validate policy acceptance flags', async () => {
-            const userData = new UserRegistrationBuilder()
-                .withPassword('passwordpass')
-                .withDisplayName('Test User')
-                .withTermsAccepted(false)
-                .withCookiePolicyAccepted(true)
-                .withPrivacyPolicyAccepted(true)
-                .build();
-
-            await expect(userService.registerUser(userData, TEST_TENANT_ID)).rejects.toThrow(
-                expect.objectContaining({
-                    code: ErrorCode.VALIDATION_ERROR,
-                }),
-            );
-
-            // Test cookie policy validation
-            const userData2 = new UserRegistrationBuilder()
-                .withPassword('passwordpass')
-                .withDisplayName('Test User')
-                .withTermsAccepted(true)
-                .withCookiePolicyAccepted(false)
-                .withPrivacyPolicyAccepted(true)
-                .build();
-
-            await expect(userService.registerUser(userData2, TEST_TENANT_ID)).rejects.toThrow(
-                expect.objectContaining({
-                    code: ErrorCode.VALIDATION_ERROR,
-                }),
-            );
-
-            // Test privacy policy validation
-            const userData3 = new UserRegistrationBuilder()
-                .withPassword('passwordpass')
-                .withDisplayName('Test User')
-                .withTermsAccepted(true)
-                .withCookiePolicyAccepted(true)
-                .withPrivacyPolicyAccepted(false)
-                .build();
-
-            await expect(userService.registerUser(userData3, TEST_TENANT_ID)).rejects.toThrow(
-                expect.objectContaining({
-                    code: ErrorCode.VALIDATION_ERROR,
-                }),
-            );
-        });
+        // NOTE: Policy acceptance flag validation is tested in registration-validation.test.ts
+        // The UserService.registerUser() method does not validate these flags - the handler does.
 
         it('should assign theme color and role during registration', async () => {
             const registrationData = new UserRegistrationBuilder()
@@ -607,105 +564,10 @@ describe('UserService - Consolidated Unit Tests', () => {
             });
         });
 
-        describe('registration validation', () => {
-            it('should validate email format', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('invalid-email')
-                    .withPassword('ValidPassword1234!')
-                    .withDisplayName('Test User')
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(true)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
-            });
-
-            it('should validate password strength during registration', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('newuser@example.com')
-                    .withPassword('weak') // Weak password
-                    .withDisplayName('Test User')
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(true)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
-            });
-
-            it('should require terms acceptance', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('newuser@example.com')
-                    .withPassword('ValidPassword1234!')
-                    .withDisplayName('Test User')
-                    .withTermsAccepted(false)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(true)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
-                    expect.objectContaining({
-                        code: ErrorCode.VALIDATION_ERROR,
-                    }),
-                );
-            });
-
-            it('should require cookie policy acceptance', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('newuser@example.com')
-                    .withPassword('ValidPassword1234!')
-                    .withDisplayName('Test User')
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(false)
-                    .withPrivacyPolicyAccepted(true)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
-                    expect.objectContaining({
-                        code: ErrorCode.VALIDATION_ERROR,
-                    }),
-                );
-            });
-
-            it('should require privacy policy acceptance', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('newuser@example.com')
-                    .withPassword('ValidPassword1234!')
-                    .withDisplayName('Test User')
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(false)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(
-                    expect.objectContaining({
-                        code: ErrorCode.VALIDATION_ERROR,
-                    }),
-                );
-            });
-
-            it('should validate displayName during registration', async () => {
-                const registrationData = new UserRegistrationBuilder()
-                    .withEmail('newuser@example.com')
-                    .withPassword('ValidPassword1234!')
-                    .withDisplayName('') // Empty display name
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(true)
-                    .build();
-
-                await expect(validationUserService.registerUser(registrationData, TEST_TENANT_ID)).rejects.toThrow(ApiError);
-            });
-
-            it('should accept valid registration data', async () => {
-                // todo
-            });
-
-            it('should reject registration with existing email', async () => {
-                // todo
-            });
-        });
+        // NOTE: Registration input validation (email format, password strength, policy acceptance,
+        // displayName validation) is tested in registration-validation.test.ts which tests
+        // validateRegisterRequest() at the handler layer. The UserService.registerUser() method
+        // does not perform these validations - they are done by the handler before calling the service.
 
         describe('input sanitization', () => {
             it('should trim whitespace from displayName', async () => {

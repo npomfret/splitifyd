@@ -164,11 +164,19 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         this.routeDefinitions = createRouteDefinitions(this._componentBuilder);
     }
 
+    private localhostTenantSeeded = false;
+
     /**
      * Seeds a localhost tenant with branding config for tests that need tenant resolution.
      * Call this explicitly in tests that require a tenant (e.g., password reset tests).
+     * This is idempotent - safe to call multiple times; will skip if already seeded.
      */
     seedLocalhostTenant(): void {
+        // Track seeding with a flag to make this idempotent
+        if (this.localhostTenantSeeded) {
+            return;
+        }
+
         const now = Timestamp.now();
 
         const localhostTenant = new TenantPayloadBuilder('localhost-tenant')
@@ -183,6 +191,8 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             createdAt: now,
             updatedAt: now,
         });
+
+        this.localhostTenantSeeded = true;
     }
 
     get componentBuilder() {
@@ -1173,6 +1183,9 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     }
 
     async register(userData: UserRegistration): Promise<RegisterResponse> {
+        // Auto-seed localhost tenant for registration if no tenant exists yet.
+        // This is idempotent - skipped if tenant already exists (e.g., test has custom tenant setup).
+        this.seedLocalhostTenant();
         const req = createStubRequest('', userData);
         const res = await this.dispatchByHandler('register', req);
         this.throwIfError(res);

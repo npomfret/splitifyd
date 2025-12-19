@@ -112,13 +112,20 @@ describe('TenantRegistryService', () => {
         });
 
         it('throws when no tenant can be resolved and no default exists', async () => {
-            // No tenants created at all
+            // Use a fresh AppDriver without any registered users to ensure no tenants exist
+            // (The main beforeEach seeds a localhost tenant via registerUser)
+            const freshApp = new AppDriver();
+            const freshService = freshApp.componentBuilder.buildTenantRegistryService();
 
-            await expect(service.resolveTenant({ host: null })).rejects.toThrow(ApiError);
-            await expect(service.resolveTenant({ host: null })).rejects.toMatchObject({
-                statusCode: HTTP_STATUS.NOT_FOUND,
-                code: ErrorCode.NOT_FOUND,
-            });
+            try {
+                await expect(freshService.resolveTenant({ host: null })).rejects.toThrow(ApiError);
+                await expect(freshService.resolveTenant({ host: null })).rejects.toMatchObject({
+                    statusCode: HTTP_STATUS.NOT_FOUND,
+                    code: ErrorCode.NOT_FOUND,
+                });
+            } finally {
+                freshApp.dispose();
+            }
         });
     });
 

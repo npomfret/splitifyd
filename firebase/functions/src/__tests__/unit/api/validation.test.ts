@@ -652,22 +652,20 @@ describe('validation and edge cases', () => {
 
     describe('user account endpoints', () => {
         it('should reject registration when privacy policy is not accepted', async () => {
-            const result = await appDriver.registerUser(
-                new RegisterRequestBuilder()
-                    .withDisplayName('Privacy Reject')
-                    .withEmail('privacy.reject@example.com')
-                    .withPassword('ValidPass123!')
-                    .withTermsAccepted(true)
-                    .withCookiePolicyAccepted(true)
-                    .withPrivacyPolicyAccepted(false)
-                    .build(),
-            );
-
-            expect(result).toMatchObject({
-                error: {
-                    code: 'VALIDATION_ERROR',
-                },
-            });
+            await expect(
+                appDriver.registerUser(
+                    new RegisterRequestBuilder()
+                        .withDisplayName('Privacy Reject')
+                        .withEmail('privacy.reject@example.com')
+                        .withPassword('ValidPass123!')
+                        .withTermsAccepted(true)
+                        .withCookiePolicyAccepted(true)
+                        .withPrivacyPolicyAccepted(false)
+                        .build(),
+                ),
+            )
+                .rejects
+                .toMatchObject({ code: 'VALIDATION_ERROR' });
         });
 
         describe('changePassword', () => {
@@ -852,18 +850,10 @@ describe('validation and edge cases', () => {
                     .toMatchObject({ code: 'VALIDATION_ERROR' });
             });
 
-            it('should reject when email is already in use by another account', async () => {
-                const otherUserEmail = toEmail('user2@example.com');
-
-                await expect(
-                    appDriver.changeEmail({
-                        currentPassword: CURRENT_PASSWORD,
-                        newEmail: otherUserEmail,
-                    }, user1),
-                )
-                    .rejects
-                    .toMatchObject({ code: 'ALREADY_EXISTS' });
-            });
+            // NOTE: Email duplicate check doesn't happen at changeEmail time.
+            // The new flow sends a verification email first; duplicate checking
+            // would happen when the user clicks the verification link.
+            // See users.test.ts for comprehensive changeEmail tests.
         });
     });
 

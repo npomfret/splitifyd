@@ -53,20 +53,31 @@ describe('User Profile Update - Integration Tests', () => {
     });
 
     describe('POST /api/user/change-email', () => {
-        test('updates email when password is valid', async () => {
+        // Email change now sends verification email instead of immediately changing.
+        // The email only changes when the user clicks the verification link.
+        // More comprehensive tests are in users.test.ts under 'changeEmail' describe block.
+
+        test('sends verification email without immediately changing email', async () => {
+            // Seed localhost tenant for email change to work
+            appDriver.seedLocalhostTenant();
+
+            const originalProfile = await appDriver.getUserProfile(userId);
             const newEmail = toEmail(`updated-${Date.now()}@test.local`);
 
+            // Request email change - this sends verification email
             await appDriver.changeEmail({
                 currentPassword: toPassword('ValidPass123!'),
                 newEmail,
             }, userId);
 
+            // Email should NOT be changed yet - verification is required
             const updatedProfile = await appDriver.getUserProfile(userId);
-            expect(updatedProfile.email).toBe(newEmail.toLowerCase());
-            expect(updatedProfile.emailVerified).toBe(false);
+            expect(updatedProfile.email).toBe(originalProfile.email);
         });
 
         test('rejects invalid password', async () => {
+            appDriver.seedLocalhostTenant();
+
             await expect(
                 appDriver.changeEmail({
                     currentPassword: toPassword('WrongPassword123!'),
@@ -78,6 +89,8 @@ describe('User Profile Update - Integration Tests', () => {
         });
 
         test('rejects unchanged email', async () => {
+            appDriver.seedLocalhostTenant();
+
             await expect(
                 appDriver.changeEmail({
                     currentPassword: toPassword('ValidPass123!'),
@@ -86,26 +99,6 @@ describe('User Profile Update - Integration Tests', () => {
             )
                 .rejects
                 .toThrow('INVALID_REQUEST');
-        });
-
-        test('rejects duplicate email', async () => {
-            const takenEmail = toEmail('taken@test.local');
-            // Register another user to make the email taken
-            await appDriver.registerUser(
-                new UserRegistrationBuilder()
-                    .withEmail(takenEmail)
-                    .withDisplayName('Other User')
-                    .build(),
-            );
-
-            await expect(
-                appDriver.changeEmail({
-                    currentPassword: toPassword('ValidPass123!'),
-                    newEmail: takenEmail,
-                }, userId),
-            )
-                .rejects
-                .toThrow('ALREADY_EXISTS');
         });
     });
 });
