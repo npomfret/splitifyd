@@ -4,7 +4,7 @@ import { ArchiveBoxIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { GroupId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { EmptyState, ErrorState, LoadingSpinner, Pagination, SkeletonCard } from '../ui';
+import { EmptyState, ListStateRenderer, LoadingSpinner, Pagination, SkeletonCard } from '../ui';
 import { EmptyGroupsState } from './EmptyGroupsState';
 import { GroupCard } from './GroupCard';
 
@@ -29,75 +29,71 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
         await enhancedGroupsStore.loadPreviousPage();
     };
 
-    if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
-        return (
-            <div className='grid-auto-fit grid-auto-fit-md' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
-                <SkeletonCard />
-                <SkeletonCard />
-                <SkeletonCard />
-            </div>
-        );
-    }
-
-    if (enhancedGroupsStore.error) {
-        return (
-            <ErrorState
-                error={enhancedGroupsStore.error}
-                title={t('dashboardComponents.groupsList.loadFailed')}
-                onRetry={() => {
-                    enhancedGroupsStore.clearError();
-                    enhancedGroupsStore.refreshGroups();
-                }}
-                className='py-8'
-            />
-        );
-    }
-
-    if (enhancedGroupsStore.groups.length === 0 && enhancedGroupsStore.initialized) {
-        if (showArchived) {
-            return (
-                <EmptyState
-                    icon={<ArchiveBoxIcon size={64} />}
-                    title={t('dashboardComponents.groupsList.noArchivedTitle')}
-                    description={t('dashboardComponents.groupsList.noArchivedDescription')}
-                />
-            );
-        }
-        return <EmptyGroupsState onCreateGroup={onCreateGroup} />;
-    }
+    const handleRetry = () => {
+        enhancedGroupsStore.clearError();
+        enhancedGroupsStore.refreshGroups();
+    };
 
     return (
         <>
-            <div className='grid-auto-fit grid-auto-fit-md' role='list' aria-label={t('dashboardComponents.groupsList.groupsListAriaLabel')} ref={gridRef}>
-                {enhancedGroupsStore.isCreatingGroup && (
-                    <div className='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
-                        <LoadingSpinner />
-                        <span className='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.creating')}</span>
+            <ListStateRenderer
+                state={{
+                    loading: enhancedGroupsStore.loading,
+                    error: enhancedGroupsStore.error,
+                    items: enhancedGroupsStore.groups,
+                    initialized: enhancedGroupsStore.initialized,
+                }}
+                renderLoading={() => (
+                    <div className='grid-auto-fit grid-auto-fit-md' aria-busy='true' aria-label={t('dashboardComponents.groupsList.loading')}>
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
                     </div>
                 )}
-                {enhancedGroupsStore.groups.map((group, index) => (
-                    <div
-                        key={group.id}
-                        role='listitem'
-                        class={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
-                    >
-                        {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
-                            <div className='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
+                renderEmpty={() => showArchived
+                    ? (
+                        <EmptyState
+                            icon={<ArchiveBoxIcon size={64} />}
+                            title={t('dashboardComponents.groupsList.noArchivedTitle')}
+                            description={t('dashboardComponents.groupsList.noArchivedDescription')}
+                        />
+                    )
+                    : <EmptyGroupsState onCreateGroup={onCreateGroup} />}
+                onRetry={handleRetry}
+            >
+                {(groups) => (
+                    <div className='grid-auto-fit grid-auto-fit-md' role='list' aria-label={t('dashboardComponents.groupsList.groupsListAriaLabel')} ref={gridRef}>
+                        {enhancedGroupsStore.isCreatingGroup && (
+                            <div className='border-2 border-dashed border-border-default rounded-lg p-8 flex items-center justify-center transition-all duration-200'>
                                 <LoadingSpinner />
+                                <span className='ml-3 text-text-muted'>{t('dashboardComponents.groupsList.creating')}</span>
                             </div>
                         )}
-                        <GroupCard
-                            group={group}
-                            onClick={() => {
-                                navigationService.goToGroup(group.id);
-                            }}
-                            onInvite={onInvite}
-                            onAddExpense={onAddExpense}
-                            isArchivedView={showArchived}
-                        />
+                        {groups.map((group, index) => (
+                            <div
+                                key={group.id}
+                                role='listitem'
+                                class={`relative fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
+                            >
+                                {enhancedGroupsStore.updatingGroupIds.has(group.id) && (
+                                    <div className='absolute inset-0 bg-interactive-primary/10 bg-opacity-75 rounded-lg flex items-center justify-center z-10'>
+                                        <LoadingSpinner />
+                                    </div>
+                                )}
+                                <GroupCard
+                                    group={group}
+                                    onClick={() => {
+                                        navigationService.goToGroup(group.id);
+                                    }}
+                                    onInvite={onInvite}
+                                    onAddExpense={onAddExpense}
+                                    isArchivedView={showArchived}
+                                />
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                )}
+            </ListStateRenderer>
             <Pagination
                 currentPage={enhancedGroupsStore.currentPage}
                 hasMore={enhancedGroupsStore.hasMore}

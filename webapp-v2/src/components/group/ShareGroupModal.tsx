@@ -1,4 +1,5 @@
 import { apiClient } from '@/app/apiClient.ts';
+import { useModalOpenOrChange } from '@/app/hooks/useModalOpen';
 import { Button, LoadingSpinner, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { CheckIcon, CopyIcon, RefreshIcon, UserAddIcon, XIcon } from '@/components/ui/icons';
@@ -9,7 +10,7 @@ import { formatDateTimeInUserTimeZone } from '@/utils/dateUtils.ts';
 import { GroupId } from '@billsplit-wl/shared';
 import { toISOString } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useTranslation } from 'react-i18next';
 
@@ -73,11 +74,8 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         };
     }, []);
 
-    useEffect(() => {
-        if (!isOpen || !groupId) {
-            return;
-        }
-
+    // Reset state when modal opens or group changes
+    useModalOpenOrChange(isOpen, groupId, useCallback(() => {
         if (copiedTimerRef.current) {
             clearTimeout(copiedTimerRef.current);
             copiedTimerRef.current = null;
@@ -88,7 +86,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
         errorSignal.value = null;
         copiedSignal.value = false;
         selectedExpirationIdSignal.value = DEFAULT_EXPIRATION_OPTION_ID;
-    }, [isOpen, groupId]);
+    }, []));
 
     useEffect(() => {
         if (!isOpen || !groupId) {

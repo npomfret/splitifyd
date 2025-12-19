@@ -1,5 +1,6 @@
 import {apiClient} from '@/app/apiClient.ts';
 import {useAuthRequired} from '@/app/hooks/useAuthRequired.ts';
+import {useModalOpen} from '@/app/hooks/useModalOpen';
 import {CurrencyService} from '@/app/services/currencyService.ts';
 import {enhancedGroupDetailStore} from '@/app/stores/group-detail-store-enhanced.ts';
 import {Clickable} from '@/components/ui/Clickable';
@@ -27,7 +28,7 @@ import {
 } from '@billsplit-wl/shared';
 import {signal} from '@preact/signals';
 import {useComputed} from '@preact/signals';
-import {useEffect, useRef, useState} from 'preact/hooks';
+import {useCallback, useEffect, useState} from 'preact/hooks';
 import {useTranslation} from 'react-i18next';
 import {Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography} from '../ui';
 
@@ -58,7 +59,6 @@ interface SettlementFormProps {
 export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit}: SettlementFormProps) {
     const {t} = useTranslation();
     const authStore = useAuthRequired();
-    const previousIsOpenRef = useRef(isOpen);
 
     // Component-local signals - initialized within useState to avoid stale state across instances
     const [isSubmittingSignal] = useState(() => signal(false));
@@ -100,13 +100,9 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
         );
     });
 
-    useEffect(() => {
-        const wasOpen = previousIsOpenRef.current;
-        const isNowOpen = isOpen;
-        previousIsOpenRef.current = isOpen;
-
-        // Only initialize form when transitioning from closed to open
-        if (!wasOpen && isNowOpen) {
+    // Initialize form when modal opens
+    useModalOpen(isOpen, {
+        onOpen: useCallback(() => {
             if (editMode && settlementToEdit) {
                 // Check if settlement is locked
                 if (settlementToEdit.isLocked) {
@@ -155,8 +151,8 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
             }
             validationErrorSignal.value = null;
             amountPrecisionErrorSignal.value = null;
-        }
-    }, [isOpen, editMode, settlementToEdit, preselectedDebt, currentUser]); // Include all dependencies
+        }, [editMode, settlementToEdit, preselectedDebt, currentUser, balances.value, t]),
+    });
 
     // Helper functions - defined before useEffects that use them
     const getMemberName = (userId: UserId): string => {

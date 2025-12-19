@@ -1004,7 +1004,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Laster gruppene dine...",
-      "loadFailed": "Kunne ikke laste grupper",
       "tryAgain": "Prøv igjen",
       "creating": "Oppretter gruppe...",
       "noArchivedTitle": "Ingen arkiverte grupper",

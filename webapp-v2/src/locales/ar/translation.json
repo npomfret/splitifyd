@@ -1004,7 +1004,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "جار تحميل مجموعاتك...",
-      "loadFailed": "فشل تحميل المجموعات",
       "tryAgain": "حاول مرة أخرى",
       "creating": "جار إنشاء المجموعة...",
       "noArchivedTitle": "لا توجد مجموعات مؤرشفة",

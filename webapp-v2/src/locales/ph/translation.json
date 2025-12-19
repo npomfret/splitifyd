@@ -1005,7 +1005,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Naglo-load ng iyong mga grupo...",
-      "loadFailed": "Nabigo ang pag-load ng mga grupo",
       "tryAgain": "Subukang muli",
       "creating": "Gumagawa ng grupo...",
       "noArchivedTitle": "Walang naka-archive na mga grupo",

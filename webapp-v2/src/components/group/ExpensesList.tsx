@@ -1,6 +1,6 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { EmptyState } from '@/components/ui';
+import { EmptyState, ListStateRenderer } from '@/components/ui';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { ReceiptPercentIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
@@ -41,30 +41,30 @@ export function ExpensesList({
         enhancedGroupDetailStore.loadMoreExpenses();
     };
 
-    // Show skeleton during initial load (loading and no expenses yet)
-    const isInitialLoad = loading.value && expenses.value.length === 0;
-
     return (
         <div>
-            {/* Loading skeleton */}
-            {isInitialLoad
-                ? (
+            <ListStateRenderer
+                state={{
+                    loading: loading.value,
+                    items: expenses.value,
+                }}
+                renderLoading={() => (
                     <div className='space-y-3' aria-busy='true' aria-label={t('common.loading')}>
                         <SkeletonExpenseItem />
                         <SkeletonExpenseItem />
                         <SkeletonExpenseItem />
                     </div>
-                )
-                : expenses.value.length === 0
-                ? (
+                )}
+                renderEmpty={() => (
                     <EmptyState
                         icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
                         title={t('expensesList.noExpensesYet')}
                     />
-                )
-                : (
+                )}
+            >
+                {(items) => (
                     <Stack spacing='md' ref={listRef}>
-                        {expenses.value.map((expense, index) => (
+                        {items.map((expense, index) => (
                             <div
                                 key={expense.id}
                                 className={`fade-up ${visibleIndices.has(index) ? 'fade-up-visible' : ''}`}
@@ -85,6 +85,7 @@ export function ExpensesList({
                         )}
                     </Stack>
                 )}
+            </ListStateRenderer>
 
             {/* Include deleted checkbox - shown at bottom for admins/authorized users */}
             {canToggleShowDeleted && onShowDeletedChange && (

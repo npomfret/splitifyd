@@ -1005,7 +1005,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Caricamento dei tuoi gruppi...",
-      "loadFailed": "Impossibile caricare i gruppi",
       "tryAgain": "Riprova",
       "creating": "Creazione gruppo...",
       "noArchivedTitle": "Nessun gruppo archiviato",

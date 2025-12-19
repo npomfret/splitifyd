@@ -1005,7 +1005,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "그룹 로드 중...",
-      "loadFailed": "그룹 로드 실패",
       "tryAgain": "다시 시도",
       "creating": "그룹 생성 중...",
       "noArchivedTitle": "보관된 그룹 없음",

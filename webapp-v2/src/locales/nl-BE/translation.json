@@ -1005,7 +1005,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Uw groepen laden...",
-      "loadFailed": "Laden van groepen mislukt",
       "tryAgain": "Opnieuw proberen",
       "creating": "Groep aanmaken...",
       "noArchivedTitle": "Geen gearchiveerde groepen",

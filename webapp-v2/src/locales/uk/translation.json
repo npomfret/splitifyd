@@ -1004,7 +1004,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Завантаження ваших груп...",
-      "loadFailed": "Не вдалося завантажити групи",
       "tryAgain": "Спробуйте ще раз",
       "creating": "Створення групи...",
       "noArchivedTitle": "Немає заархівованих груп",

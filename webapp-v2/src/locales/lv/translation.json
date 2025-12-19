@@ -1005,7 +1005,6 @@
   "dashboardComponents": {
     "groupsList": {
       "loading": "Notiek jūsu grupu ielāde...",
-      "loadFailed": "Neizdevās ielādēt grupas",
       "tryAgain": "Mēģināt vēlreiz",
       "creating": "Notiek grupas izveide...",
       "noArchivedTitle": "Nav arhivētu grupu",

@@ -2,6 +2,7 @@ import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { useGroupDisplayName } from '@/app/hooks/useGroupDisplayName.ts';
 import { useGroupGeneralTabSettings } from '@/app/hooks/useGroupGeneralTabSettings.ts';
 import { useGroupSecuritySettings } from '@/app/hooks/useGroupSecuritySettings.ts';
+import { useModalOpen } from '@/app/hooks/useModalOpen';
 import { translateGroupSettingsTab } from '@/app/i18n/dynamic-translations';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
@@ -10,7 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { GroupDTO, GroupMember } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { useComputed } from '@preact/signals';
-import { useMemo, useState } from 'preact/hooks';
+import { useCallback, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from '../ui';
 import { DeleteGroupConfirmationModal } from './DeleteGroupConfirmationModal';
@@ -115,17 +116,14 @@ export function GroupSettingsModal({
 
     // Component-local signals
     const [activeTabSignal] = useState(() => signal<GroupSettingsTab | null>(defaultTab));
-    // Track previous isOpen state to detect open transitions
-    const [wasOpen, setWasOpen] = useState(false);
     const activeTab = activeTabSignal.value;
 
-    // Reset to default tab only when modal transitions from closed to open
-    if (isOpen && !wasOpen) {
-        activeTabSignal.value = defaultTab;
-        setWasOpen(true);
-    } else if (!isOpen && wasOpen) {
-        setWasOpen(false);
-    }
+    // Reset to default tab when modal opens
+    useModalOpen(isOpen, {
+        onOpen: useCallback(() => {
+            activeTabSignal.value = defaultTab;
+        }, [defaultTab]),
+    });
 
     const renderIdentityTab = () => {
         const user = currentUser.value;

@@ -1,16 +1,18 @@
 import { ApiError } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
+import { useModalOpen } from '@/app/hooks/useModalOpen';
 import { CurrencyService } from '@/app/services/currencyService';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { Clickable } from '@/components/ui/Clickable';
-import { CurrencyIcon, InfoCircleIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
-import { Modal, ModalContent, ModalFooter, ModalHeader } from '@/components/ui/Modal';
+import { CurrencyIcon, XCircleIcon, XIcon } from '@/components/ui/icons';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
+import { ModalFormFooter } from '@/components/ui/ModalFormFooter';
 import { cx } from '@/utils/cx';
 import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisplayName, toGroupName } from '@billsplit-wl/shared';
 import { signal, useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, Input, Select, Stack, Switch, Tooltip, Typography } from '../ui';
+import { Button, Form, FormFieldLabel, Input, Select, Stack, Switch, Tooltip, Typography } from '../ui';
 
 interface CreateGroupModalProps {
     isOpen: boolean;
@@ -32,7 +34,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const [groupNameSignal] = useState(() => signal(''));
     const [groupDescriptionSignal] = useState(() => signal(''));
     const [groupDisplayNameSignal] = useState(() => signal(currentUser.value?.displayName?.trim() ?? ''));
-    const previousIsOpenRef = useRef(isOpen);
 
     // Currency settings state
     const currencyService = CurrencyService.getInstance();
@@ -44,14 +45,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
     const currencyDropdownRef = useRef<HTMLDivElement>(null);
     const currencySearchInputRef = useRef<HTMLInputElement>(null);
 
-    // Reset form when modal opens (only on open transition, not while already open)
-    useEffect(() => {
-        const wasOpen = previousIsOpenRef.current;
-        const isNowOpen = isOpen;
-        previousIsOpenRef.current = isOpen;
-
-        // Only reset form when transitioning from closed to open
-        if (!wasOpen && isNowOpen) {
+    // Reset form when modal opens
+    useModalOpen(isOpen, {
+        onOpen: useCallback(() => {
             groupNameSignal.value = '';
             groupDescriptionSignal.value = '';
             groupDisplayNameSignal.value = currentUser.value?.displayName?.trim() ?? '';
@@ -65,8 +61,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             setIsCurrencyDropdownOpen(false);
             // Clear any validation errors from previous attempts
             enhancedGroupsStore.clearValidationError();
-        }
-    }, [isOpen, currentUser.value?.displayName]);
+        }, [currentUser.value?.displayName]),
+    });
 
     const validateForm = (): string | null => {
         const name = groupNameSignal.value.trim();
@@ -274,20 +270,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Stack spacing='lg'>
                         {/* Group Name */}
                         <div>
-                            <label htmlFor='group-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
-                                {t('createGroupModal.groupNameLabel')}
-                                <span className='text-semantic-error'>{t('common.required')}</span>
-                                <Tooltip content={t('createGroupModal.groupNameHelpText')} placement='top'>
-                                    <Clickable
-                                        as='button'
-                                        type='button'
-                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                        aria-label={t('common.moreInfo')}
-                                    >
-                                        <InfoCircleIcon size={16} />
-                                    </Clickable>
-                                </Tooltip>
-                            </label>
+                            <FormFieldLabel
+                                label={t('createGroupModal.groupNameLabel')}
+                                htmlFor='group-name'
+                                required
+                                helpText={t('createGroupModal.groupNameHelpText')}
+                            />
                             <Input
                                 id='group-name'
                                 type='text'
@@ -308,20 +296,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                         {/* Group Display Name */}
                         <div>
-                            <label htmlFor='group-display-name' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
-                                {t('createGroupModal.groupDisplayNameLabel')}
-                                <span className='text-semantic-error'>{t('common.required')}</span>
-                                <Tooltip content={t('createGroupModal.groupDisplayNameHelpText')} placement='top'>
-                                    <Clickable
-                                        as='button'
-                                        type='button'
-                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                        aria-label={t('common.moreInfo')}
-                                    >
-                                        <InfoCircleIcon size={16} />
-                                    </Clickable>
-                                </Tooltip>
-                            </label>
+                            <FormFieldLabel
+                                label={t('createGroupModal.groupDisplayNameLabel')}
+                                htmlFor='group-display-name'
+                                required
+                                helpText={t('createGroupModal.groupDisplayNameHelpText')}
+                            />
                             <Input
                                 id='group-display-name'
                                 type='text'
@@ -341,19 +321,11 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
 
                         {/* Group Description (Optional) */}
                         <div>
-                            <label htmlFor='group-description' className='flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2'>
-                                {t('createGroupModal.groupDescriptionLabel')}
-                                <Tooltip content={t('createGroupModal.groupDescriptionHelpText')} placement='top'>
-                                    <Clickable
-                                        as='button'
-                                        type='button'
-                                        className='text-text-muted hover:text-text-primary transition-colors p-0.5 rounded focus:outline-hidden focus:ring-2 focus:ring-interactive-primary'
-                                        aria-label={t('common.moreInfo')}
-                                    >
-                                        <InfoCircleIcon size={16} />
-                                    </Clickable>
-                                </Tooltip>
-                            </label>
+                            <FormFieldLabel
+                                label={t('createGroupModal.groupDescriptionLabel')}
+                                htmlFor='group-description'
+                                helpText={t('createGroupModal.groupDescriptionHelpText')}
+                            />
                             <textarea
                                 id='group-description'
                                 name='description'
@@ -523,19 +495,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     </Stack>
                 </ModalContent>
 
-                <ModalFooter>
-                    <Button
-                        type='button'
-                        variant='secondary'
-                        onClick={onClose}
-                        disabled={isSubmitting}
-                    >
-                        {t('createGroupModal.cancelButton')}
-                    </Button>
-                    <Button type='submit' loading={isSubmitting} disabled={!isFormValid}>
-                        {t('createGroupModal.submitButton')}
-                    </Button>
-                </ModalFooter>
+                <ModalFormFooter
+                    onCancel={onClose}
+                    cancelText={t('createGroupModal.cancelButton')}
+                    submitText={t('createGroupModal.submitButton')}
+                    isSubmitting={isSubmitting}
+                    isSubmitDisabled={!isFormValid}
+                />
             </Form>
         </Modal>
     );

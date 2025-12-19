@@ -1,4 +1,5 @@
 import { apiClient } from '@/app/apiClient';
+import { useModalOpen } from '@/app/hooks/useModalOpen';
 import { CommentsSection } from '@/components/comments';
 import { ReactionBar } from '@/components/reactions';
 import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
@@ -12,7 +13,7 @@ import { getGroupDisplayName } from '@/utils/displayName';
 import type { ReactionEmoji } from '@billsplit-wl/shared';
 import { ExpenseDTO, ExpenseId, GroupDTO, GroupId, GroupMember, toCurrencyISOCode, toDisplayName } from '@billsplit-wl/shared';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ExpenseActions } from './ExpenseActions';
 import { SplitBreakdown } from './SplitBreakdown';
@@ -28,7 +29,6 @@ interface ExpenseDetailModalProps {
 
 export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit, onCopy }: ExpenseDetailModalProps) {
     const { t } = useTranslation();
-    const previousIsOpenRef = useRef(isOpen);
 
     const [expense, setExpense] = useState<ExpenseDTO | null>(null);
     const [loading, setLoading] = useState(true);
@@ -37,29 +37,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
     const [members, setMembers] = useState<GroupMember[]>([]);
     const [showReceiptModal, setShowReceiptModal] = useState(false);
 
-    // Track open state transitions for data loading
-    useEffect(() => {
-        const wasOpen = previousIsOpenRef.current;
-        const isNowOpen = isOpen;
-        previousIsOpenRef.current = isOpen;
-
-        // Reset and load on open transition
-        if (!wasOpen && isNowOpen && expenseId) {
-            loadExpense(expenseId);
-        }
-
-        // Reset state when closing
-        if (wasOpen && !isNowOpen) {
-            setExpense(null);
-            setError(null);
-            setLoading(true);
-            setGroup(null);
-            setMembers([]);
-            setShowReceiptModal(false);
-        }
-    }, [isOpen, expenseId]);
-
-    const loadExpense = async (id: ExpenseId) => {
+    const loadExpense = useCallback(async (id: ExpenseId) => {
         try {
             setLoading(true);
             setError(null);
@@ -75,7 +53,24 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
         } finally {
             setLoading(false);
         }
-    };
+    }, [t]);
+
+    // Handle open/close transitions
+    useModalOpen(isOpen, {
+        onOpen: useCallback(() => {
+            if (expenseId) {
+                loadExpense(expenseId);
+            }
+        }, [expenseId, loadExpense]),
+        onClose: useCallback(() => {
+            setExpense(null);
+            setError(null);
+            setLoading(true);
+            setGroup(null);
+            setMembers([]);
+            setShowReceiptModal(false);
+        }, []),
+    });
 
     const handleEdit = () => {
         if (!expenseId) return;

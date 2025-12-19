@@ -1,5 +1,6 @@
-import { Alert, Button, Input, LoadingSpinner } from '@/components/ui';
-import { Modal, ModalContent, ModalFooter, ModalHeader } from '@/components/ui/Modal';
+import { Alert, Input, LoadingSpinner } from '@/components/ui';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
+import { ModalFormFooter } from '@/components/ui/ModalFormFooter';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 
@@ -72,14 +73,16 @@ export function DeleteGroupConfirmationModal({
                     )}
                 </ModalContent>
 
-                <ModalFooter className='space-x-3'>
-                    <Button type='button' variant='secondary' onClick={onCancel} disabled={isDeleting}>
-                        {t('editGroupModal.deleteConfirmDialog.cancelText')}
-                    </Button>
-                    <Button type='button' variant='danger' onClick={onConfirm} disabled={isDeleting || confirmationText !== groupName} loading={isDeleting}>
-                        {isDeleting ? t('editGroupModal.deleteConfirmDialog.deletingText') : t('editGroupModal.deleteConfirmDialog.confirmText')}
-                    </Button>
-                </ModalFooter>
+                <ModalFormFooter
+                    onCancel={onCancel}
+                    cancelText={t('editGroupModal.deleteConfirmDialog.cancelText')}
+                    submitText={isDeleting ? t('editGroupModal.deleteConfirmDialog.deletingText') : t('editGroupModal.deleteConfirmDialog.confirmText')}
+                    submitVariant='danger'
+                    submitType='button'
+                    onSubmit={onConfirm}
+                    isSubmitting={isDeleting}
+                    isSubmitDisabled={confirmationText !== groupName}
+                />
             </div>
         </Modal>
     );

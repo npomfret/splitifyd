@@ -1,10 +1,11 @@
 import { apiClient } from '@/app/apiClient';
+import { useModalOpenOrChange } from '@/app/hooks/useModalOpen';
 import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
 import { Modal, ModalFooter, ModalHeader } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
 import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useCallback, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 interface UserEditorModalProps {
@@ -19,8 +20,6 @@ type TabType = 'profile' | 'role' | 'firebase-auth' | 'firestore';
 
 export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: UserEditorModalProps) {
     const { t } = useTranslation();
-    const previousOpenRef = useRef(open);
-    const previousUserIdRef = useRef(user.uid);
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [selectedRole, setSelectedRole] = useState<SystemUserRole>(user.role ?? SystemUserRoles.SYSTEM_USER);
     const [isSaving, setIsSaving] = useState(false);
@@ -36,30 +35,16 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     const [email, setEmail] = useState(String(user.email ?? ''));
 
     // Reset form when modal opens or user changes
-    useEffect(() => {
-        const wasOpen = previousOpenRef.current;
-        const isNowOpen = open;
-        const prevUserId = previousUserIdRef.current;
-        previousOpenRef.current = open;
-        previousUserIdRef.current = user.uid;
-
-        // Reset form on:
-        // 1. Open transition (closed → open)
-        // 2. User change while modal is open
-        const isOpenTransition = !wasOpen && isNowOpen;
-        const isUserChange = prevUserId !== user.uid;
-
-        if (isOpenTransition || isUserChange) {
-            setDisplayName(String(user.displayName ?? ''));
-            setEmail(String(user.email ?? ''));
-            setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
-            setErrorMessage('');
-            setSuccessMessage('');
-            setFirebaseAuthData(null);
-            setFirestoreData(null);
-            setActiveTab('profile');
-        }
-    }, [open, user.uid, user.displayName, user.email, user.role]);
+    useModalOpenOrChange(open, user.uid, useCallback(() => {
+        setDisplayName(String(user.displayName ?? ''));
+        setEmail(String(user.email ?? ''));
+        setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
+        setErrorMessage('');
+        setSuccessMessage('');
+        setFirebaseAuthData(null);
+        setFirestoreData(null);
+        setActiveTab('profile');
+    }, [user.displayName, user.email, user.role]));
 
     const handleSaveProfile = async () => {
         setIsSaving(true);
