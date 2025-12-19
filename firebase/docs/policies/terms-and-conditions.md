@@ -93,6 +93,16 @@ You agree to provide accurate, current, and complete information when creating y
 
 You may only maintain one account. Creating multiple accounts may result in termination of all your accounts.
 
+### 5.4. Email Communications
+
+We send two types of email communications:
+
+*   **Essential Account Emails**: These include password resets, security alerts, billing notifications, and other important account-related communications. By creating an account, you acknowledge and agree to receive these essential emails. These communications are mandatory and cannot be opted out of, as they are necessary for the proper functioning and security of your account.
+
+*   **Marketing Emails**: We may offer promotional emails, product updates, newsletters, and other marketing communications. **Marketing emails are entirely optional.** You must explicitly opt in to receive marketing emails during registration or in your account settings. You may opt out at any time by updating your preferences in your account settings or by using the unsubscribe link included in each marketing email.
+
+Your email preferences can be managed at any time through your account settings.
+
 ---
 
 ## 6. Your Content
