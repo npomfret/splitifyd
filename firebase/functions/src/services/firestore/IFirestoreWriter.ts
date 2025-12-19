@@ -34,6 +34,8 @@ interface FirestoreUserDocumentFields {
     preferredLanguage?: string;
     acceptedPolicies?: Record<string, Record<string, string>>;
     signupTenantId?: TenantId;
+    adminEmailsAcceptedAt?: ISOString;
+    marketingEmailsAcceptedAt?: ISOString | null;
     createdAt?: ISOString;
     updatedAt?: ISOString;
 }

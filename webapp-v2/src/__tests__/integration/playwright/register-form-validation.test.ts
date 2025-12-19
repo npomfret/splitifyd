@@ -212,12 +212,16 @@ test.describe('Registration Form Validation', () => {
         await registerPage.toggleTermsCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // Check cookies - should still be disabled until privacy accepted
+        // Check cookies - should still be disabled
         await registerPage.toggleCookiesCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // Check privacy - should now be enabled
+        // Check privacy - should still be disabled
         await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Check admin emails consent - should now be enabled
+        await registerPage.checkAdminEmailsCheckbox();
         await registerPage.verifySubmitButtonEnabled();
     });
 

@@ -523,6 +523,8 @@ export interface UserRegistration extends BaseUser {
     cookiePolicyAccepted: boolean;
     privacyPolicyAccepted: boolean;
     signupHostname: string; // Browser hostname for tenant resolution validation
+    adminEmailsAccepted: boolean;
+    marketingEmailsAccepted: boolean;
 }
 
 export interface FirebaseUser extends BaseUser {
@@ -681,6 +683,10 @@ export interface ClientUser {
     role?: SystemUserRole;
     /** User's preferred language code (e.g., 'en', 'es', 'fr') - truly optional */
     preferredLanguage?: string;
+    /** Timestamp when user accepted admin/account notification emails (set at registration) */
+    adminEmailsAcceptedAt?: ISOString;
+    /** Timestamp when user accepted marketing emails (null if never accepted or opted out) */
+    marketingEmailsAcceptedAt?: ISOString | null;
 }
 
 // Base interface for document types with common timestamp fields
@@ -1180,6 +1186,8 @@ export interface UserProfileResponse {
     email: Email;
     emailVerified: boolean;
     preferredLanguage?: string;
+    adminEmailsAcceptedAt?: ISOString;
+    marketingEmailsAcceptedAt?: ISOString | null;
 }
 
 export interface AcceptMultiplePoliciesResponse {
@@ -1686,6 +1694,7 @@ export interface ChangeEmailRequest {
 export interface UpdateUserProfileRequest {
     displayName?: string;
     preferredLanguage?: string;
+    marketingEmailsAccepted?: boolean;
 }
 
 /**

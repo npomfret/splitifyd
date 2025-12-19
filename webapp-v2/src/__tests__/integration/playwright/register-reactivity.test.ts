@@ -1,3 +1,4 @@
+import { createJsonHandler } from '@/test/msw/handlers.ts';
 import { ClientUserBuilder, RegisterPage } from '@billsplit-wl/test-support';
 import { expect, test } from '../../utils/console-logging-fixture';
 
@@ -84,11 +85,14 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.toggleTermsCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // After all fields filled and policies accepted, should be enabled
         await registerPage.toggleCookiesCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
         await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // After all fields filled and policies/consents accepted, should be enabled
+        await registerPage.checkAdminEmailsCheckbox();
         await registerPage.verifySubmitButtonEnabled();
 
         // Clear one field - should become disabled again
@@ -116,7 +120,7 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.verifyEmailInputValue('jane@example.com');
         await registerPage.verifyPasswordInputValue('SecurePassword12344');
         await registerPage.verifyConfirmPasswordInputValue('SecurePassword12344');
-        await registerPage.verifyCheckboxStates(true, true, true);
+        await registerPage.verifyCheckboxStates(true, true, true, true, false);
         await registerPage.verifySubmitButtonState(true);
 
         // State should persist - verify again to ensure no unexpected changes
@@ -166,27 +170,31 @@ test.describe('Registration Form Reactivity and UI States', () => {
         await registerPage.toggleTermsCheckbox();
         await registerPage.toggleCookiesCheckbox();
         await registerPage.togglePrivacyCheckbox();
-        await registerPage.verifyCheckboxStates(true, true, true);
+        await registerPage.verifyCheckboxStates(true, true, true, false, false);
 
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(false, true, true);
+        await registerPage.verifyCheckboxStates(false, true, true, false, false);
 
         await registerPage.toggleTermsCheckbox();
-        await registerPage.verifyCheckboxStates(true, true, true);
+        await registerPage.verifyCheckboxStates(true, true, true, false, false);
 
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, false, true);
+        await registerPage.verifyCheckboxStates(true, false, true, false, false);
 
         await registerPage.toggleCookiesCheckbox();
-        await registerPage.verifyCheckboxStates(true, true, true);
+        await registerPage.verifyCheckboxStates(true, true, true, false, false);
 
         await registerPage.togglePrivacyCheckbox();
-        await registerPage.verifyCheckboxStates(true, true, false);
+        await registerPage.verifyCheckboxStates(true, true, false, false, false);
 
         await registerPage.togglePrivacyCheckbox();
-        await registerPage.verifyCheckboxStates(true, true, true);
+        await registerPage.verifyCheckboxStates(true, true, true, false, false);
 
-        // Final state should be both checked and button enabled
+        // Check admin emails to complete the required consents
+        await registerPage.checkAdminEmailsCheckbox();
+        await registerPage.verifyCheckboxStates(true, true, true, true, false);
+
+        // Final state should be all required checked and button enabled
         await registerPage.verifySubmitButtonState(true);
     });
 
@@ -365,20 +373,106 @@ test.describe('Registration Form Loading States', () => {
     });
 });
 
-test.describe('Registration Form Policy Links', () => {
-    test('should display Terms of Service link', async ({ pageWithLogging: page }) => {
+test.describe('Registration Form Policy Buttons', () => {
+    test('should display Terms of Service button', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        await registerPage.verifyTermsLinkVisible();
-        await registerPage.verifyTermsLinkAttributes('/terms');
+        await registerPage.verifyTermsButtonVisible();
     });
 
-    test('should display Cookie Policy link', async ({ pageWithLogging: page }) => {
+    test('should display Cookie Policy button', async ({ pageWithLogging: page }) => {
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
 
-        await registerPage.verifyCookiePolicyLinkVisible();
-        await registerPage.verifyCookiePolicyLinkAttributes('/cookies');
+        await registerPage.verifyCookiePolicyButtonVisible();
+    });
+});
+
+test.describe('Registration Form Policy View Modal', () => {
+    // Helper to set up policy content mocks
+    const setupPolicyMocks = async (msw: { use: (handler: ReturnType<typeof createJsonHandler>) => Promise<void>; }) => {
+        const policies = [
+            { id: 'terms-of-service', name: 'Terms of Service' },
+            { id: 'cookie-policy', name: 'Cookie Policy' },
+            { id: 'privacy-policy', name: 'Privacy Policy' },
+        ];
+
+        for (const policy of policies) {
+            await msw.use(
+                createJsonHandler(
+                    'GET',
+                    `/api/policies/${policy.id}/current`,
+                    {
+                        id: policy.id,
+                        policyName: policy.name,
+                        currentVersionHash: `${policy.id}-hash-v1`,
+                        text: `# ${policy.name}\n\nThis is the ${policy.name} content for testing purposes.`,
+                        createdAt: new Date('2024-01-01T00:00:00.000Z').toISOString(),
+                    },
+                ),
+            );
+        }
+    };
+
+    test('should open Terms of Service modal and display content', async ({ pageWithLogging: page, msw }) => {
+        await setupPolicyMocks(msw);
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Open modal and verify content loads
+        await registerPage.openAndVerifyTermsModal();
+    });
+
+    test('should open Cookie Policy modal and display content', async ({ pageWithLogging: page, msw }) => {
+        await setupPolicyMocks(msw);
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Open modal and verify content loads
+        await registerPage.openAndVerifyCookiePolicyModal();
+    });
+
+    test('should open Privacy Policy modal and display content', async ({ pageWithLogging: page, msw }) => {
+        await setupPolicyMocks(msw);
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Open modal and verify content loads
+        await registerPage.openAndVerifyPrivacyPolicyModal();
+    });
+
+    test('should allow closing modal with close button', async ({ pageWithLogging: page, msw }) => {
+        await setupPolicyMocks(msw);
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Open Terms modal
+        await registerPage.clickTermsButton();
+        await registerPage.verifyPolicyModalOpen('Terms of Service');
+
+        // Close it using the close button
+        await registerPage.closePolicyModal('Terms of Service');
+        await registerPage.verifyPolicyModalClosed('Terms of Service');
+
+        // Verify we're still on the register page
+        await registerPage.verifyRegisterPageLoaded();
+    });
+
+    test('should preserve form state after viewing policy modal', async ({ pageWithLogging: page, msw }) => {
+        await setupPolicyMocks(msw);
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+
+        // Fill some form fields first
+        await registerPage.fillName('Test User');
+        await registerPage.fillEmail('test@example.com');
+
+        // Open and close a policy modal
+        await registerPage.openAndVerifyTermsModal();
+
+        // Verify form state is preserved
+        await registerPage.verifyNameInputValue('Test User');
+        await registerPage.verifyEmailInputValue('test@example.com');
     });
 });

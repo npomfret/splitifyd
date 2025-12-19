@@ -19,6 +19,8 @@ const BaseUserSchema = z
             .record(PolicyIdSchema, z.record(VersionHashSchema, z.string().datetime().transform(toISOString)))
             .optional(),
         signupTenantId: TenantIdSchema.optional(), // Tenant where user registered (for analytics)
+        adminEmailsAcceptedAt: z.string().datetime().transform(toISOString).optional(),
+        marketingEmailsAcceptedAt: z.string().datetime().transform(toISOString).nullable().optional(),
     })
     .merge(OptionalAuditFieldsSchema);
 

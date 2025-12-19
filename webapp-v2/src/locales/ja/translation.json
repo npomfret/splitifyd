@@ -173,6 +173,12 @@
     "submitButton": "アカウントを作成",
     "hasAccount": "既にアカウントをお持ちですか？",
     "signIn": "サインイン",
+    "adminEmails": {
+      "label": "受け取ることに同意します 重要なアカウント通知"
+    },
+    "marketingEmails": {
+      "label": "受け取ることに同意します 製品のアップデートやプロモーション情報 （任意）"
+    },
     "validation": {
       "nameRequired": "名前は必須です",
       "emailRequired": "メールアドレスは必須です",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "パスワードが一致しません",
       "termsRequired": "利用規約に同意する必要があります",
       "cookiesRequired": "クッキーポリシーに同意する必要があります",
-      "privacyRequired": "プライバシーポリシーに同意する必要があります"
+      "privacyRequired": "プライバシーポリシーに同意する必要があります",
+      "adminEmailsRequired": "アカウントを作成するにはアカウント通知に同意する必要があります"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "プロフィールが正常に更新されました",
       "passwordChanged": "パスワードが正常に変更されました",
-      "emailChanged": "メールアドレスが正常に更新されました。新しいアドレスを確認してください。"
+      "emailChanged": "メールアドレスが正常に更新されました。新しいアドレスを確認してください。",
+      "emailPreferencesUpdated": "メール設定が正常に更新されました"
     },
     "errorMessages": {
       "profileUpdateFailed": "プロフィールの更新に失敗しました。もう一度お試しください。",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "新しいメールアドレスは現在のメールアドレスと異なる必要があります",
       "emailPasswordRequired": "この変更を確認するには、現在のパスワードを入力してください",
       "emailInUse": "そのメールアドレスは既に別の{{appName}}アカウントにリンクされています",
-      "emailChangeFailed": "メールアドレスの変更に失敗しました。もう一度お試しください。"
+      "emailChangeFailed": "メールアドレスの変更に失敗しました。もう一度お試しください。",
+      "emailPreferencesUpdateFailed": "メール設定の更新に失敗しました。もう一度お試しください。"
+    },
+    "emailPreferences": {
+      "title": "メール設定",
+      "description": "受信するメールの種類を管理します。",
+      "acceptedOn": "{{date}}に同意済み",
+      "adminEmails": {
+        "label": "アカウント通知",
+        "description": "パスワードリセット、セキュリティアラート、請求情報を含む重要なアカウント通知。これらは無効にできません。"
+      },
+      "marketingEmails": {
+        "label": "製品アップデートとプロモーション",
+        "description": "新機能、ヒント、特別オファーに関するお知らせを受け取ります。"
+      }
     }
   },
   "editGroupModal": {
@@ -1136,6 +1158,11 @@
       "closeAriaLabel": "閉じる",
       "errorTitle": "エラー",
       "policyContentAriaLabel": "ポリシーの内容"
+    },
+    "policyViewModal": {
+      "loading": "ポリシーの内容を読み込み中...",
+      "loadError": "ポリシーの内容を読み込めませんでした。もう一度お試しください。",
+      "errorTitle": "エラー"
     }
   },
   "uiComponents": {

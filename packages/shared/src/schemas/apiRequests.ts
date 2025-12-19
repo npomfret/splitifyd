@@ -308,6 +308,12 @@ export const RegisterRequestSchema = z.object({
         notAccepted: 'You must accept the Privacy Policy',
     }),
     signupHostname: z.string().min(1, 'Signup hostname is required'),
+    adminEmailsAccepted: AcceptanceBooleanSchema({
+        required: 'Account notifications acceptance is required',
+        invalidType: 'Account notifications acceptance must be a boolean value',
+        notAccepted: 'You must accept account notifications to create an account',
+    }),
+    marketingEmailsAccepted: z.boolean().default(false),
 });
 
 export const LoginRequestSchema = z.object({
@@ -633,16 +639,18 @@ export const UpdateUserProfileRequestSchema = z
                 message: `Language must be one of: ${SUPPORTED_LANGUAGES.join(', ')}`,
             })
             .optional(),
+        marketingEmailsAccepted: z.boolean().optional(),
     })
     .superRefine((value, ctx) => {
         if (
             value.displayName === undefined
             && value.photoURL === undefined
             && value.preferredLanguage === undefined
+            && value.marketingEmailsAccepted === undefined
         ) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: 'At least one field (displayName, photoURL, or preferredLanguage) must be provided',
+                message: 'At least one field (displayName, photoURL, preferredLanguage, or marketingEmailsAccepted) must be provided',
             });
         }
     });

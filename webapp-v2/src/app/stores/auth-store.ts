@@ -27,10 +27,10 @@ interface AuthState {
 
 interface AuthActions {
     login: (email: Email, password: Password, rememberMe?: boolean) => Promise<void>;
-    register: (email: Email, password: Password, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean) => Promise<void>;
+    register: (email: Email, password: Password, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean, adminEmailsAccepted: boolean, marketingEmailsAccepted: boolean) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
-    updateUserProfile: (updates: { displayName?: DisplayName; }) => Promise<void>;
+    updateUserProfile: (updates: { displayName?: DisplayName; marketingEmailsAccepted?: boolean; }) => Promise<void>;
     changeEmail: (payload: { currentPassword: Password; newEmail: Email; }) => Promise<void>;
     clearError: () => void;
     refreshAuthToken: () => Promise<string>;
@@ -237,6 +237,8 @@ class AuthStoreImpl implements AuthStore {
                 ...currentUser,
                 displayName: profile.displayName ?? currentUser.displayName,
                 role: profile.role,
+                adminEmailsAcceptedAt: profile.adminEmailsAcceptedAt,
+                marketingEmailsAcceptedAt: profile.marketingEmailsAcceptedAt,
             };
 
             // Apply user's language preference if set in their profile
@@ -276,6 +278,8 @@ class AuthStoreImpl implements AuthStore {
         termsAccepted: boolean = true,
         cookiePolicyAccepted: boolean = true,
         privacyPolicyAccepted: boolean = true,
+        adminEmailsAccepted: boolean = true,
+        marketingEmailsAccepted: boolean = false,
     ): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
@@ -289,6 +293,8 @@ class AuthStoreImpl implements AuthStore {
                 termsAccepted,
                 cookiePolicyAccepted,
                 privacyPolicyAccepted,
+                adminEmailsAccepted,
+                marketingEmailsAccepted,
             });
 
             if (!registrationResult?.success) {
@@ -354,7 +360,7 @@ class AuthStoreImpl implements AuthStore {
         }
     }
 
-    async updateUserProfile(updates: { displayName?: string; }): Promise<void> {
+    async updateUserProfile(updates: { displayName?: string; marketingEmailsAccepted?: boolean; }): Promise<void> {
         this.#errorSignal.value = null;
         this.#isUpdatingProfileSignal.value = true;
 
@@ -373,6 +379,8 @@ class AuthStoreImpl implements AuthStore {
                     role: updatedUser.role,
                     email: updatedUser.email,
                     emailVerified: updatedUser.emailVerified,
+                    adminEmailsAcceptedAt: updatedUser.adminEmailsAcceptedAt,
+                    marketingEmailsAcceptedAt: updatedUser.marketingEmailsAcceptedAt,
                 };
             }
 

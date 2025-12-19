@@ -173,6 +173,12 @@
     "submitButton": "Crea account",
     "hasAccount": "Hai già un account?",
     "signIn": "Accedi",
+    "adminEmails": {
+      "label": "Accetto di ricevere comunicazioni essenziali dell'account"
+    },
+    "marketingEmails": {
+      "label": "Accetto di ricevere aggiornamenti sui prodotti e offerte promozionali (opzionale)"
+    },
     "validation": {
       "nameRequired": "Il nome è obbligatorio",
       "emailRequired": "L'email è obbligatoria",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Le password non corrispondono",
       "termsRequired": "Devi accettare i Termini di servizio",
       "cookiesRequired": "Devi accettare l'Informativa sui cookie",
-      "privacyRequired": "Devi accettare l'Informativa sulla privacy"
+      "privacyRequired": "Devi accettare l'Informativa sulla privacy",
+      "adminEmailsRequired": "Devi accettare le notifiche dell'account per creare un account"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "Profilo aggiornato con successo",
       "passwordChanged": "Password modificata con successo",
-      "emailChanged": "Email aggiornata con successo. Verifica il nuovo indirizzo."
+      "emailChanged": "Email aggiornata con successo. Verifica il nuovo indirizzo.",
+      "emailPreferencesUpdated": "Preferenze email aggiornate con successo"
     },
     "errorMessages": {
       "profileUpdateFailed": "Impossibile aggiornare il profilo. Riprova.",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "La nuova email deve essere diversa dall'email attuale",
       "emailPasswordRequired": "Inserisci la tua password attuale per confermare questa modifica",
       "emailInUse": "Questa email è già collegata a un altro account {{appName}}",
-      "emailChangeFailed": "Impossibile modificare l'email. Riprova."
+      "emailChangeFailed": "Impossibile modificare l'email. Riprova.",
+      "emailPreferencesUpdateFailed": "Impossibile aggiornare le preferenze email. Per favore riprova."
+    },
+    "emailPreferences": {
+      "title": "Preferenze email",
+      "description": "Gestisci quali tipi di email ricevi da noi.",
+      "acceptedOn": "Accettato il {{date}}",
+      "adminEmails": {
+        "label": "Notifiche dell'account",
+        "description": "Comunicazioni essenziali dell'account tra cui reimpostazione password, avvisi di sicurezza e informazioni di fatturazione. Queste non possono essere disattivate."
+      },
+      "marketingEmails": {
+        "label": "Aggiornamenti prodotti e promozioni",
+        "description": "Ricevi notizie su nuove funzionalità, consigli e offerte speciali."
+      }
     }
   },
   "editGroupModal": {
@@ -1135,6 +1157,11 @@
       "policiesAccepted": " politiche accettate",
       "accepting": "Accettazione...",
       "closeAriaLabel": "Chiudi",
+      "errorTitle": "Errore"
+    },
+    "policyViewModal": {
+      "loading": "Caricamento contenuto della policy...",
+      "loadError": "Impossibile caricare il contenuto della policy. Per favore riprova.",
       "errorTitle": "Errore"
     }
   },

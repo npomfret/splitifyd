@@ -387,3 +387,162 @@ test.describe('Settings Page - Navigation', () => {
         await settingsPage.verifyProfileEmailText(user.email);
     });
 });
+
+test.describe('Settings Page - Email Preferences', () => {
+    test.beforeEach(async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        await setupSuccessfulApiMocks(page);
+        // Set up user with email consent timestamps
+        const profileWithEmailPrefs = UserProfileResponseBuilder
+            .fromClientUser(user)
+            .withAdminEmailsAcceptedAt(new Date('2024-01-15T10:30:00Z').toISOString())
+            .withMarketingEmailsAcceptedAt(null)
+            .build();
+        await mockUserProfileApi(page, profileWithEmailPrefs);
+    });
+
+    test('should display email preferences section', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Verify email preferences section is visible
+        await settingsPage.verifyEmailPreferencesSectionVisible();
+    });
+
+    test('should display admin emails info as read-only', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Verify admin emails info is visible
+        await settingsPage.verifyAdminEmailsInfoVisible();
+    });
+
+    test('should display marketing emails checkbox', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Verify marketing emails checkbox is visible
+        await settingsPage.verifyMarketingEmailsCheckboxVisible();
+
+        // Verify marketing emails description is visible
+        await settingsPage.verifyMarketingEmailsDescriptionVisible();
+    });
+
+    test('should show marketing emails unchecked when not opted in', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Navigate to settings page (user has marketingEmailsAcceptedAt: null)
+        await settingsPage.navigate();
+
+        // Verify marketing emails checkbox is unchecked
+        await settingsPage.verifyMarketingEmailsUnchecked();
+    });
+
+    test('should show marketing emails checked when opted in', async ({ authenticatedMockFirebase, pageWithLogging }) => {
+        // Create a user with marketing emails opted in
+        const user = ClientUserBuilder.validUser().build();
+        await authenticatedMockFirebase(user);
+        await setupSuccessfulApiMocks(pageWithLogging);
+
+        // Mock profile with marketing emails opted in
+        const profileWithMarketingOptIn = UserProfileResponseBuilder
+            .fromClientUser(user)
+            .withAdminEmailsAcceptedAt(new Date('2024-01-15T10:30:00Z').toISOString())
+            .withMarketingEmailsAcceptedAt(new Date('2024-02-01T14:00:00Z').toISOString())
+            .build();
+        await mockUserProfileApi(pageWithLogging, profileWithMarketingOptIn);
+
+        const settingsPage = new SettingsPage(pageWithLogging);
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Verify marketing emails checkbox is checked
+        await settingsPage.verifyMarketingEmailsChecked();
+    });
+
+    test('should toggle marketing emails preference', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Track whether the toggle has been clicked
+        let hasToggledMarketing = false;
+
+        // Remove existing route handler and add our own with state tracking
+        await page.unroute('**/api/user/profile');
+        await page.route('**/api/user/profile', async (route) => {
+            if (route.request().method() === 'PUT') {
+                hasToggledMarketing = true;
+                await route.fulfill({ status: 204 });
+            } else if (route.request().method() === 'GET') {
+                // Return profile based on current state
+                const profile = UserProfileResponseBuilder
+                    .fromClientUser(user)
+                    .withAdminEmailsAcceptedAt(new Date('2024-01-15T10:30:00Z').toISOString())
+                    .withMarketingEmailsAcceptedAt(hasToggledMarketing ? new Date().toISOString() : null)
+                    .build();
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify(profile),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Verify initially unchecked
+        await settingsPage.verifyMarketingEmailsUnchecked();
+
+        // Toggle marketing emails
+        await settingsPage.toggleMarketingEmailsCheckbox();
+
+        // Verify success message appears
+        await settingsPage.verifySuccessMessage('Email preferences updated successfully');
+
+        // Verify checkbox is now checked
+        await settingsPage.verifyMarketingEmailsChecked();
+    });
+
+    test('should show error when marketing emails update fails', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Mock the profile update endpoint to fail
+        await page.route('**/api/user/profile', async (route) => {
+            if (route.request().method() === 'PUT') {
+                await route.fulfill({
+                    status: 500,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: { code: 'INTERNAL_ERROR', message: 'Failed to update preferences' },
+                    }),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Toggle marketing emails
+        await settingsPage.toggleMarketingEmailsCheckbox();
+
+        // Verify error message appears
+        await settingsPage.verifyErrorMessage('Failed to update email preferences. Please try again.');
+    });
+});

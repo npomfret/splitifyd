@@ -74,6 +74,17 @@ const mapRegisterError = (error: z.ZodError): never => {
             errorCode = 'MISSING_SIGNUP_HOSTNAME';
             errorMessage = 'Signup hostname is required';
             break;
+        case 'adminEmailsAccepted':
+            if (errorMessage === 'Required') {
+                errorCode = 'MISSING_ADMIN_EMAILS_ACCEPTANCE';
+                errorMessage = 'Account notifications acceptance is required';
+            } else if (errorMessage.includes('You must accept')) {
+                errorCode = 'ADMIN_EMAILS_NOT_ACCEPTED';
+            } else {
+                errorCode = 'MISSING_ADMIN_EMAILS_ACCEPTANCE';
+                errorMessage = 'Account notifications acceptance must be a boolean value';
+            }
+            break;
         default:
             break;
     }
@@ -92,6 +103,8 @@ export const validateRegisterRequest = createRequestValidator({
         cookiePolicyAccepted: value.cookiePolicyAccepted,
         privacyPolicyAccepted: value.privacyPolicyAccepted,
         signupHostname: value.signupHostname.trim().toLowerCase(),
+        adminEmailsAccepted: value.adminEmailsAccepted,
+        marketingEmailsAccepted: value.marketingEmailsAccepted,
     }),
     mapError: mapRegisterError,
 }) as (body: UserRegistration) => UserRegistration;

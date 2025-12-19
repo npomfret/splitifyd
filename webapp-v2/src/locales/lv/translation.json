@@ -173,6 +173,12 @@
     "submitButton": "Izveidot kontu",
     "hasAccount": "Vai jums jau ir konts?",
     "signIn": "Pierakstīties",
+    "adminEmails": {
+      "label": "Es piekrītu saņemt būtiskus konta paziņojumus"
+    },
+    "marketingEmails": {
+      "label": "Es piekrītu saņemt produktu jaunumus un reklāmas piedāvājumus (neobligāti)"
+    },
     "validation": {
       "nameRequired": "Vārds ir obligāts",
       "emailRequired": "E-pasts ir obligāts",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Paroles nesakrīt",
       "termsRequired": "Jums ir jāpiekrīt Lietošanas noteikumiem",
       "cookiesRequired": "Jums ir jāpiekrīt Sīkdatņu politikai",
-      "privacyRequired": "Jums ir jāpiekrīt Privātuma politikai"
+      "privacyRequired": "Jums ir jāpiekrīt Privātuma politikai",
+      "adminEmailsRequired": "Lai izveidotu kontu, jums jāpiekrīt konta paziņojumiem"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "Profils veiksmīgi atjaunināts",
       "passwordChanged": "Parole veiksmīgi mainīta",
-      "emailChanged": "E-pasts veiksmīgi atjaunināts. Lūdzu, pārbaudiet jauno adresi."
+      "emailChanged": "E-pasts veiksmīgi atjaunināts. Lūdzu, pārbaudiet jauno adresi.",
+      "emailPreferencesUpdated": "E-pasta iestatījumi veiksmīgi atjaunināti"
     },
     "errorMessages": {
       "profileUpdateFailed": "Neizdevās atjaunināt profilu. Lūdzu, mēģiniet vēlreiz.",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "Jaunajam e-pastam jāatšķiras no pašreizējā e-pasta",
       "emailPasswordRequired": "Ievadiet savu pašreizējo paroli, lai apstiprinātu šo izmaiņu",
       "emailInUse": "Šis e-pasts jau ir saistīts ar citu {{appName}} kontu",
-      "emailChangeFailed": "Neizdevās mainīt e-pastu. Lūdzu, mēģiniet vēlreiz."
+      "emailChangeFailed": "Neizdevās mainīt e-pastu. Lūdzu, mēģiniet vēlreiz.",
+      "emailPreferencesUpdateFailed": "Neizdevās atjaunināt e-pasta iestatījumus. Lūdzu, mēģiniet vēlreiz."
+    },
+    "emailPreferences": {
+      "title": "E-pasta iestatījumi",
+      "description": "Pārvaldiet, kāda veida e-pastus saņemat no mums.",
+      "acceptedOn": "Pieņemts {{date}}",
+      "adminEmails": {
+        "label": "Konta paziņojumi",
+        "description": "Būtiski konta paziņojumi, tostarp paroles atiestatīšana, drošības brīdinājumi un rēķinu informācija. Tos nevar atspējot."
+      },
+      "marketingEmails": {
+        "label": "Produktu jaunumi un akcijas",
+        "description": "Saņemiet jaunumus par jaunām funkcijām, padomus un īpašos piedāvājumus."
+      }
     }
   },
   "editGroupModal": {
@@ -1135,6 +1157,11 @@
       "policiesAccepted": " politikas pieņemtas",
       "accepting": "Notiek pieņemšana...",
       "closeAriaLabel": "Aizvērt",
+      "errorTitle": "Kļūda"
+    },
+    "policyViewModal": {
+      "loading": "Ielādē politikas saturu...",
+      "loadError": "Neizdevās ielādēt politikas saturu. Lūdzu, mēģiniet vēlreiz.",
       "errorTitle": "Kļūda"
     }
   },

@@ -173,6 +173,12 @@
     "submitButton": "Opprett konto",
     "hasAccount": "Har du allerede en konto?",
     "signIn": "Logg inn",
+    "adminEmails": {
+      "label": "Jeg godtar å motta viktige kontovarsler"
+    },
+    "marketingEmails": {
+      "label": "Jeg godtar å motta produktoppdateringer og kampanjetilbud (valgfritt)"
+    },
     "validation": {
       "nameRequired": "Navn er påkrevd",
       "emailRequired": "E-post er påkrevd",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Passordene stemmer ikke",
       "termsRequired": "Du må akseptere tjenestevilkårene",
       "cookiesRequired": "Du må akseptere informasjonskapselpolicyen",
-      "privacyRequired": "Du må akseptere personvernerklæringen"
+      "privacyRequired": "Du må akseptere personvernerklæringen",
+      "adminEmailsRequired": "Du må godta kontovarsler for å opprette en konto"
     }
   },
   "auth": {
@@ -792,7 +799,8 @@
     "successMessages": {
       "profileUpdated": "Profil oppdatert",
       "passwordChanged": "Passord endret",
-      "emailChanged": "E-post oppdatert. Vennligst bekreft den nye adressen."
+      "emailChanged": "E-post oppdatert. Vennligst bekreft den nye adressen.",
+      "emailPreferencesUpdated": "E-postinnstillinger oppdatert"
     },
     "errorMessages": {
       "profileUpdateFailed": "Kunne ikke oppdatere profil. Vennligst prøv igjen.",
@@ -809,7 +817,21 @@
       "emailSameAsCurrent": "Ny e-post må være forskjellig fra nåværende e-post",
       "emailPasswordRequired": "Skriv inn nåværende passord for å bekrefte denne endringen",
       "emailInUse": "Den e-posten er allerede knyttet til en annen {{appName}}-konto",
-      "emailChangeFailed": "Kunne ikke endre e-post. Vennligst prøv igjen."
+      "emailChangeFailed": "Kunne ikke endre e-post. Vennligst prøv igjen.",
+      "emailPreferencesUpdateFailed": "Kunne ikke oppdatere e-postinnstillinger. Vennligst prøv igjen."
+    },
+    "emailPreferences": {
+      "title": "E-postinnstillinger",
+      "description": "Administrer hvilke typer e-post du mottar fra oss.",
+      "acceptedOn": "Godtatt {{date}}",
+      "adminEmails": {
+        "label": "Kontovarsler",
+        "description": "Viktige kontomeldinger inkludert tilbakestilling av passord, sikkerhetsvarsler og faktureringsinformasjon. Disse kan ikke deaktiveres."
+      },
+      "marketingEmails": {
+        "label": "Produktoppdateringer og kampanjer",
+        "description": "Motta nyheter om nye funksjoner, tips og spesialtilbud."
+      }
     }
   },
   "editGroupModal": {
@@ -1135,6 +1157,11 @@
       "closeAriaLabel": "Lukk",
       "errorTitle": "Feil",
       "policyContentAriaLabel": "Retningslinjeinnhold"
+    },
+    "policyViewModal": {
+      "loading": "Laster innhold...",
+      "loadError": "Kunne ikke laste innhold. Vennligst prøv igjen.",
+      "errorTitle": "Feil"
     }
   },
   "uiComponents": {

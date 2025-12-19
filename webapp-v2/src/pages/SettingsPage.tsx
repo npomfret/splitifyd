@@ -1,6 +1,6 @@
 import { translateProfileRole } from '@/app/i18n/dynamic-translations';
 import { themeStore } from '@/app/stores/theme-store.ts';
-import { Alert, Avatar, Button, Card, Form, Input, Stack, Typography } from '@/components/ui';
+import { Alert, Avatar, Button, Card, Checkbox, Form, Input, Stack, Typography } from '@/components/ui';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { logError } from '@/utils/browser-logger';
 import { SystemUserRoles, toEmail, toPassword } from '@billsplit-wl/shared';
@@ -52,6 +52,8 @@ export function SettingsPage() {
         })
     );
     const [isEmailLoadingSignal] = useState(() => signal(false));
+    const [marketingEmailsSignal] = useState(() => signal(false));
+    const [isUpdatingEmailPrefsSignal] = useState(() => signal(false));
 
     const user = authStore.user;
     const resolvedDisplayName = toDisplayName(user?.displayName?.trim() || user?.email?.split('@')[0] || '');
@@ -77,6 +79,8 @@ export function SettingsPage() {
                 newEmail: userEmail,
                 currentPassword: '',
             };
+            // Sync marketing emails preference from user profile
+            marketingEmailsSignal.value = Boolean(user.marketingEmailsAcceptedAt);
         }
     }, [user]);
 
@@ -271,6 +275,25 @@ export function SettingsPage() {
         errorMessageSignal.value = '';
     };
 
+    const handleMarketingEmailsToggle = async (checked: boolean) => {
+        if (!user || isUpdatingEmailPrefsSignal.value) return;
+
+        isUpdatingEmailPrefsSignal.value = true;
+        errorMessageSignal.value = '';
+        successMessageSignal.value = '';
+
+        try {
+            await authStore.updateUserProfile({ marketingEmailsAccepted: checked });
+            marketingEmailsSignal.value = checked;
+            successMessageSignal.value = t('settingsPage.successMessages.emailPreferencesUpdated');
+        } catch (error) {
+            errorMessageSignal.value = t('settingsPage.errorMessages.emailPreferencesUpdateFailed');
+            logError('settingsPage.emailPreferencesUpdateFailed', error, { userId: user.uid });
+        } finally {
+            isUpdatingEmailPrefsSignal.value = false;
+        }
+    };
+
     if (!user) {
         return null;
     }
@@ -286,6 +309,8 @@ export function SettingsPage() {
     const showEmailForm = showEmailFormSignal.value;
     const emailData = emailDataSignal.value;
     const isEmailLoading = isEmailLoadingSignal.value;
+    const marketingEmails = marketingEmailsSignal.value;
+    const isUpdatingEmailPrefs = isUpdatingEmailPrefsSignal.value;
 
     const hasDisplayNameChanged = displayName.trim() !== originalDisplayName;
     const isDisplayNameEmpty = displayName.trim().length === 0;
@@ -587,6 +612,55 @@ export function SettingsPage() {
                             moreInfoLabel={t('common.moreInfo')}
                         >
                             <LanguageSwitcher variant='full' />
+                        </FormSection>
+
+                        <FormSection
+                            title={t('settingsPage.emailPreferences.title')}
+                            description={t('settingsPage.emailPreferences.description')}
+                            moreInfoLabel={t('common.moreInfo')}
+                        >
+                            <Stack spacing='md'>
+                                {/* Account notifications - display-only, accepted at registration */}
+                                <div className='rounded-lg border border-border-default bg-surface-muted px-4 py-4'>
+                                    <div className='flex items-start gap-3'>
+                                        <div className='mt-0.5 h-5 w-5 shrink-0 rounded border border-interactive-primary bg-interactive-primary flex items-center justify-center'>
+                                            <svg className='h-3 w-3 text-interactive-primary-foreground' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                <path d='M10 3L4.5 8.5L2 6' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round' />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <Typography variant='body' className='font-medium text-text-primary'>
+                                                {t('settingsPage.emailPreferences.adminEmails.label')}
+                                            </Typography>
+                                            <Typography variant='caption' className='text-text-muted mt-1'>
+                                                {t('settingsPage.emailPreferences.adminEmails.description')}
+                                            </Typography>
+                                            {user.adminEmailsAcceptedAt && (
+                                                <Typography variant='caption' className='text-text-muted mt-2'>
+                                                    {t('settingsPage.emailPreferences.acceptedOn', {
+                                                        date: new Date(user.adminEmailsAcceptedAt).toLocaleDateString(),
+                                                    })}
+                                                </Typography>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Marketing emails - toggleable */}
+                                <Checkbox
+                                    label={
+                                        <span className='text-text-primary'>
+                                            {t('settingsPage.emailPreferences.marketingEmails.label')}
+                                        </span>
+                                    }
+                                    checked={marketingEmails}
+                                    onChange={handleMarketingEmailsToggle}
+                                    disabled={isUpdatingEmailPrefs}
+                                />
+                                <Typography variant='caption' className='text-text-muted -mt-2 ml-7'>
+                                    {t('settingsPage.emailPreferences.marketingEmails.description')}
+                                </Typography>
+                            </Stack>
                         </FormSection>
                     </TwoColumnLayout>
                 </Stack>

@@ -173,6 +173,12 @@
     "submitButton": "Skapa konto",
     "hasAccount": "Har du redan ett konto?",
     "signIn": "Logga in",
+    "adminEmails": {
+      "label": "Jag godkänner att ta emot viktiga kontomeddelanden"
+    },
+    "marketingEmails": {
+      "label": "Jag godkänner att ta emot produktuppdateringar och kampanjerbjudanden (valfritt)"
+    },
     "validation": {
       "nameRequired": "Namn är obligatoriskt",
       "emailRequired": "E-post är obligatoriskt",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Lösenorden stämmer inte överens",
       "termsRequired": "Du måste acceptera användarvillkoren",
       "cookiesRequired": "Du måste acceptera cookiepolicyn",
-      "privacyRequired": "Du måste acceptera integritetspolicyn"
+      "privacyRequired": "Du måste acceptera integritetspolicyn",
+      "adminEmailsRequired": "Du måste godkänna kontonotifieringar för att skapa ett konto"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "Profilen uppdaterades.",
       "passwordChanged": "Lösenordet ändrades.",
-      "emailChanged": "E-posten uppdaterades. Verifiera den nya adressen."
+      "emailChanged": "E-posten uppdaterades. Verifiera den nya adressen.",
+      "emailPreferencesUpdated": "E-postinställningar uppdaterade"
     },
     "errorMessages": {
       "profileUpdateFailed": "Kunde inte uppdatera profilen. Försök igen.",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "Ny e-postadress måste skilja sig från den nuvarande e-postadressen",
       "emailPasswordRequired": "Ange ditt nuvarande lösenord för att bekräfta denna ändring",
       "emailInUse": "Den e-postadressen är redan kopplad till ett annat {{appName}}-konto",
-      "emailChangeFailed": "Kunde inte ändra e-postadressen. Försök igen."
+      "emailChangeFailed": "Kunde inte ändra e-postadressen. Försök igen.",
+      "emailPreferencesUpdateFailed": "Kunde inte uppdatera e-postinställningar. Försök igen."
+    },
+    "emailPreferences": {
+      "title": "E-postinställningar",
+      "description": "Hantera vilka typer av e-post du får från oss.",
+      "acceptedOn": "Godkänt {{date}}",
+      "adminEmails": {
+        "label": "Kontonotifieringar",
+        "description": "Viktiga kontomeddelanden inklusive lösenordsåterställning, säkerhetsvarningar och faktureringsinformation. Dessa kan inte inaktiveras."
+      },
+      "marketingEmails": {
+        "label": "Produktuppdateringar och kampanjer",
+        "description": "Få nyheter om nya funktioner, tips och specialerbjudanden."
+      }
     }
   },
   "editGroupModal": {
@@ -1136,6 +1158,11 @@
       "closeAriaLabel": "Stäng",
       "errorTitle": "Fel",
       "policyContentAriaLabel": "Policyinnehåll"
+    },
+    "policyViewModal": {
+      "loading": "Laddar policyinnehåll...",
+      "loadError": "Kunde inte ladda policyinnehåll. Försök igen.",
+      "errorTitle": "Fel"
     }
   },
   "uiComponents": {

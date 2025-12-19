@@ -12,6 +12,8 @@ export class RegisterRequestBuilder {
         cookiePolicyAccepted: randomBoolean(),
         privacyPolicyAccepted: randomBoolean(),
         signupHostname: 'localhost',
+        adminEmailsAccepted: true,
+        marketingEmailsAccepted: false,
     };
 
     withEmail(email: Email | string): this {
@@ -71,6 +73,26 @@ export class RegisterRequestBuilder {
 
     withoutSignupHostname(): this {
         delete (this.request as any).signupHostname;
+        return this;
+    }
+
+    withAdminEmailsAccepted(accepted: boolean): this {
+        this.request.adminEmailsAccepted = accepted;
+        return this;
+    }
+
+    withoutAdminEmailsAccepted(): this {
+        delete (this.request as any).adminEmailsAccepted;
+        return this;
+    }
+
+    withMarketingEmailsAccepted(accepted: boolean): this {
+        this.request.marketingEmailsAccepted = accepted;
+        return this;
+    }
+
+    withoutMarketingEmailsAccepted(): this {
+        delete (this.request as any).marketingEmailsAccepted;
         return this;
     }
 

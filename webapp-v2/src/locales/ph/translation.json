@@ -173,6 +173,12 @@
     "submitButton": "Gumawa ng Account",
     "hasAccount": "Mayroon ka nang account?",
     "signIn": "Mag-sign in",
+    "adminEmails": {
+      "label": "Sumasang-ayon akong tumanggap ng mahahalagang komunikasyon sa account"
+    },
+    "marketingEmails": {
+      "label": "Sumasang-ayon akong tumanggap ng mga update sa produkto at promotional na alok (opsyonal)"
+    },
     "validation": {
       "nameRequired": "Kailangan ang pangalan",
       "emailRequired": "Kailangan ang email",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Hindi magkatugma ang mga password",
       "termsRequired": "Dapat mong tanggapin ang Mga Tuntunin ng Serbisyo",
       "cookiesRequired": "Dapat mong tanggapin ang Patakaran sa Cookie",
-      "privacyRequired": "Dapat mong tanggapin ang Patakaran sa Privacy"
+      "privacyRequired": "Dapat mong tanggapin ang Patakaran sa Privacy",
+      "adminEmailsRequired": "Dapat kang sumang-ayon sa mga notification ng account para makagawa ng account"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "Matagumpay na na-update ang profile",
       "passwordChanged": "Matagumpay na nabago ang password",
-      "emailChanged": "Matagumpay na na-update ang email. Pakiberipika ang bagong address."
+      "emailChanged": "Matagumpay na na-update ang email. Pakiberipika ang bagong address.",
+      "emailPreferencesUpdated": "Matagumpay na na-update ang mga kagustuhan sa email"
     },
     "errorMessages": {
       "profileUpdateFailed": "Nabigo ang pag-update ng profile. Pakisubukan muli.",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "Ang bagong email ay dapat na iba sa kasalukuyang email",
       "emailPasswordRequired": "Ilagay ang iyong kasalukuyang password para kumpirmahin ang pagbabagong ito",
       "emailInUse": "Naka-link na ang email na iyon sa isa pang {{appName}} account",
-      "emailChangeFailed": "Nabigo ang pagbago ng email. Pakisubukan muli."
+      "emailChangeFailed": "Nabigo ang pagbago ng email. Pakisubukan muli.",
+      "emailPreferencesUpdateFailed": "Hindi ma-update ang mga kagustuhan sa email. Pakisubukan muli."
+    },
+    "emailPreferences": {
+      "title": "Mga kagustuhan sa email",
+      "description": "Pamahalaan kung anong uri ng mga email ang natatanggap mo mula sa amin.",
+      "acceptedOn": "Tinanggap noong {{date}}",
+      "adminEmails": {
+        "label": "Mga notification ng account",
+        "description": "Mahahalagang komunikasyon sa account kabilang ang pag-reset ng password, mga alerto sa seguridad, at impormasyon sa billing. Hindi ito maaaring i-disable."
+      },
+      "marketingEmails": {
+        "label": "Mga update sa produkto at promosyon",
+        "description": "Tumanggap ng balita tungkol sa mga bagong feature, mga tip, at mga espesyal na alok."
+      }
     }
   },
   "editGroupModal": {
@@ -1136,6 +1158,11 @@
       "closeAriaLabel": "Isara",
       "errorTitle": "Error",
       "policyContentAriaLabel": "Nilalaman ng Patakaran"
+    },
+    "policyViewModal": {
+      "loading": "Nilo-load ang nilalaman ng patakaran...",
+      "loadError": "Hindi ma-load ang nilalaman ng patakaran. Pakisubukan muli.",
+      "errorTitle": "Error"
     }
   },
   "uiComponents": {

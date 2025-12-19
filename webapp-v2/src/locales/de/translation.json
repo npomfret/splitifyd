@@ -173,6 +173,12 @@
     "submitButton": "Konto erstellen",
     "hasAccount": "Sie haben bereits ein Konto?",
     "signIn": "Anmelden",
+    "adminEmails": {
+      "label": "Ich stimme zu wichtige Kontomitteilungen zu erhalten"
+    },
+    "marketingEmails": {
+      "label": "Ich stimme zu Produktupdates und Werbeangebote erhalten (optional)"
+    },
     "validation": {
       "nameRequired": "Name ist erforderlich",
       "emailRequired": "E-Mail ist erforderlich",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Passwörter stimmen nicht überein",
       "termsRequired": "Sie müssen die Nutzungsbedingungen akzeptieren",
       "cookiesRequired": "Sie müssen die Cookie-Richtlinie akzeptieren",
-      "privacyRequired": "Sie müssen die Datenschutzrichtlinie akzeptieren"
+      "privacyRequired": "Sie müssen die Datenschutzrichtlinie akzeptieren",
+      "adminEmailsRequired": "Sie müssen Kontobenachrichtigungen akzeptieren, um ein Konto zu erstellen"
     }
   },
   "auth": {
@@ -792,7 +799,8 @@
     "successMessages": {
       "profileUpdated": "Profil erfolgreich aktualisiert",
       "passwordChanged": "Passwort erfolgreich geändert",
-      "emailChanged": "E-Mail erfolgreich aktualisiert. Bitte überprüfen Sie die neue Adresse."
+      "emailChanged": "E-Mail erfolgreich aktualisiert. Bitte überprüfen Sie die neue Adresse.",
+      "emailPreferencesUpdated": "E-Mail-Einstellungen erfolgreich aktualisiert"
     },
     "errorMessages": {
       "profileUpdateFailed": "Profil konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
@@ -809,7 +817,21 @@
       "emailSameAsCurrent": "Neue E-Mail muss sich von der aktuellen E-Mail unterscheiden",
       "emailPasswordRequired": "Geben Sie Ihr aktuelles Passwort ein, um diese Änderung zu bestätigen",
       "emailInUse": "Diese E-Mail ist bereits mit einem anderen {{appName}}-Konto verknüpft",
-      "emailChangeFailed": "E-Mail konnte nicht geändert werden. Bitte versuchen Sie es erneut."
+      "emailChangeFailed": "E-Mail konnte nicht geändert werden. Bitte versuchen Sie es erneut.",
+      "emailPreferencesUpdateFailed": "E-Mail-Einstellungen konnten nicht aktualisiert werden. Bitte versuchen Sie es erneut."
+    },
+    "emailPreferences": {
+      "title": "E-Mail-Einstellungen",
+      "description": "Verwalten Sie, welche Arten von E-Mails Sie von uns erhalten.",
+      "acceptedOn": "Akzeptiert am {{date}}",
+      "adminEmails": {
+        "label": "Kontobenachrichtigungen",
+        "description": "Wichtige Kontomitteilungen einschließlich Passwort-Zurücksetzungen, Sicherheitswarnungen und Rechnungsinformationen. Diese können nicht deaktiviert werden."
+      },
+      "marketingEmails": {
+        "label": "Produktupdates und Werbeaktionen",
+        "description": "Erhalten Sie Neuigkeiten über neue Funktionen, Tipps und Sonderangebote."
+      }
     }
   },
   "editGroupModal": {
@@ -1134,6 +1156,11 @@
       "policiesAccepted": " Richtlinien akzeptiert",
       "accepting": "Wird akzeptiert...",
       "closeAriaLabel": "Schließen",
+      "errorTitle": "Fehler"
+    },
+    "policyViewModal": {
+      "loading": "Richtlinieninhalt wird geladen...",
+      "loadError": "Richtlinieninhalt konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
       "errorTitle": "Fehler"
     }
   },

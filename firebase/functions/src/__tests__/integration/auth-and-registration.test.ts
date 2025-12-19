@@ -39,6 +39,8 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                 termsAccepted: true,
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
+                adminEmailsAccepted: true,
+                marketingEmailsAccepted: false,
             });
 
             expect(registeredUser).toHaveProperty('user');

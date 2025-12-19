@@ -83,6 +83,8 @@ export class TestUserPoolService {
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
             signupHostname: 'localhost',
+            adminEmailsAccepted: true,
+            marketingEmailsAccepted: false,
         }, toTenantId('test-tenant'));
 
         const token = await this.authService.createCustomToken(user.uid);

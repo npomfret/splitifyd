@@ -222,8 +222,12 @@ test.describe('Registration Form - Loading and Disabled States', () => {
         await registerPage.toggleCookiesCheckbox();
         await registerPage.verifySubmitButtonDisabled();
 
-        // Accept all three policies - should now be enabled
+        // Accept third policy checkbox - should still be disabled
         await registerPage.togglePrivacyCheckbox();
+        await registerPage.verifySubmitButtonDisabled();
+
+        // Accept admin emails consent - should now be enabled
+        await registerPage.checkAdminEmailsCheckbox();
         await registerPage.verifySubmitButtonEnabled();
     });
 

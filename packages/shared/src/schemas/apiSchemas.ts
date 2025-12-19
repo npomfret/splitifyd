@@ -542,6 +542,9 @@ const UserProfileResponseSchema = z
         role: z.nativeEnum(SystemUserRoles),
         email: z.string().email(),
         emailVerified: z.boolean(),
+        preferredLanguage: z.string().optional(),
+        adminEmailsAcceptedAt: z.string().datetime().optional(),
+        marketingEmailsAcceptedAt: z.string().datetime().nullable().optional(),
     })
     .passthrough();
 

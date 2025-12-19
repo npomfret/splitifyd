@@ -76,6 +76,8 @@ export class UserService {
             emailVerified: userRecord.emailVerified,
             role: firestoreData.role,
             preferredLanguage: firestoreData.preferredLanguage,
+            adminEmailsAcceptedAt: firestoreData.adminEmailsAcceptedAt,
+            marketingEmailsAcceptedAt: firestoreData.marketingEmailsAcceptedAt,
         };
     }
 
@@ -330,6 +332,8 @@ export class UserService {
             email: registeredUser.email,
             emailVerified: registeredUser.emailVerified,
             preferredLanguage: registeredUser.preferredLanguage,
+            adminEmailsAcceptedAt: registeredUser.adminEmailsAcceptedAt,
+            marketingEmailsAcceptedAt: registeredUser.marketingEmailsAcceptedAt,
         };
     }
 
@@ -356,6 +360,12 @@ export class UserService {
             const firestoreUpdate: any = {};
             if (validatedData.preferredLanguage !== undefined) {
                 firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
+            }
+            if (validatedData.marketingEmailsAccepted !== undefined) {
+                // Convert boolean to timestamp: true = now, false = null
+                firestoreUpdate.marketingEmailsAcceptedAt = validatedData.marketingEmailsAccepted
+                    ? toISOString(new Date().toISOString())
+                    : null;
             }
 
             // Update Firestore user document
@@ -562,6 +572,8 @@ export class UserService {
                 updatedAt: now,
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
                 signupTenantId, // Record tenant where user registered (for analytics)
+                adminEmailsAcceptedAt: now, // Always set on registration (required field)
+                marketingEmailsAcceptedAt: userRegistration.marketingEmailsAccepted ? now : null,
             };
 
             // FirestoreWriter handles validation and conversion to Firestore format

@@ -649,4 +649,159 @@ export class SettingsPage extends BasePage {
         const dir = await this.page.locator('html').getAttribute('dir');
         expect(dir).toBe('ltr');
     }
+
+    // ============================================================================
+    // EMAIL PREFERENCES SECTION LOCATORS
+    // ============================================================================
+
+    /**
+     * Email Preferences section container
+     */
+    protected getEmailPreferencesSection(): Locator {
+        return this.page.getByRole('region', { name: translation.settingsPage.emailPreferences.title });
+    }
+
+    /**
+     * Email Preferences section header
+     */
+    protected getEmailPreferencesHeader(): Locator {
+        return this.page.getByRole('heading', { name: translation.settingsPage.emailPreferences.title });
+    }
+
+    /**
+     * Admin emails label (account notifications)
+     */
+    protected getAdminEmailsLabel(): Locator {
+        return this.getEmailPreferencesSection().getByText(translation.settingsPage.emailPreferences.adminEmails.label);
+    }
+
+    /**
+     * Admin emails description
+     */
+    protected getAdminEmailsDescription(): Locator {
+        return this.getEmailPreferencesSection().getByText(translation.settingsPage.emailPreferences.adminEmails.description);
+    }
+
+    /**
+     * Marketing emails checkbox
+     */
+    protected getMarketingEmailsCheckbox(): Locator {
+        return this.getEmailPreferencesSection().getByLabel(
+            translation.settingsPage.emailPreferences.marketingEmails.label
+        );
+    }
+
+    /**
+     * Marketing emails description
+     */
+    protected getMarketingEmailsDescription(): Locator {
+        return this.getEmailPreferencesSection().getByText(
+            translation.settingsPage.emailPreferences.marketingEmails.description
+        );
+    }
+
+    // ============================================================================
+    // EMAIL PREFERENCES ACTIONS
+    // ============================================================================
+
+    /**
+     * Toggle marketing emails checkbox
+     */
+    async toggleMarketingEmailsCheckbox(): Promise<void> {
+        await this.getMarketingEmailsCheckbox().click();
+    }
+
+    /**
+     * Check marketing emails checkbox (ensure it's checked)
+     */
+    async checkMarketingEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getMarketingEmailsCheckbox();
+        await checkbox.check();
+    }
+
+    /**
+     * Uncheck marketing emails checkbox (ensure it's unchecked)
+     */
+    async uncheckMarketingEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getMarketingEmailsCheckbox();
+        await checkbox.uncheck();
+    }
+
+    // ============================================================================
+    // EMAIL PREFERENCES VERIFICATION METHODS
+    // ============================================================================
+
+    /**
+     * Verify email preferences section is visible
+     */
+    async verifyEmailPreferencesSectionVisible(): Promise<void> {
+        await expect(this.getEmailPreferencesHeader()).toBeVisible();
+        await expect(this.getAdminEmailsLabel()).toBeVisible();
+        await expect(this.getMarketingEmailsCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify email preferences header is visible
+     */
+    async verifyEmailPreferencesHeaderVisible(): Promise<void> {
+        await expect(this.getEmailPreferencesHeader()).toBeVisible();
+    }
+
+    /**
+     * Verify admin emails info is displayed (read-only section)
+     */
+    async verifyAdminEmailsInfoVisible(): Promise<void> {
+        await expect(this.getAdminEmailsLabel()).toBeVisible();
+        await expect(this.getAdminEmailsDescription()).toBeVisible();
+    }
+
+    /**
+     * Verify admin emails accepted date is displayed
+     */
+    async verifyAdminEmailsAcceptedDateVisible(date: string): Promise<void> {
+        const dateText = this.getEmailPreferencesSection().getByText(date);
+        await expect(dateText).toBeVisible();
+    }
+
+    /**
+     * Verify marketing emails checkbox is visible
+     */
+    async verifyMarketingEmailsCheckboxVisible(): Promise<void> {
+        await expect(this.getMarketingEmailsCheckbox()).toBeVisible();
+    }
+
+    /**
+     * Verify marketing emails checkbox is checked
+     */
+    async verifyMarketingEmailsChecked(): Promise<void> {
+        await expect(this.getMarketingEmailsCheckbox()).toBeChecked();
+    }
+
+    /**
+     * Verify marketing emails checkbox is unchecked
+     */
+    async verifyMarketingEmailsUnchecked(): Promise<void> {
+        await expect(this.getMarketingEmailsCheckbox()).not.toBeChecked();
+    }
+
+    /**
+     * Verify marketing emails checkbox is disabled (during update)
+     */
+    async verifyMarketingEmailsCheckboxDisabled(): Promise<void> {
+        await expect(this.getMarketingEmailsCheckbox()).toBeDisabled();
+    }
+
+    /**
+     * Verify marketing emails checkbox is enabled
+     */
+    async verifyMarketingEmailsCheckboxEnabled(): Promise<void> {
+        await expect(this.getMarketingEmailsCheckbox()).toBeEnabled();
+    }
+
+    /**
+     * Verify marketing emails description is visible
+     */
+    async verifyMarketingEmailsDescriptionVisible(): Promise<void> {
+        await expect(this.getMarketingEmailsDescription()).toBeVisible();
+    }
 }

@@ -173,6 +173,12 @@
     "submitButton": "Crear cuenta",
     "hasAccount": "¿Ya tiene una cuenta?",
     "signIn": "Iniciar sesión",
+    "adminEmails": {
+      "label": "Acepto recibir comunicaciones esenciales de la cuenta"
+    },
+    "marketingEmails": {
+      "label": "Acepto recibir actualizaciones de productos y ofertas promocionales (opcional)"
+    },
     "validation": {
       "nameRequired": "El nombre es obligatorio",
       "emailRequired": "El correo electrónico es obligatorio",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Las contraseñas no coinciden",
       "termsRequired": "Debe aceptar los Términos de servicio",
       "cookiesRequired": "Debe aceptar la Política de cookies",
-      "privacyRequired": "Debe aceptar la Política de privacidad"
+      "privacyRequired": "Debe aceptar la Política de privacidad",
+      "adminEmailsRequired": "Debe aceptar las notificaciones de la cuenta para crear una cuenta"
     }
   },
   "auth": {
@@ -792,7 +799,8 @@
     "successMessages": {
       "profileUpdated": "Perfil actualizado correctamente",
       "passwordChanged": "Contraseña cambiada correctamente",
-      "emailChanged": "Correo electrónico actualizado correctamente. Por favor, verifique la nueva dirección."
+      "emailChanged": "Correo electrónico actualizado correctamente. Por favor, verifique la nueva dirección.",
+      "emailPreferencesUpdated": "Preferencias de correo electrónico actualizadas correctamente"
     },
     "errorMessages": {
       "profileUpdateFailed": "Fallo al actualizar el perfil. Por favor, inténtelo de nuevo.",
@@ -809,7 +817,21 @@
       "emailSameAsCurrent": "El nuevo correo electrónico debe ser diferente del actual",
       "emailPasswordRequired": "Introduzca su contraseña actual para confirmar este cambio",
       "emailInUse": "Ese correo electrónico ya está vinculado a otra cuenta de {{appName}}",
-      "emailChangeFailed": "Fallo al cambiar el correo electrónico. Por favor, inténtelo de nuevo."
+      "emailChangeFailed": "Fallo al cambiar el correo electrónico. Por favor, inténtelo de nuevo.",
+      "emailPreferencesUpdateFailed": "No se pudieron actualizar las preferencias de correo electrónico. Por favor, inténtelo de nuevo."
+    },
+    "emailPreferences": {
+      "title": "Preferencias de correo electrónico",
+      "description": "Administre qué tipos de correos electrónicos recibe de nosotros.",
+      "acceptedOn": "Aceptado el {{date}}",
+      "adminEmails": {
+        "label": "Notificaciones de la cuenta",
+        "description": "Comunicaciones esenciales de la cuenta, incluyendo restablecimiento de contraseña, alertas de seguridad e información de facturación. Estas no se pueden desactivar."
+      },
+      "marketingEmails": {
+        "label": "Actualizaciones de productos y promociones",
+        "description": "Reciba noticias sobre nuevas funciones, consejos y ofertas especiales."
+      }
     }
   },
   "editGroupModal": {
@@ -1134,6 +1156,11 @@
       "policiesAccepted": " políticas aceptadas",
       "accepting": "Aceptando...",
       "closeAriaLabel": "Cerrar",
+      "errorTitle": "Error"
+    },
+    "policyViewModal": {
+      "loading": "Cargando contenido de la política...",
+      "loadError": "No se pudo cargar el contenido de la política. Por favor, inténtelo de nuevo.",
       "errorTitle": "Error"
     }
   },

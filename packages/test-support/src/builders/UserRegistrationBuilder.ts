@@ -15,6 +15,8 @@ export class UserRegistrationBuilder {
             cookiePolicyAccepted: true,
             privacyPolicyAccepted: true,
             signupHostname: 'localhost',
+            adminEmailsAccepted: true,
+            marketingEmailsAccepted: false,
         };
     }
 
@@ -55,6 +57,16 @@ export class UserRegistrationBuilder {
 
     withPrivacyPolicyAccepted(accepted: boolean): this {
         this.userRegistration.privacyPolicyAccepted = accepted;
+        return this;
+    }
+
+    withAdminEmailsAccepted(accepted: boolean): this {
+        this.userRegistration.adminEmailsAccepted = accepted;
+        return this;
+    }
+
+    withMarketingEmailsAccepted(accepted: boolean): this {
+        this.userRegistration.marketingEmailsAccepted = accepted;
         return this;
     }
 
@@ -110,6 +122,21 @@ class EmptyUserRegistrationBuilder {
 
     withPrivacyPolicyAccepted(accepted: boolean): this {
         this.data.privacyPolicyAccepted = accepted;
+        return this;
+    }
+
+    withAdminEmailsAccepted(accepted: boolean): this {
+        this.data.adminEmailsAccepted = accepted;
+        return this;
+    }
+
+    withMarketingEmailsAccepted(accepted: boolean): this {
+        this.data.marketingEmailsAccepted = accepted;
+        return this;
+    }
+
+    withSignupHostname(hostname: string): this {
+        this.data.signupHostname = hostname;
         return this;
     }
 

@@ -173,6 +173,12 @@
     "submitButton": "Create Account",
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
+    "adminEmails": {
+      "label": "I agree to receive account notifications"
+    },
+    "marketingEmails": {
+      "label": "I agree to receive marketing emails (optional)"
+    },
     "validation": {
       "nameRequired": "Name is required",
       "emailRequired": "Email is required",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Passwords do not match",
       "termsRequired": "You must accept the Terms of Service",
       "cookiesRequired": "You must accept the Cookie Policy",
-      "privacyRequired": "You must accept the Privacy Policy"
+      "privacyRequired": "You must accept the Privacy Policy",
+      "adminEmailsRequired": "You must accept account notifications to create an account"
     }
   },
   "auth": {
@@ -792,7 +799,8 @@
     "successMessages": {
       "profileUpdated": "Profile updated successfully",
       "passwordChanged": "Password changed successfully",
-      "emailChanged": "Email updated successfully. Please verify the new address."
+      "emailChanged": "Email updated successfully. Please verify the new address.",
+      "emailPreferencesUpdated": "Email preferences updated successfully"
     },
     "errorMessages": {
       "profileUpdateFailed": "Failed to update profile. Please try again.",
@@ -809,7 +817,21 @@
       "emailSameAsCurrent": "New email must be different from current email",
       "emailPasswordRequired": "Enter your current password to confirm this change",
       "emailInUse": "That email is already linked to another {{appName}} account",
-      "emailChangeFailed": "Failed to change email. Please try again."
+      "emailChangeFailed": "Failed to change email. Please try again.",
+      "emailPreferencesUpdateFailed": "Failed to update email preferences. Please try again."
+    },
+    "emailPreferences": {
+      "title": "Email preferences",
+      "description": "Manage what types of emails you receive from us.",
+      "acceptedOn": "Accepted on {{date}}",
+      "adminEmails": {
+        "label": "Account notifications",
+        "description": "Essential account communications including password resets, security alerts, and billing information. These cannot be disabled."
+      },
+      "marketingEmails": {
+        "label": "Product updates and promotions",
+        "description": "Receive news about new features, tips, and special offers."
+      }
     }
   },
   "editGroupModal": {
@@ -1135,6 +1157,11 @@
       "closeAriaLabel": "Close",
       "errorTitle": "Error",
       "policyContentAriaLabel": "Policy content"
+    },
+    "policyViewModal": {
+      "loading": "Loading policy content...",
+      "loadError": "Failed to load policy content. Please try again.",
+      "errorTitle": "Error"
     }
   },
   "uiComponents": {

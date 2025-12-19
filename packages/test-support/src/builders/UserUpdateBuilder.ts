@@ -51,6 +51,11 @@ export class UserUpdateBuilder {
         return this;
     }
 
+    withMarketingEmailsAccepted(accepted: boolean): UserUpdateBuilder {
+        (this.updateData as Record<string, unknown>).marketingEmailsAccepted = accepted;
+        return this;
+    }
+
     build(): Partial<UpdateUserRequest> {
         return { ...this.updateData };
     }

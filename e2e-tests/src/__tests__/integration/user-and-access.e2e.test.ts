@@ -199,6 +199,7 @@ simpleTest.describe('User Registration & Account Management', () => {
         await registerPage.checkTermsCheckbox();
         await registerPage.checkCookieCheckbox();
         await registerPage.checkPrivacyCheckbox();
+        await registerPage.checkAdminEmailsCheckbox();
 
         // Submit form - this will fail with duplicate email error
         await registerPage.submitForm();
@@ -254,13 +255,13 @@ simpleTest.describe('Policy Acceptance', () => {
             const registerPage = new RegisterPage(page);
             await registerPage.navigate();
 
-            // Verify both checkboxes and links are present
+            // Verify both checkboxes and buttons are present
             await registerPage.verifyTermsCheckboxVisible();
             await registerPage.verifyCookiesCheckboxVisible();
             await registerPage.verifyPrivacyCheckboxVisible();
-            await registerPage.verifyTermsLinkVisible();
-            await registerPage.verifyCookiePolicyLinkVisible();
-            await registerPage.verifyPrivacyPolicyLinkVisible();
+            await registerPage.verifyTermsButtonVisible();
+            await registerPage.verifyCookiePolicyButtonVisible();
+            await registerPage.verifyPrivacyPolicyButtonVisible();
 
             // Fill form completely
             await registerPage.fillName('Test User');
@@ -292,8 +293,12 @@ simpleTest.describe('Policy Acceptance', () => {
             await registerPage.checkCookieCheckbox();
             await registerPage.verifySubmitButtonDisabled();
 
-            // Submit should be enabled only when all policies are accepted
+            // Submit should still be disabled with all three policies but no admin emails consent
             await registerPage.checkTermsCheckbox();
+            await registerPage.verifySubmitButtonDisabled();
+
+            // Submit should be enabled only when all policies AND admin emails consent are accepted
+            await registerPage.checkAdminEmailsCheckbox();
             await registerPage.verifySubmitButtonEnabled();
         });
     });

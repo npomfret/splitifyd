@@ -1,5 +1,5 @@
-import type { ClientUser, DisplayName, Email, SystemUserRole, UserProfileResponse } from '@billsplit-wl/shared';
-import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
+import type { ClientUser, DisplayName, Email, ISOString, SystemUserRole, UserProfileResponse } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toEmail, toISOString } from '@billsplit-wl/shared';
 import { randomChoice, randomString } from '../test-helpers';
 
 /**
@@ -38,6 +38,21 @@ export class UserProfileResponseBuilder {
         return this;
     }
 
+    withPreferredLanguage(language: string): this {
+        this.response.preferredLanguage = language;
+        return this;
+    }
+
+    withAdminEmailsAcceptedAt(timestamp: string | ISOString | undefined): this {
+        this.response.adminEmailsAcceptedAt = timestamp ? toISOString(timestamp) : undefined;
+        return this;
+    }
+
+    withMarketingEmailsAcceptedAt(timestamp: string | ISOString | null | undefined): this {
+        this.response.marketingEmailsAcceptedAt = timestamp === null ? null : timestamp ? toISOString(timestamp) : undefined;
+        return this;
+    }
+
     build(): UserProfileResponse {
         return { ...this.response };
     }
@@ -47,10 +62,20 @@ export class UserProfileResponseBuilder {
      * Useful when tests already have a user fixture and need to mock the profile API
      */
     static fromClientUser(user: ClientUser): UserProfileResponseBuilder {
-        return new UserProfileResponseBuilder()
+        const builder = new UserProfileResponseBuilder()
             .withDisplayName(user.displayName)
             .withEmail(user.email)
             .withEmailVerified(user.emailVerified ?? true)
             .withRole(user.role ?? SystemUserRoles.SYSTEM_USER);
+
+        // Copy email consent fields if present
+        if (user.adminEmailsAcceptedAt) {
+            builder.withAdminEmailsAcceptedAt(user.adminEmailsAcceptedAt);
+        }
+        if (user.marketingEmailsAcceptedAt !== undefined) {
+            builder.withMarketingEmailsAcceptedAt(user.marketingEmailsAcceptedAt);
+        }
+
+        return builder;
     }
 }

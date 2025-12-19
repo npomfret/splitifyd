@@ -62,9 +62,10 @@ export class RegisterPage extends BasePage {
 
     /**
      * Email input field within the register form
+     * Uses role='textbox' to avoid matching "marketing emails" checkbox
      */
     protected getEmailInput(): Locator {
-        return this.getRegisterFormContainer().getByLabel(translation.auth.emailInput.label);
+        return this.getRegisterFormContainer().getByRole('textbox', { name: translation.auth.emailInput.label });
     }
 
     /**
@@ -102,6 +103,21 @@ export class RegisterPage extends BasePage {
         return this.getRegisterFormContainer().getByLabel(new RegExp(translation.registerPage.privacyPolicy, 'i'));
     }
 
+    /**
+     * Admin Emails checkbox within the register form (required)
+     */
+    protected getAdminEmailsCheckbox(): Locator {
+        return this.getRegisterFormContainer().getByLabel(new RegExp(translation.registerPage.adminEmails.label, 'i'));
+    }
+
+    /**
+     * Marketing Emails checkbox within the register form (optional)
+     * Uses role='checkbox' to avoid regex escaping issues with "(optional)"
+     */
+    protected getMarketingEmailsCheckbox(): Locator {
+        return this.getRegisterFormContainer().getByRole('checkbox', { name: translation.registerPage.marketingEmails.label });
+    }
+
     // ============================================================================
     // BUTTON SELECTORS - Scoped to register form container
     // ============================================================================
@@ -121,24 +137,24 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Terms of Service link
+     * Terms of Service button (opens modal)
      */
-    protected getTermsLink(): Locator {
-        return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.termsOfService });
+    protected getTermsButton(): Locator {
+        return this.getRegisterFormContainer().getByRole('button', { name: translation.registerPage.termsOfService });
     }
 
     /**
-     * Cookie Policy link
+     * Cookie Policy button (opens modal)
      */
-    protected getCookiePolicyLink(): Locator {
-        return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.cookiePolicy });
+    protected getCookiePolicyButton(): Locator {
+        return this.getRegisterFormContainer().getByRole('button', { name: translation.registerPage.cookiePolicy });
     }
 
     /**
-     * Privacy Policy link
+     * Privacy Policy button (opens modal)
      */
-    protected getPrivacyPolicyLink(): Locator {
-        return this.getRegisterFormContainer().getByRole('link', { name: translation.registerPage.privacyPolicy });
+    protected getPrivacyPolicyButton(): Locator {
+        return this.getRegisterFormContainer().getByRole('button', { name: translation.registerPage.privacyPolicy });
     }
 
     // ============================================================================
@@ -285,12 +301,49 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Accept both policy checkboxes
+     * Check the Admin Emails checkbox (ensure it's checked)
+     */
+    async checkAdminEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getAdminEmailsCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.check();
+    }
+
+    /**
+     * Uncheck the Admin Emails checkbox (ensure it's unchecked)
+     */
+    async uncheckAdminEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getAdminEmailsCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.uncheck();
+    }
+
+    /**
+     * Check the Marketing Emails checkbox (ensure it's checked)
+     */
+    async checkMarketingEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getMarketingEmailsCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.check();
+    }
+
+    /**
+     * Uncheck the Marketing Emails checkbox (ensure it's unchecked)
+     */
+    async uncheckMarketingEmailsCheckbox(): Promise<void> {
+        const checkbox = this.getMarketingEmailsCheckbox();
+        await expect(checkbox).toBeVisible();
+        await checkbox.uncheck();
+    }
+
+    /**
+     * Accept all required policy and consent checkboxes
      */
     async acceptAllPolicies(): Promise<void> {
         await this.checkTermsCheckbox();
         await this.checkCookieCheckbox();
         await this.checkPrivacyCheckbox();
+        await this.checkAdminEmailsCheckbox();
     }
 
     /**
@@ -391,6 +444,8 @@ export class RegisterPage extends BasePage {
         await expect(this.getTermsCheckbox()).toBeEnabled();
         await expect(this.getCookiesCheckbox()).toBeEnabled();
         await expect(this.getPrivacyCheckbox()).toBeEnabled();
+        await expect(this.getAdminEmailsCheckbox()).toBeEnabled();
+        await expect(this.getMarketingEmailsCheckbox()).toBeEnabled();
     }
 
     /**
@@ -404,6 +459,8 @@ export class RegisterPage extends BasePage {
         await expect(this.getTermsCheckbox()).toBeDisabled();
         await expect(this.getCookiesCheckbox()).toBeDisabled();
         await expect(this.getPrivacyCheckbox()).toBeDisabled();
+        await expect(this.getAdminEmailsCheckbox()).toBeDisabled();
+        await expect(this.getMarketingEmailsCheckbox()).toBeDisabled();
         await expect(this.getSubmitButton()).toBeDisabled();
     }
 
@@ -444,7 +501,13 @@ export class RegisterPage extends BasePage {
     /**
      * Verify that checkboxes are in the expected state
      */
-    async verifyCheckboxStates(termsChecked: boolean, cookiesChecked: boolean, privacyChecked: boolean): Promise<void> {
+    async verifyCheckboxStates(
+        termsChecked: boolean,
+        cookiesChecked: boolean,
+        privacyChecked: boolean,
+        adminEmailsChecked?: boolean,
+        marketingEmailsChecked?: boolean,
+    ): Promise<void> {
         if (termsChecked) {
             await expect(this.getTermsCheckbox()).toBeChecked();
         } else {
@@ -461,6 +524,22 @@ export class RegisterPage extends BasePage {
             await expect(this.getPrivacyCheckbox()).toBeChecked();
         } else {
             await expect(this.getPrivacyCheckbox()).not.toBeChecked();
+        }
+
+        if (adminEmailsChecked !== undefined) {
+            if (adminEmailsChecked) {
+                await expect(this.getAdminEmailsCheckbox()).toBeChecked();
+            } else {
+                await expect(this.getAdminEmailsCheckbox()).not.toBeChecked();
+            }
+        }
+
+        if (marketingEmailsChecked !== undefined) {
+            if (marketingEmailsChecked) {
+                await expect(this.getMarketingEmailsCheckbox()).toBeChecked();
+            } else {
+                await expect(this.getMarketingEmailsCheckbox()).not.toBeChecked();
+            }
         }
     }
 
@@ -480,30 +559,133 @@ export class RegisterPage extends BasePage {
     }
 
     /**
-     * Verify policy links are visible
+     * Verify policy buttons are visible (buttons open modals)
      */
-    async verifyTermsLinkVisible(): Promise<void> {
-        await expect(this.getTermsLink()).toBeVisible();
+    async verifyTermsButtonVisible(): Promise<void> {
+        await expect(this.getTermsButton()).toBeVisible();
     }
 
-    async verifyCookiePolicyLinkVisible(): Promise<void> {
-        await expect(this.getCookiePolicyLink()).toBeVisible();
+    async verifyCookiePolicyButtonVisible(): Promise<void> {
+        await expect(this.getCookiePolicyButton()).toBeVisible();
     }
 
-    async verifyPrivacyPolicyLinkVisible(): Promise<void> {
-        await expect(this.getPrivacyPolicyLink()).toBeVisible();
+    async verifyPrivacyPolicyButtonVisible(): Promise<void> {
+        await expect(this.getPrivacyPolicyButton()).toBeVisible();
     }
 
-    async verifyTermsLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
-        const link = this.getTermsLink();
-        await expect(link).toHaveAttribute('href', expectedHref);
-        await expect(link).toHaveAttribute('target', expectedTarget);
+    // ============================================================================
+    // POLICY VIEW MODAL ACTIONS AND VERIFICATION
+    // ============================================================================
+
+    /**
+     * Get the policy view modal container (identified by dialog's accessible name from aria-labelledby)
+     */
+    protected getPolicyViewModal(policyName: string): Locator {
+        return this.page.getByRole('dialog', { name: policyName });
     }
 
-    async verifyCookiePolicyLinkAttributes(expectedHref: string, expectedTarget: string = '_blank'): Promise<void> {
-        const link = this.getCookiePolicyLink();
-        await expect(link).toHaveAttribute('href', expectedHref);
-        await expect(link).toHaveAttribute('target', expectedTarget);
+    /**
+     * Click the Terms of Service button to open the policy modal
+     */
+    async clickTermsButton(): Promise<void> {
+        await this.getTermsButton().click();
+    }
+
+    /**
+     * Click the Cookie Policy button to open the policy modal
+     */
+    async clickCookiePolicyButton(): Promise<void> {
+        await this.getCookiePolicyButton().click();
+    }
+
+    /**
+     * Click the Privacy Policy button to open the policy modal
+     */
+    async clickPrivacyPolicyButton(): Promise<void> {
+        await this.getPrivacyPolicyButton().click();
+    }
+
+    /**
+     * Verify the policy view modal is open with the expected title
+     */
+    async verifyPolicyModalOpen(policyName: string): Promise<void> {
+        const modal = this.getPolicyViewModal(policyName);
+        await expect(modal).toBeVisible({ timeout: 10000 });
+        // Target the h2 header specifically (the modal title, not the policy content h1)
+        await expect(modal.getByRole('heading', { name: policyName, level: 2 })).toBeVisible({ timeout: 5000 });
+    }
+
+    /**
+     * Verify the policy modal displays content (not loading or error state)
+     */
+    async verifyPolicyModalHasContent(policyName: string): Promise<void> {
+        const modal = this.getPolicyViewModal(policyName);
+        // Content is rendered within an article element
+        const contentArea = modal.getByRole('article');
+        await expect(contentArea).toBeVisible();
+    }
+
+    /**
+     * Verify the policy modal is showing loading state
+     */
+    async verifyPolicyModalLoading(policyName: string): Promise<void> {
+        const modal = this.getPolicyViewModal(policyName);
+        await expect(modal.getByText(translation.policyComponents.policyViewModal.loading)).toBeVisible();
+    }
+
+    /**
+     * Close the policy view modal using the footer close button
+     */
+    async closePolicyModal(policyName: string): Promise<void> {
+        const modal = this.getPolicyViewModal(policyName);
+        // Use the footer close button (secondary variant button in the footer)
+        // There are two close buttons: X in header (aria-label) and button in footer (visible text)
+        // We use the footer button as it's more reliable to click
+        await modal.getByRole('button', { name: translation.common.close }).last().click();
+    }
+
+    /**
+     * Verify the policy modal is closed
+     */
+    async verifyPolicyModalClosed(policyName: string): Promise<void> {
+        const modal = this.getPolicyViewModal(policyName);
+        await expect(modal).not.toBeVisible();
+    }
+
+    /**
+     * Open Terms of Service modal, verify content loads, then close
+     */
+    async openAndVerifyTermsModal(): Promise<void> {
+        const policyName = translation.registerPage.termsOfService;
+        await this.clickTermsButton();
+        await this.verifyPolicyModalOpen(policyName);
+        await this.verifyPolicyModalHasContent(policyName);
+        await this.closePolicyModal(policyName);
+        await this.verifyPolicyModalClosed(policyName);
+    }
+
+    /**
+     * Open Cookie Policy modal, verify content loads, then close
+     */
+    async openAndVerifyCookiePolicyModal(): Promise<void> {
+        const policyName = translation.registerPage.cookiePolicy;
+        await this.clickCookiePolicyButton();
+        await this.verifyPolicyModalOpen(policyName);
+        await this.verifyPolicyModalHasContent(policyName);
+        await this.closePolicyModal(policyName);
+        await this.verifyPolicyModalClosed(policyName);
+    }
+
+    /**
+     * Open Privacy Policy modal, verify content loads, then close
+     */
+    async openAndVerifyPrivacyPolicyModal(): Promise<void> {
+        const policyName = translation.registerPage.privacyPolicy;
+        await this.clickPrivacyPolicyButton();
+        await this.verifyPolicyModalOpen(policyName);
+        await this.verifyPolicyModalHasContent(policyName);
+        await this.closePolicyModal(policyName);
+        await this.verifyPolicyModalClosed(policyName);
     }
 
     /**

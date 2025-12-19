@@ -6,6 +6,7 @@ interface UpdateUserProfileRequest {
     displayName?: string;
     photoURL?: string | null;
     preferredLanguage?: string;
+    marketingEmailsAccepted?: boolean;
 }
 
 const mapUpdateProfileError = createZodErrorMapper(
@@ -26,6 +27,10 @@ const mapUpdateProfileError = createZodErrorMapper(
         preferredLanguage: {
             code: 'VALIDATION_ERROR',
             details: () => 'Language must be one of: en, uk, ar, de, es, it, ja, ko, lv, nl-BE, no, ph, sv',
+        },
+        marketingEmailsAccepted: {
+            code: 'VALIDATION_ERROR',
+            details: () => 'Marketing emails preference must be a boolean',
         },
     },
     {
@@ -51,6 +56,10 @@ const baseValidateUpdateUserProfile = createRequestValidator({
 
         if (value.preferredLanguage !== undefined) {
             result.preferredLanguage = value.preferredLanguage;
+        }
+
+        if (value.marketingEmailsAccepted !== undefined) {
+            result.marketingEmailsAccepted = value.marketingEmailsAccepted;
         }
 
         return result;

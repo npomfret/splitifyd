@@ -665,6 +665,72 @@ describe('user, policy and notification tests', () => {
                     .rejects
                     .toThrow();
             });
+
+            it('should opt in to marketing emails', async () => {
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withMarketingEmailsAccepted(true).build(),
+                    user1,
+                );
+
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.marketingEmailsAcceptedAt).toBeDefined();
+                expect(typeof profile.marketingEmailsAcceptedAt).toBe('string');
+            });
+
+            it('should opt out of marketing emails', async () => {
+                // First opt in
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withMarketingEmailsAccepted(true).build(),
+                    user1,
+                );
+
+                // Then opt out
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withMarketingEmailsAccepted(false).build(),
+                    user1,
+                );
+
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.marketingEmailsAcceptedAt).toBeNull();
+            });
+
+            it('should update display name and marketing emails together', async () => {
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder()
+                        .withDisplayName('New Name')
+                        .withMarketingEmailsAccepted(true)
+                        .build(),
+                    user1,
+                );
+
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.displayName).toBe('New Name');
+                expect(profile.marketingEmailsAcceptedAt).toBeDefined();
+            });
+
+            it('should preserve marketing email timestamp when updating other fields', async () => {
+                // First opt in to marketing emails
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withMarketingEmailsAccepted(true).build(),
+                    user1,
+                );
+
+                const profileAfterOptIn = await appDriver.getUserProfile(user1);
+                const originalTimestamp = profileAfterOptIn.marketingEmailsAcceptedAt;
+
+                // Wait a bit to ensure different timestamp if not preserved
+                await new Promise((resolve) => setTimeout(resolve, 10));
+
+                // Update display name only (not marketing emails)
+                await appDriver.updateUserProfile(
+                    new UserUpdateBuilder().withDisplayName('Different Name').build(),
+                    user1,
+                );
+
+                const profile = await appDriver.getUserProfile(user1);
+                expect(profile.displayName).toBe('Different Name');
+                expect(profile.marketingEmailsAcceptedAt).toBe(originalTimestamp);
+            });
         });
 
         describe('changePassword', () => {

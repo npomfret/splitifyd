@@ -23,6 +23,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         .withTermsAccepted(true)
         .withCookiePolicyAccepted(true)
         .withPrivacyPolicyAccepted(true)
+        .withAdminEmailsAccepted(true)
+        .withMarketingEmailsAccepted(false)
         .build();
 
     describe('Email Validation', () => {
@@ -313,6 +315,76 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
         });
     });
 
+    describe('Admin Emails Acceptance Validation', () => {
+        it('should require admin emails acceptance to be exactly true', () => {
+            const invalidAdminEmailsValues = [
+                false,
+                null,
+                undefined,
+                'true', // string instead of boolean
+                1, // number instead of boolean
+                0, // number instead of boolean
+            ];
+
+            for (const adminEmailsAccepted of invalidAdminEmailsValues) {
+                const data = new UserRegistrationBuilder()
+                    .from(validRegistrationData)
+                    .withAdminEmailsAccepted(adminEmailsAccepted as any)
+                    .build();
+                expect(() => validateRegisterRequest(data as any)).toThrow(
+                    expect.objectContaining({
+                        statusCode: HTTP_STATUS.BAD_REQUEST,
+                        code: ErrorCode.VALIDATION_ERROR,
+                    }),
+                );
+            }
+        });
+
+        it('should accept valid admin emails acceptance', () => {
+            const data = new UserRegistrationBuilder()
+                .from(validRegistrationData)
+                .withAdminEmailsAccepted(true)
+                .build();
+            expect(() => validateRegisterRequest(data)).not.toThrow();
+        });
+    });
+
+    describe('Marketing Emails Acceptance Validation', () => {
+        it('should accept true or false for marketing emails', () => {
+            // Should accept true
+            const dataTrue = new UserRegistrationBuilder()
+                .from(validRegistrationData)
+                .withMarketingEmailsAccepted(true)
+                .build();
+            expect(() => validateRegisterRequest(dataTrue)).not.toThrow();
+
+            // Should accept false
+            const dataFalse = new UserRegistrationBuilder()
+                .from(validRegistrationData)
+                .withMarketingEmailsAccepted(false)
+                .build();
+            expect(() => validateRegisterRequest(dataFalse)).not.toThrow();
+        });
+
+        it('should default marketing emails to false if not provided', () => {
+            const data = UserRegistrationBuilder
+                .empty()
+                .withEmail('test@example.com')
+                .withPassword('passwordpass')
+                .withDisplayName('Test User')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .withPrivacyPolicyAccepted(true)
+                .withAdminEmailsAccepted(true)
+                .withSignupHostname('localhost')
+                // Note: not setting marketingEmailsAccepted
+                .build();
+
+            const result = validateRegisterRequest(data as any);
+            expect(result.marketingEmailsAccepted).toBe(false);
+        });
+    });
+
     describe('Terms and Policy Acceptance Validation', () => {
         it('should require terms acceptance to be exactly true', () => {
             const invalidTermsValues = [
@@ -483,6 +555,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 .withTermsAccepted(true)
                 .withCookiePolicyAccepted(true)
                 .withPrivacyPolicyAccepted(true)
+                .withAdminEmailsAccepted(true)
+                .withMarketingEmailsAccepted(true)
                 .build();
 
             const result = validateRegisterRequest(inputData);
@@ -495,6 +569,8 @@ describe('Registration Validation - Unit Tests (Replacing Integration)', () => {
                 cookiePolicyAccepted: true,
                 privacyPolicyAccepted: true,
                 signupHostname: 'localhost', // normalized (default from builder)
+                adminEmailsAccepted: true,
+                marketingEmailsAccepted: true,
             });
         });
 

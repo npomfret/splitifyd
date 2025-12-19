@@ -1,7 +1,9 @@
 import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
+import { PolicyViewModal } from '@/components/policy/PolicyViewModal';
 import { navigationService } from '@/services/navigation.service';
-import { RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import { PolicyIds, RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
+import type { PolicyId } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +27,10 @@ export function RegisterPage() {
     const [agreeToTermsSignal] = useState(() => signal(false));
     const [agreeToCookiesSignal] = useState(() => signal(false));
     const [agreeToPrivacySignal] = useState(() => signal(false));
+    const [agreeToAdminEmailsSignal] = useState(() => signal(false));
+    const [agreeToMarketingEmailsSignal] = useState(() => signal(false));
     const [localErrorSignal] = useState(() => signal<string | null>(null));
+    const [viewingPolicySignal] = useState(() => signal<{ policyId: PolicyId; policyName: string; } | null>(null));
 
     // Clear any previous errors when component mounts
     useEffect(() => {
@@ -58,7 +63,10 @@ export function RegisterPage() {
     const agreeToTerms = agreeToTermsSignal.value;
     const agreeToCookies = agreeToCookiesSignal.value;
     const agreeToPrivacy = agreeToPrivacySignal.value;
+    const agreeToAdminEmails = agreeToAdminEmailsSignal.value;
+    const agreeToMarketingEmails = agreeToMarketingEmailsSignal.value;
     const localError = localErrorSignal.value;
+    const viewingPolicy = viewingPolicySignal.value;
 
     const validateForm = (): string | null => {
         // Check confirmPassword match first (not in schema)
@@ -75,6 +83,8 @@ export function RegisterPage() {
             cookiePolicyAccepted: agreeToCookies,
             privacyPolicyAccepted: agreeToPrivacy,
             signupHostname: window.location.hostname, // Added for tenant tracking
+            adminEmailsAccepted: agreeToAdminEmails,
+            marketingEmailsAccepted: agreeToMarketingEmails,
         });
 
         if (!result.success) {
@@ -97,6 +107,8 @@ export function RegisterPage() {
                     return t('registerPage.validation.cookiesRequired');
                 case 'privacyPolicyAccepted':
                     return t('registerPage.validation.privacyRequired');
+                case 'adminEmailsAccepted':
+                    return t('registerPage.validation.adminEmailsRequired');
                 default:
                     return firstError.message;
             }
@@ -118,14 +130,31 @@ export function RegisterPage() {
         localErrorSignal.value = null;
 
         try {
-            await authStore.register(toEmail(email.trim()), toPassword(password), toDisplayName(name.trim()), agreeToTerms, agreeToCookies, agreeToPrivacy);
+            await authStore.register(
+                toEmail(email.trim()),
+                toPassword(password),
+                toDisplayName(name.trim()),
+                agreeToTerms,
+                agreeToCookies,
+                agreeToPrivacy,
+                agreeToAdminEmails,
+                agreeToMarketingEmails,
+            );
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
             logError('Registration attempt failed', error, { email: email.trim(), displayName: name.trim() });
         }
     };
 
-    const isFormValid = name.trim() && email.trim() && password && confirmPassword && agreeToTerms && agreeToCookies && agreeToPrivacy;
+    const openPolicyModal = (policyId: PolicyId, policyName: string) => {
+        viewingPolicySignal.value = { policyId, policyName };
+    };
+
+    const closePolicyModal = () => {
+        viewingPolicySignal.value = null;
+    };
+
+    const isFormValid = name.trim() && email.trim() && password && confirmPassword && agreeToTerms && agreeToCookies && agreeToPrivacy && agreeToAdminEmails;
     const isSubmitting = authStore.loading;
     const displayError = authStore.error || localError;
 
@@ -185,9 +214,14 @@ export function RegisterPage() {
                         label={
                             <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/terms' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <button
+                                    type='button'
+                                    className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                                    onClick={() => openPolicyModal(PolicyIds.TERMS_OF_SERVICE, t('registerPage.termsOfService'))}
+                                >
                                     {t('registerPage.termsOfService')}
-                                </a>
+                                </button>
+                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToTerms}
@@ -201,9 +235,14 @@ export function RegisterPage() {
                         label={
                             <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/cookies' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <button
+                                    type='button'
+                                    className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                                    onClick={() => openPolicyModal(PolicyIds.COOKIE_POLICY, t('registerPage.cookiePolicy'))}
+                                >
                                     {t('registerPage.cookiePolicy')}
-                                </a>
+                                </button>
+                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToCookies}
@@ -217,14 +256,46 @@ export function RegisterPage() {
                         label={
                             <span className='text-sm text-text-primary'>
                                 {t('registerPage.acceptTerms')}{' '}
-                                <a href='/privacy-policy' target='_blank' className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'>
+                                <button
+                                    type='button'
+                                    className='font-semibold text-interactive-primary hover:opacity-80 transition-opacity'
+                                    onClick={() => openPolicyModal(PolicyIds.PRIVACY_POLICY, t('registerPage.privacyPolicy'))}
+                                >
                                     {t('registerPage.privacyPolicy')}
-                                </a>
+                                </button>
+                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToPrivacy}
                         onChange={(checked) => {
                             agreeToPrivacySignal.value = checked;
+                        }}
+                        disabled={isSubmitting}
+                    />
+
+                    <Checkbox
+                        label={
+                            <span className='text-sm text-text-primary'>
+                                {t('registerPage.adminEmails.label')}{' '}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
+                            </span>
+                        }
+                        checked={agreeToAdminEmails}
+                        onChange={(checked) => {
+                            agreeToAdminEmailsSignal.value = checked;
+                        }}
+                        disabled={isSubmitting}
+                    />
+
+                    <Checkbox
+                        label={
+                            <span className='text-sm text-text-primary'>
+                                {t('registerPage.marketingEmails.label')}
+                            </span>
+                        }
+                        checked={agreeToMarketingEmails}
+                        onChange={(checked) => {
+                            agreeToMarketingEmailsSignal.value = checked;
                         }}
                         disabled={isSubmitting}
                     />
@@ -249,6 +320,15 @@ export function RegisterPage() {
                     </p>
                 </div>
             </AuthForm>
+
+            {viewingPolicy && (
+                <PolicyViewModal
+                    policyId={viewingPolicy.policyId}
+                    policyName={viewingPolicy.policyName}
+                    open={true}
+                    onClose={closePolicyModal}
+                />
+            )}
         </AuthLayout>
     );
 }

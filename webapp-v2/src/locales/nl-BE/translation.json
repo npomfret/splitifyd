@@ -173,6 +173,12 @@
     "submitButton": "Account aanmaken",
     "hasAccount": "Heeft u al een account?",
     "signIn": "Aanmelden",
+    "adminEmails": {
+      "label": "Ik ga akkoord met het ontvangen van essentiële accountcommunicatie"
+    },
+    "marketingEmails": {
+      "label": "Ik ga akkoord met het ontvangen van productupdates en promotionele aanbiedingen (optioneel)"
+    },
     "validation": {
       "nameRequired": "Naam is verplicht",
       "emailRequired": "E-mail is verplicht",
@@ -181,7 +187,8 @@
       "passwordsNoMatch": "Wachtwoorden komen niet overeen",
       "termsRequired": "U moet de Servicevoorwaarden aanvaarden",
       "cookiesRequired": "U moet het Cookiebeleid aanvaarden",
-      "privacyRequired": "U moet het Privacybeleid aanvaarden"
+      "privacyRequired": "U moet het Privacybeleid aanvaarden",
+      "adminEmailsRequired": "U moet akkoord gaan met accountmeldingen om een account aan te maken"
     }
   },
   "auth": {
@@ -793,7 +800,8 @@
     "successMessages": {
       "profileUpdated": "Profiel succesvol bijgewerkt",
       "passwordChanged": "Wachtwoord succesvol gewijzigd",
-      "emailChanged": "E-mailadres succesvol bijgewerkt. Verifieer het nieuwe adres."
+      "emailChanged": "E-mailadres succesvol bijgewerkt. Verifieer het nieuwe adres.",
+      "emailPreferencesUpdated": "E-mailvoorkeuren succesvol bijgewerkt"
     },
     "errorMessages": {
       "profileUpdateFailed": "Profiel bijwerken mislukt. Probeer het opnieuw.",
@@ -810,7 +818,21 @@
       "emailSameAsCurrent": "Nieuw e-mailadres moet verschillen van het huidige e-mailadres",
       "emailPasswordRequired": "Voer uw huidige wachtwoord in om deze wijziging te bevestigen",
       "emailInUse": "Dat e-mailadres is al gekoppeld aan een ander {{appName}}-account",
-      "emailChangeFailed": "E-mailadres wijzigen mislukt. Probeer het opnieuw."
+      "emailChangeFailed": "E-mailadres wijzigen mislukt. Probeer het opnieuw.",
+      "emailPreferencesUpdateFailed": "Kan e-mailvoorkeuren niet bijwerken. Probeer het opnieuw."
+    },
+    "emailPreferences": {
+      "title": "E-mailvoorkeuren",
+      "description": "Beheer welke soorten e-mails u van ons ontvangt.",
+      "acceptedOn": "Geaccepteerd op {{date}}",
+      "adminEmails": {
+        "label": "Accountmeldingen",
+        "description": "Essentiële accountcommunicatie inclusief wachtwoord reset, beveiligingsmeldingen en factuurinformatie. Deze kunnen niet worden uitgeschakeld."
+      },
+      "marketingEmails": {
+        "label": "Productupdates en promoties",
+        "description": "Ontvang nieuws over nieuwe functies, tips en speciale aanbiedingen."
+      }
     }
   },
   "editGroupModal": {
@@ -1135,6 +1157,11 @@
       "policiesAccepted": " beleidsregels geaccepteerd",
       "accepting": "Accepteren...",
       "closeAriaLabel": "Sluiten",
+      "errorTitle": "Fout"
+    },
+    "policyViewModal": {
+      "loading": "Beleidsinhoud laden...",
+      "loadError": "Kan beleidsinhoud niet laden. Probeer het opnieuw.",
       "errorTitle": "Fout"
     }
   },
