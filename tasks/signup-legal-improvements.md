@@ -1,8 +1,13 @@
 # Signup Legal Improvements
 
-## Status: COMPLETE
+## Status: IN PROGRESS
 
-All phases implemented and tested. Ready for final review and commit.
+Phases 1-4 implemented. Phase 5 (Terms of Service update) still pending.
+
+### Remaining Work
+- **Phase 5**: Add marketing consent language to `firebase/docs/policies/terms-and-conditions.md`
+  - Add explicit statement that marketing emails are optional
+  - Clarify opt-in/opt-out mechanism
 
 ## Objective
 Improve the user registration flow to ensure robust legal compliance and granular consent for email communications.
