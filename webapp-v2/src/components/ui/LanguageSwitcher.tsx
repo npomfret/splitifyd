@@ -1,9 +1,10 @@
 import { apiClient } from '@/app/apiClient';
+import { useClickOutside } from '@/app/hooks/useClickOutside';
 import { changeLanguage } from '@/i18n';
 import { logError } from '@/utils/browser-logger';
 import { cx } from '@/utils/cx';
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/utils/languageDetection';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon } from './icons';
 import { Select } from './Select';
@@ -39,20 +40,7 @@ function LanguageSwitcherCompact({ currentLanguage, className }: LanguageSwitche
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        if (isOpen) {
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside, true);
-            }, 0);
-            return () => document.removeEventListener('click', handleClickOutside, true);
-        }
-    }, [isOpen]);
+    useClickOutside(menuRef, () => setIsOpen(false), { enabled: isOpen });
 
     const handleLanguageChange = async (lng: SupportedLanguage) => {
         setIsOpen(false);

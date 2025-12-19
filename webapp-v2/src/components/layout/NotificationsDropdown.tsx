@@ -1,3 +1,4 @@
+import { useClickOutside } from '@/app/hooks/useClickOutside';
 import { notificationsStore } from '@/app/stores/notifications-store';
 import { BellIcon } from '@/components/ui/icons';
 import { Typography } from '@/components/ui/Typography';
@@ -22,21 +23,7 @@ export function NotificationsDropdown({ userId }: NotificationsDropdownProps) {
         notificationsStore.initialize(userId);
     }, [userId]);
 
-    // Click-outside handler - follows UserMenu pattern
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        if (isOpen) {
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside, true);
-            }, 0);
-            return () => document.removeEventListener('click', handleClickOutside, true);
-        }
-    }, [isOpen]);
+    useClickOutside(dropdownRef, () => setIsOpen(false), { enabled: isOpen });
 
     // Mark as seen when dropdown opens
     useEffect(() => {

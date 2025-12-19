@@ -1,10 +1,10 @@
 import { Button, Checkbox } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { EmailSchema, toEmail, toPassword } from '@billsplit-wl/shared';
-import { signal } from '@preact/signals';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useLocalSignal } from '../app/hooks/useLocalSignal';
 import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
@@ -17,10 +17,9 @@ export function LoginPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
 
-    // Component-local signals - initialized within useState to avoid stale state across instances
-    const [emailSignal] = useState(() => signal(''));
-    const [passwordSignal] = useState(() => signal(''));
-    const [rememberMeSignal] = useState(() => signal(false));
+    const emailSignal = useLocalSignal('');
+    const passwordSignal = useLocalSignal('');
+    const rememberMeSignal = useLocalSignal(false);
 
     // Extract signal values for use in render
     const email = emailSignal.value;

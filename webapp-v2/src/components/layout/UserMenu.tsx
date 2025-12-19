@@ -1,9 +1,10 @@
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { useClickOutside } from '@/app/hooks/useClickOutside';
 import { ChevronDownIcon, HomeIcon, LogoutIcon, SettingsIcon } from '@/components/ui/icons';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { type SystemUserRole, SystemUserRoles } from '@billsplit-wl/shared';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
 interface UserMenuProps {
@@ -21,20 +22,7 @@ export function UserMenu({ user }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-
-        if (isOpen) {
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside, true);
-            }, 0);
-            return () => document.removeEventListener('click', handleClickOutside, true);
-        }
-    }, [isOpen]);
+    useClickOutside(menuRef, () => setIsOpen(false), { enabled: isOpen });
 
     const userInitial = user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
     const userName = user.displayName || user.email.split('@')[0];
