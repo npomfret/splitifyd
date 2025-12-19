@@ -1998,3 +1998,27 @@ export interface ResolveRedirectRequest {
 export interface ResolveRedirectResponse {
     resolvedUrl: string;
 }
+
+// ========================================================================
+// Email Template Types
+// ========================================================================
+
+/**
+ * Variables for password reset email interpolation.
+ * Used by EmailTemplateService to generate password reset emails.
+ */
+export interface PasswordResetEmailVariables {
+    appName: string;
+    domain: string;
+    resetLink: string;
+}
+
+/**
+ * Variables for welcome email interpolation.
+ * Used by EmailTemplateService to generate welcome emails.
+ */
+export interface WelcomeEmailVariables {
+    appName: string;
+    displayName: string;
+    dashboardLink: string;
+}

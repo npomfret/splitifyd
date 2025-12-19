@@ -1629,8 +1629,14 @@
       "instruction": "Vi har fått en begäran om att återställa lösenordet för ditt {{appName}}-konto.",
       "buttonText": "Återställ lösenord",
       "linkLabel": "Eller kopiera och klistra in denna länk i din webbläsare:",
-      "expiryNotice": "Denna länk upphör att gälla om 1 timme.",
-      "supportLine": "Behöver du hjälp? Kontakta oss på {{supportEmail}}"
+      "expiryNotice": "Denna länk upphör att gälla om 1 timme."
+    },
+    "welcome": {
+      "subject": "Välkommen till {{appName}}!",
+      "greeting": "Hej {{displayName}},",
+      "welcomeMessage": "Tack för att du registrerade dig på {{appName}}! Vi är glada att ha dig med.",
+      "instruction": "Med {{appName}} kan du enkelt dela utgifter med vänner, familj och rumskamrater. Skapa grupper, lägg till utgifter och låt oss beräkna vem som är skyldig vad.",
+      "buttonText": "Kom igång"
     }
   }
 }

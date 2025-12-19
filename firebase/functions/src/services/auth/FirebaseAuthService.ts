@@ -63,7 +63,7 @@ import { LoggerContext } from '../../utils/logger-context';
 import { EmailTemplateService, type EmailMessage, type IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
-import type { PasswordResetEmailContext } from './IAuthService';
+import type { PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -519,7 +519,6 @@ export class FirebaseAuthService implements IAuthService {
                     appName: resetContext.appName,
                     domain,
                     resetLink,
-                    supportEmail: resetContext.supportEmail,
                 });
 
                 const messageStream = process.env['__POSTMARK_MESSAGE_STREAM'];
@@ -569,5 +568,47 @@ export class FirebaseAuthService implements IAuthService {
             // Fallback to baseUrl if parsing fails
             return baseUrl;
         }
+    }
+
+    async sendWelcomeEmail(email: Email, welcomeContext: WelcomeEmailContext): Promise<void> {
+        const context = this.createContext('sendWelcomeEmail', email);
+
+        LoggerContext.update({
+            operation: 'sendWelcomeEmail',
+            email,
+            baseUrl: welcomeContext.baseUrl,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.sendWelcomeEmail',
+            async () => {
+                const dashboardLink = `${welcomeContext.baseUrl.replace(/\/$/, '')}/dashboard`;
+
+                const emailContent = this.emailTemplateService.generateWelcomeEmail({
+                    appName: welcomeContext.appName,
+                    displayName: welcomeContext.displayName,
+                    dashboardLink,
+                });
+
+                const messageStream = process.env['__POSTMARK_MESSAGE_STREAM'];
+                if (!messageStream) {
+                    throw Errors.serviceError(ErrorDetail.EMAIL_SERVICE_ERROR);
+                }
+
+                const message: EmailMessage = {
+                    to: email,
+                    from: welcomeContext.supportEmail,
+                    subject: emailContent.subject,
+                    textBody: emailContent.textBody,
+                    htmlBody: emailContent.htmlBody,
+                    messageStream,
+                };
+
+                await this.emailService.sendEmail(message);
+
+                logger.info('Welcome email sent successfully', { ...context, email });
+            },
+            context,
+        );
     }
 }

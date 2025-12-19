@@ -1629,8 +1629,14 @@
       "instruction": "We hebben een verzoek ontvangen om het wachtwoord van uw {{appName}}-account opnieuw in te stellen.",
       "buttonText": "Wachtwoord opnieuw instellen",
       "linkLabel": "Of kopieer en plak deze link in uw browser:",
-      "expiryNotice": "Deze link verloopt over 1 uur.",
-      "supportLine": "Hulp nodig? Neem contact met ons op via {{supportEmail}}"
+      "expiryNotice": "Deze link verloopt over 1 uur."
+    },
+    "welcome": {
+      "subject": "Welkom bij {{appName}}!",
+      "greeting": "Hallo {{displayName}},",
+      "welcomeMessage": "Bedankt voor uw registratie bij {{appName}}! We zijn blij dat u erbij bent.",
+      "instruction": "Met {{appName}} kunt u eenvoudig uitgaven delen met vrienden, familie en huisgenoten. Maak groepen aan, voeg uitgaven toe en laat ons berekenen wie wat verschuldigd is.",
+      "buttonText": "Aan de slag"
     }
   }
 }

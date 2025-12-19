@@ -1,11 +1,13 @@
-import type { LoginRequest, LoginResponse, PasswordResetRequest } from '@billsplit-wl/shared';
+import type { LoginRequest, LoginResponse, PasswordResetRequest, UserRegistration } from '@billsplit-wl/shared';
 import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
 import { Errors } from '../errors';
 import { ErrorDetail } from '../errors';
+import { logger } from '../logger';
 import type { IAuthService } from '../services/auth';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
+import type { UserService } from '../services/UserService2';
 import { validateLoginRequest, validatePasswordResetRequest } from './validation';
 
 interface ValidatedHostInfo {
@@ -23,6 +25,7 @@ export class AuthHandlers {
     constructor(
         private readonly authService: IAuthService,
         private readonly tenantRegistry: TenantRegistryService,
+        private readonly userService: UserService,
     ) {}
 
     private resolveAndValidateRequestHost(req: Request): ValidatedHostInfo {
@@ -185,5 +188,46 @@ export class AuthHandlers {
         });
 
         res.status(HTTP_STATUS.NO_CONTENT).send();
+    };
+
+    /**
+     * Register a new user and send a welcome email.
+     * Returns 201 Created with the user data on success.
+     */
+    register = async (req: Request, res: Response): Promise<void> => {
+        // Register the user first
+        const result = await this.userService.registerUser(req.body as UserRegistration);
+
+        // Attempt to send welcome email (non-blocking - don't fail registration if email fails)
+        try {
+            const hostInfo = this.resolveAndValidateRequestHost(req);
+            const tenantContext = await this.tenantRegistry.resolveTenant({ host: hostInfo.host });
+
+            if (tenantContext.source === 'domain') {
+                const legal = tenantContext.config?.brandingTokens?.tokens?.legal;
+                if (legal?.appName && legal.supportEmail) {
+                    const protoHeader = Array.isArray(req.headers['x-forwarded-proto'])
+                        ? req.headers['x-forwarded-proto'][0]
+                        : (req.headers['x-forwarded-proto'] as string | undefined);
+                    const protocol = protoHeader?.split(',')[0]?.trim().toLowerCase() === 'http' ? 'http' : 'https';
+                    const baseUrl = `${protocol}://${hostInfo.publicHost}`;
+
+                    await this.authService.sendWelcomeEmail(toEmail((req.body as UserRegistration).email), {
+                        baseUrl,
+                        appName: legal.appName,
+                        supportEmail: toEmail(legal.supportEmail),
+                        displayName: result.user.displayName,
+                    });
+                }
+            }
+        } catch (error) {
+            // Log but don't fail registration - welcome email is best-effort
+            logger.warn('Failed to send welcome email', {
+                error: error instanceof Error ? error.message : String(error),
+                userId: result.user.uid,
+            });
+        }
+
+        res.status(HTTP_STATUS.CREATED).json(result);
     };
 }

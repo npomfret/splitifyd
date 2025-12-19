@@ -1628,8 +1628,14 @@
       "instruction": "Vi mottok en forespørsel om å tilbakestille passordet for {{appName}}-kontoen din.",
       "buttonText": "Tilbakestill passord",
       "linkLabel": "Eller kopier og lim inn denne lenken i nettleseren din:",
-      "expiryNotice": "Denne lenken utløper om 1 time.",
-      "supportLine": "Trenger du hjelp? Kontakt oss på {{supportEmail}}"
+      "expiryNotice": "Denne lenken utløper om 1 time."
+    },
+    "welcome": {
+      "subject": "Velkommen til {{appName}}!",
+      "greeting": "Hei {{displayName}},",
+      "welcomeMessage": "Takk for at du registrerte deg på {{appName}}! Vi er glade for å ha deg med.",
+      "instruction": "Med {{appName}} kan du enkelt dele utgifter med venner, familie og romkamerater. Opprett grupper, legg til utgifter, og la oss beregne hvem som skylder hva.",
+      "buttonText": "Kom i gang"
     }
   }
 }

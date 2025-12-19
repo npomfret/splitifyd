@@ -1629,8 +1629,14 @@
       "instruction": "Nakatanggap kami ng kahilingan na i-reset ang password para sa iyong {{appName}} account.",
       "buttonText": "I-reset ang Password",
       "linkLabel": "O kopyahin at i-paste ang link na ito sa iyong browser:",
-      "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 1 oras.",
-      "supportLine": "Kailangan ng tulong? Makipag-ugnayan sa amin sa {{supportEmail}}"
+      "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 1 oras."
+    },
+    "welcome": {
+      "subject": "Maligayang pagdating sa {{appName}}!",
+      "greeting": "Kumusta {{displayName}},",
+      "welcomeMessage": "Salamat sa pag-sign up sa {{appName}}! Masaya kaming kasama ka.",
+      "instruction": "Sa {{appName}}, madali mong maihahati ang mga gastos sa mga kaibigan, pamilya, at roommate. Gumawa ng mga grupo, magdagdag ng mga gastos, at hayaan naming kalkulahin kung sino ang may utang sa kanino.",
+      "buttonText": "Magsimula"
     }
   }
 }

@@ -1629,8 +1629,14 @@
       "instruction": "Mēs saņēmām pieprasījumu atiestatīt jūsu {{appName}} konta paroli.",
       "buttonText": "Atiestatīt paroli",
       "linkLabel": "Vai kopējiet un ielīmējiet šo saiti savā pārlūkprogrammā:",
-      "expiryNotice": "Šī saite beigsies pēc 1 stundas.",
-      "supportLine": "Nepieciešama palīdzība? Sazinieties ar mums: {{supportEmail}}"
+      "expiryNotice": "Šī saite beigsies pēc 1 stundas."
+    },
+    "welcome": {
+      "subject": "Laipni lūdzam {{appName}}!",
+      "greeting": "Sveiki, {{displayName}},",
+      "welcomeMessage": "Paldies, ka reģistrējāties {{appName}}! Mēs priecājamies, ka esat ar mums.",
+      "instruction": "Ar {{appName}} jūs varat viegli sadalīt izdevumus ar draugiem, ģimeni un istabas biedriem. Izveidojiet grupas, pievienojiet izdevumus, un ļaujiet mums aprēķināt, kurš kam ir parādā.",
+      "buttonText": "Sākt"
     }
   }
 }

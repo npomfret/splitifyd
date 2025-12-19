@@ -76,6 +76,7 @@ const PLURAL_SUFFIXES = ['_zero', '_one', '_two', '_few', '_many', '_other'];
 // Translation keys used by the backend (Firebase Functions) that read translation files directly
 // These won't be detected in webapp source code but are legitimately used
 const BACKEND_TRANSLATION_KEYS = new Set([
+    // Password reset email
     'email.passwordReset.subject',
     'email.passwordReset.ignoreNotice',
     'email.passwordReset.greeting',
@@ -83,7 +84,12 @@ const BACKEND_TRANSLATION_KEYS = new Set([
     'email.passwordReset.buttonText',
     'email.passwordReset.linkLabel',
     'email.passwordReset.expiryNotice',
-    'email.passwordReset.supportLine',
+    // Welcome email
+    'email.welcome.subject',
+    'email.welcome.greeting',
+    'email.welcome.welcomeMessage',
+    'email.welcome.instruction',
+    'email.welcome.buttonText',
 ]);
 
 // Extract base key from a pluralized key (e.g., 'foo.bar_one' -> 'foo.bar')

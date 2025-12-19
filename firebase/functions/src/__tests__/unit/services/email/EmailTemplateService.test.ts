@@ -1,19 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { EmailTemplateService, type PasswordResetEmailVariables } from '../../../../services/email/EmailTemplateService';
+import {
+    PasswordResetEmailVariablesBuilder,
+    WelcomeEmailVariablesBuilder,
+} from '@billsplit-wl/test-support';
+import { EmailTemplateService } from '../../../../services/email/EmailTemplateService';
 
 describe('EmailTemplateService', () => {
     const service = new EmailTemplateService();
 
-    const defaultVariables: PasswordResetEmailVariables = {
-        appName: 'TestApp',
-        domain: 'example.com',
-        resetLink: 'https://example.com/__/auth/action?mode=resetPassword&oobCode=abc123',
-        supportEmail: 'support@example.com',
-    };
-
     describe('generatePasswordResetEmail', () => {
         it('generates email with all required parts', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const result = service.generatePasswordResetEmail(new PasswordResetEmailVariablesBuilder().build());
 
             expect(result).toHaveProperty('subject');
             expect(result).toHaveProperty('textBody');
@@ -21,32 +18,33 @@ describe('EmailTemplateService', () => {
         });
 
         it('interpolates appName in subject', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables);
 
-            expect(result.subject).toContain('TestApp');
+            expect(result.subject).toContain(variables.appName);
         });
 
         it('interpolates all variables in text body', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables);
 
-            expect(result.textBody).toContain('TestApp');
-            expect(result.textBody).toContain('example.com');
-            expect(result.textBody).toContain(defaultVariables.resetLink);
-            expect(result.textBody).toContain('support@example.com');
+            expect(result.textBody).toContain(variables.appName);
+            expect(result.textBody).toContain(variables.domain);
+            expect(result.textBody).toContain(variables.resetLink);
         });
 
         it('interpolates all variables in HTML body', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables);
 
-            expect(result.htmlBody).toContain('TestApp');
-            expect(result.htmlBody).toContain('example.com');
+            expect(result.htmlBody).toContain(variables.appName);
+            expect(result.htmlBody).toContain(variables.domain);
             // URL ampersands are escaped in HTML
             expect(result.htmlBody).toContain('mode=resetPassword&amp;oobCode=abc123');
-            expect(result.htmlBody).toContain('support@example.com');
         });
 
         it('generates valid HTML structure', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const result = service.generatePasswordResetEmail(new PasswordResetEmailVariablesBuilder().build());
 
             expect(result.htmlBody).toContain('<!DOCTYPE html>');
             expect(result.htmlBody).toContain('<html>');
@@ -56,73 +54,52 @@ describe('EmailTemplateService', () => {
         });
 
         it('includes reset link as clickable button in HTML', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables);
 
             // URL ampersands are escaped in HTML href attributes
-            const escapedLink = defaultVariables.resetLink.replace(/&/g, '&amp;');
+            const escapedLink = variables.resetLink.replace(/&/g, '&amp;');
             expect(result.htmlBody).toContain(`href="${escapedLink}"`);
-        });
-
-        it('includes mailto link for support email in HTML', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
-
-            expect(result.htmlBody).toContain('mailto:support@example.com');
         });
     });
 
     describe('HTML escaping (XSS prevention)', () => {
         it('escapes HTML special characters in appName', () => {
-            const xssVariables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                appName: '<script>alert("xss")</script>',
-            };
+            const variables = new PasswordResetEmailVariablesBuilder()
+                .withAppName('<script>alert("xss")</script>')
+                .build();
 
-            const result = service.generatePasswordResetEmail(xssVariables);
+            const result = service.generatePasswordResetEmail(variables);
 
             expect(result.htmlBody).not.toContain('<script>');
             expect(result.htmlBody).toContain('&lt;script&gt;');
         });
 
         it('escapes HTML special characters in domain', () => {
-            const xssVariables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                domain: '<img src=x onerror=alert(1)>',
-            };
+            const variables = new PasswordResetEmailVariablesBuilder()
+                .withDomain('<img src=x onerror=alert(1)>')
+                .build();
 
-            const result = service.generatePasswordResetEmail(xssVariables);
+            const result = service.generatePasswordResetEmail(variables);
 
             expect(result.htmlBody).not.toContain('<img');
             expect(result.htmlBody).toContain('&lt;img');
         });
 
-        it('escapes HTML special characters in supportEmail', () => {
-            const xssVariables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                supportEmail: '"><script>alert(1)</script>@evil.com',
-            };
-
-            const result = service.generatePasswordResetEmail(xssVariables);
-
-            expect(result.htmlBody).not.toContain('"><script>');
-            expect(result.htmlBody).toContain('&quot;&gt;&lt;script&gt;');
-        });
-
         it('escapes quotes in href attributes', () => {
-            const xssVariables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                resetLink: 'javascript:alert("xss")',
-            };
+            const variables = new PasswordResetEmailVariablesBuilder()
+                .withResetLink('javascript:alert("xss")')
+                .build();
 
-            const result = service.generatePasswordResetEmail(xssVariables);
+            const result = service.generatePasswordResetEmail(variables);
 
             expect(result.htmlBody).toContain('href="javascript:alert(&quot;xss&quot;)"');
         });
 
         it('escapes ampersands correctly', () => {
-            const variables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                appName: 'Tom & Jerry',
-            };
+            const variables = new PasswordResetEmailVariablesBuilder()
+                .withAppName('Tom & Jerry')
+                .build();
 
             const result = service.generatePasswordResetEmail(variables);
 
@@ -130,10 +107,9 @@ describe('EmailTemplateService', () => {
         });
 
         it('escapes single quotes', () => {
-            const variables: PasswordResetEmailVariables = {
-                ...defaultVariables,
-                appName: "Tom's App",
-            };
+            const variables = new PasswordResetEmailVariablesBuilder()
+                .withAppName("Tom's App")
+                .build();
 
             const result = service.generatePasswordResetEmail(variables);
 
@@ -143,21 +119,22 @@ describe('EmailTemplateService', () => {
 
     describe('text body formatting', () => {
         it('includes reset link on its own line', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables);
             const lines = result.textBody.split('\n');
 
-            const linkLine = lines.find(line => line.includes(defaultVariables.resetLink));
+            const linkLine = lines.find(line => line.includes(variables.resetLink));
             expect(linkLine).toBeDefined();
         });
 
         it('includes expiry notice', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const result = service.generatePasswordResetEmail(new PasswordResetEmailVariablesBuilder().build());
 
             expect(result.textBody).toMatch(/expire|hour/i);
         });
 
         it('includes ignore notice', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables);
+            const result = service.generatePasswordResetEmail(new PasswordResetEmailVariablesBuilder().build());
 
             expect(result.textBody).toMatch(/ignore|didn't request/i);
         });
@@ -166,9 +143,10 @@ describe('EmailTemplateService', () => {
     describe('caching', () => {
         it('returns consistent results for same language', () => {
             const service1 = new EmailTemplateService();
+            const variables = new PasswordResetEmailVariablesBuilder().build();
 
-            const result1 = service1.generatePasswordResetEmail(defaultVariables, 'en');
-            const result2 = service1.generatePasswordResetEmail(defaultVariables, 'en');
+            const result1 = service1.generatePasswordResetEmail(variables, 'en');
+            const result2 = service1.generatePasswordResetEmail(variables, 'en');
 
             expect(result1.subject).toBe(result2.subject);
             expect(result1.textBody).toBe(result2.textBody);
@@ -178,10 +156,143 @@ describe('EmailTemplateService', () => {
 
     describe('fallback behavior', () => {
         it('uses fallback translations for non-existent language', () => {
-            const result = service.generatePasswordResetEmail(defaultVariables, 'xx-nonexistent');
+            const variables = new PasswordResetEmailVariablesBuilder().build();
+            const result = service.generatePasswordResetEmail(variables, 'xx-nonexistent');
 
-            expect(result.subject).toContain('TestApp');
+            expect(result.subject).toContain(variables.appName);
             expect(result.textBody).toContain('Reset Password');
+        });
+    });
+
+    describe('generateWelcomeEmail', () => {
+        it('generates email with all required parts', () => {
+            const result = service.generateWelcomeEmail(new WelcomeEmailVariablesBuilder().build());
+
+            expect(result).toHaveProperty('subject');
+            expect(result).toHaveProperty('textBody');
+            expect(result).toHaveProperty('htmlBody');
+        });
+
+        it('interpolates appName in subject', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.subject).toContain(variables.appName);
+        });
+
+        it('interpolates all variables in text body', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.textBody).toContain(variables.appName);
+            expect(result.textBody).toContain(variables.displayName);
+            expect(result.textBody).toContain(variables.dashboardLink);
+        });
+
+        it('interpolates all variables in HTML body', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).toContain(variables.appName);
+            expect(result.htmlBody).toContain(variables.displayName);
+        });
+
+        it('generates valid HTML structure', () => {
+            const result = service.generateWelcomeEmail(new WelcomeEmailVariablesBuilder().build());
+
+            expect(result.htmlBody).toContain('<!DOCTYPE html>');
+            expect(result.htmlBody).toContain('<html>');
+            expect(result.htmlBody).toContain('</html>');
+            expect(result.htmlBody).toContain('<body');
+            expect(result.htmlBody).toContain('</body>');
+        });
+
+        it('includes dashboard link as clickable button in HTML', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).toContain(`href="${variables.dashboardLink}"`);
+        });
+    });
+
+    describe('welcome email HTML escaping (XSS prevention)', () => {
+        it('escapes HTML special characters in appName', () => {
+            const variables = new WelcomeEmailVariablesBuilder()
+                .withAppName('<script>alert("xss")</script>')
+                .build();
+
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).not.toContain('<script>');
+            expect(result.htmlBody).toContain('&lt;script&gt;');
+        });
+
+        it('escapes HTML special characters in displayName', () => {
+            const variables = new WelcomeEmailVariablesBuilder()
+                .withDisplayName('<img src=x onerror=alert(1)>')
+                .build();
+
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).not.toContain('<img');
+            expect(result.htmlBody).toContain('&lt;img');
+        });
+
+        it('escapes quotes in href attributes', () => {
+            const variables = new WelcomeEmailVariablesBuilder()
+                .withDashboardLink('javascript:alert("xss")')
+                .build();
+
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).toContain('href="javascript:alert(&quot;xss&quot;)"');
+        });
+
+        it('escapes ampersands correctly', () => {
+            const variables = new WelcomeEmailVariablesBuilder()
+                .withAppName('Tom & Jerry')
+                .build();
+
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).toContain('Tom &amp; Jerry');
+        });
+
+        it('escapes single quotes', () => {
+            const variables = new WelcomeEmailVariablesBuilder()
+                .withDisplayName("Tom's Account")
+                .build();
+
+            const result = service.generateWelcomeEmail(variables);
+
+            expect(result.htmlBody).toContain("Tom&#x27;s Account");
+        });
+    });
+
+    describe('welcome email text body formatting', () => {
+        it('includes dashboard link on its own line', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables);
+            const lines = result.textBody.split('\n');
+
+            const linkLine = lines.find(line => line.includes(variables.dashboardLink));
+            expect(linkLine).toBeDefined();
+        });
+
+        it('includes welcome message', () => {
+            const result = service.generateWelcomeEmail(new WelcomeEmailVariablesBuilder().build());
+
+            expect(result.textBody).toMatch(/welcome|thanks|excited/i);
+        });
+    });
+
+    describe('welcome email fallback behavior', () => {
+        it('uses fallback translations for non-existent language', () => {
+            const variables = new WelcomeEmailVariablesBuilder().build();
+            const result = service.generateWelcomeEmail(variables, 'xx-nonexistent');
+
+            expect(result.subject).toContain(variables.appName);
+            expect(result.textBody).toContain('Get Started');
         });
     });
 });

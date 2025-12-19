@@ -86,7 +86,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
     );
     const themeHandlers = new ThemeHandlers(componentBuilder.buildFirestoreReader(), tenantRegistryService);
     const policyTextHandlers = new PolicyTextHandlers(policyService, tenantRegistryService);
-    const authHandlers = new AuthHandlers(authService, tenantRegistryService);
+    const authHandlers = new AuthHandlers(authService, tenantRegistryService, userService);
     const urlRedirectHandlers = new UrlRedirectHandlers();
     const sharingHandlers = componentBuilder.buildSharingHandlers();
 
@@ -546,10 +546,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         listAllTenants: tenantBrowserHandlers.listAllTenants,
 
         // Auth handlers
-        register: async (req, res) => {
-            const result = await userService.registerUser(req.body);
-            res.status(201).json(result);
-        },
+        register: authHandlers.register,
         login: authHandlers.login,
         sendPasswordResetEmail: authHandlers.sendPasswordResetEmail,
 

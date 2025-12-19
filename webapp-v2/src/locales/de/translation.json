@@ -1628,8 +1628,14 @@
       "instruction": "Wir haben eine Anfrage erhalten, das Passwort für Ihr {{appName}}-Konto zurückzusetzen.",
       "buttonText": "Passwort zurücksetzen",
       "linkLabel": "Oder kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
-      "expiryNotice": "Dieser Link läuft in 1 Stunde ab.",
-      "supportLine": "Brauchen Sie Hilfe? Kontaktieren Sie uns unter {{supportEmail}}"
+      "expiryNotice": "Dieser Link läuft in 1 Stunde ab."
+    },
+    "welcome": {
+      "subject": "Willkommen bei {{appName}}!",
+      "greeting": "Hallo {{displayName}},",
+      "welcomeMessage": "Vielen Dank für Ihre Anmeldung bei {{appName}}! Wir freuen uns, Sie an Bord zu haben.",
+      "instruction": "Mit {{appName}} können Sie ganz einfach Ausgaben mit Freunden, Familie und Mitbewohnern teilen. Erstellen Sie Gruppen, fügen Sie Ausgaben hinzu und lassen Sie uns berechnen, wer wem was schuldet.",
+      "buttonText": "Loslegen"
     }
   }
 }

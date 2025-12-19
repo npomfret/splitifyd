@@ -1628,8 +1628,14 @@
       "instruction": "We received a request to reset your password for your {{appName}} account.",
       "buttonText": "Reset Password",
       "linkLabel": "Or copy and paste this link into your browser:",
-      "expiryNotice": "This link will expire in 1 hour.",
-      "supportLine": "Need help? Contact us at {{supportEmail}}"
+      "expiryNotice": "This link will expire in 1 hour."
+    },
+    "welcome": {
+      "subject": "Welcome to {{appName}}!",
+      "greeting": "Hi {{displayName}},",
+      "welcomeMessage": "Thanks for signing up for {{appName}}! We're excited to have you on board.",
+      "instruction": "With {{appName}}, you can easily split expenses with friends, family, and roommates. Create groups, add expenses, and let us calculate who owes what.",
+      "buttonText": "Get Started"
     }
   }
 }

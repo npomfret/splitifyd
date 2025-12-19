@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 
 /**
@@ -13,17 +14,17 @@ export interface PasswordResetEmailTranslations {
     buttonText: string;
     linkLabel: string;
     expiryNotice: string;
-    supportLine: string;
 }
 
 /**
- * Variables for password reset email interpolation
+ * Welcome email template translations
  */
-export interface PasswordResetEmailVariables {
-    appName: string;
-    domain: string;
-    resetLink: string;
-    supportEmail: string;
+export interface WelcomeEmailTranslations {
+    subject: string;
+    greeting: string;
+    welcomeMessage: string;
+    instruction: string;
+    buttonText: string;
 }
 
 /**
@@ -36,7 +37,7 @@ export interface EmailContent {
 }
 
 // Hardcoded fallback if translations can't be loaded
-const FALLBACK_TRANSLATIONS: PasswordResetEmailTranslations = {
+const FALLBACK_PASSWORD_RESET_TRANSLATIONS: PasswordResetEmailTranslations = {
     subject: '{{appName}}: Reset your password',
     ignoreNotice: "Ignore this email if you didn't request a password reset via {{domain}}.",
     greeting: 'Hi there,',
@@ -44,11 +45,19 @@ const FALLBACK_TRANSLATIONS: PasswordResetEmailTranslations = {
     buttonText: 'Reset Password',
     linkLabel: 'Or copy and paste this link into your browser:',
     expiryNotice: 'This link will expire in 1 hour.',
-    supportLine: 'Need help? Contact us at {{supportEmail}}',
+};
+
+const FALLBACK_WELCOME_TRANSLATIONS: WelcomeEmailTranslations = {
+    subject: 'Welcome to {{appName}}!',
+    greeting: 'Hi {{displayName}},',
+    welcomeMessage: "Thanks for signing up for {{appName}}! We're excited to have you on board.",
+    instruction: 'With {{appName}}, you can easily split expenses with friends, family, and roommates. Create groups, add expenses, and let us calculate who owes what.',
+    buttonText: 'Get Started',
 };
 
 type EmailTranslations = {
     passwordReset: PasswordResetEmailTranslations;
+    welcome: WelcomeEmailTranslations;
 };
 
 /**
@@ -73,6 +82,78 @@ export class EmailTemplateService {
         return { subject, textBody, htmlBody };
     }
 
+    /**
+     * Generate welcome email content with translated templates
+     */
+    generateWelcomeEmail(variables: WelcomeEmailVariables, lang: string = 'en'): EmailContent {
+        const translations = this.loadTranslations(lang);
+        const t = translations.welcome;
+        const vars = this.welcomeToRecord(variables);
+
+        const subject = this.interpolate(t.subject, vars);
+        const textBody = this.generateWelcomeTextBody(t, vars);
+        const htmlBody = this.generateWelcomeHtmlBody(t, vars);
+
+        return { subject, textBody, htmlBody };
+    }
+
+    private generateWelcomeTextBody(
+        t: WelcomeEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        return [
+            this.interpolate(t.greeting, vars),
+            '',
+            this.interpolate(t.welcomeMessage, vars),
+            '',
+            this.interpolate(t.instruction, vars),
+            '',
+            `${this.interpolate(t.buttonText, vars)}: ${vars.dashboardLink}`,
+        ].join('\n');
+    }
+
+    private generateWelcomeHtmlBody(
+        t: WelcomeEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        const escapedVars: Record<string, string> = {
+            appName: escapeHtml(vars.appName),
+            displayName: escapeHtml(vars.displayName),
+            dashboardLink: escapeAttribute(vars.dashboardLink),
+        };
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <p style="font-size: 18px;">${this.interpolate(t.greeting, escapedVars)}</p>
+
+    <p>${this.interpolate(t.welcomeMessage, escapedVars)}</p>
+
+    <p>${this.interpolate(t.instruction, escapedVars)}</p>
+
+    <p style="margin: 32px 0;">
+        <a href="${escapedVars.dashboardLink}"
+           style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+            ${this.interpolate(t.buttonText, escapedVars)}
+        </a>
+    </p>
+</body>
+</html>`.trim();
+    }
+
+    private welcomeToRecord(vars: WelcomeEmailVariables): Record<string, string> {
+        return {
+            appName: vars.appName,
+            displayName: vars.displayName,
+            dashboardLink: vars.dashboardLink,
+        };
+    }
+
     private generatePasswordResetTextBody(
         t: PasswordResetEmailTranslations,
         vars: Record<string, string>,
@@ -87,8 +168,6 @@ export class EmailTemplateService {
             `${this.interpolate(t.buttonText, vars)}: ${vars.resetLink}`,
             '',
             this.interpolate(t.expiryNotice, vars),
-            '',
-            this.interpolate(t.supportLine, vars),
         ].join('\n');
     }
 
@@ -102,7 +181,6 @@ export class EmailTemplateService {
             appName: escapeHtml(vars.appName),
             domain: escapeHtml(vars.domain),
             resetLink: escapeAttribute(vars.resetLink),
-            supportEmail: escapeHtml(vars.supportEmail),
         };
 
         return `
@@ -136,13 +214,6 @@ export class EmailTemplateService {
     <p style="color: #666; font-size: 14px;">
         ${this.interpolate(t.expiryNotice, escapedVars)}
     </p>
-
-    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-
-    <p style="color: #999; font-size: 12px;">
-        ${this.interpolate(t.supportLine, { ...escapedVars, supportEmail: '' })}
-        <a href="mailto:${escapeAttribute(vars.supportEmail)}" style="color: #4F46E5;">${escapedVars.supportEmail}</a>
-    </p>
 </body>
 </html>`.trim();
     }
@@ -156,7 +227,6 @@ export class EmailTemplateService {
             appName: vars.appName,
             domain: vars.domain,
             resetLink: vars.resetLink,
-            supportEmail: vars.supportEmail,
         };
     }
 
@@ -170,7 +240,10 @@ export class EmailTemplateService {
         // Try to load requested language, fall back to English
         const translations = this.loadTranslationsForLanguage(lang)
             ?? this.loadTranslationsForLanguage('en')
-            ?? { passwordReset: FALLBACK_TRANSLATIONS };
+            ?? {
+                passwordReset: FALLBACK_PASSWORD_RESET_TRANSLATIONS,
+                welcome: FALLBACK_WELCOME_TRANSLATIONS,
+            };
 
         this.translationsCache.set(lang, translations);
         return translations;

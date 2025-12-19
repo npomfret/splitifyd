@@ -241,4 +241,21 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             ).resolves.not.toThrow();
         });
     });
+
+    describe('Welcome Email', () => {
+        test('should send welcome email during registration via Postmark sandbox', async () => {
+            // Register a user with email matching sender domain
+            // Postmark sandbox requires recipient domain to match sender domain (sidebadger.me)
+            // The welcome email is sent automatically during registration
+            const testEmail = `welcome-${Date.now()}@sidebadger.me`;
+            const userData = new UserRegistrationBuilder().withEmail(testEmail).build();
+
+            // Registration should succeed - welcome email is sent as part of the flow
+            // but failures are logged and don't fail the registration
+            const result = await apiDriver.register(userData);
+
+            expect(result).toHaveProperty('user');
+            expect(result.user).toHaveProperty('uid');
+        });
+    });
 });

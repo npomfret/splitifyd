@@ -1628,8 +1628,14 @@
       "instruction": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de {{appName}}.",
       "buttonText": "Restablecer contraseña",
       "linkLabel": "O copia y pega este enlace en tu navegador:",
-      "expiryNotice": "Este enlace expirará en 1 hora.",
-      "supportLine": "¿Necesitas ayuda? Contáctanos en {{supportEmail}}"
+      "expiryNotice": "Este enlace expirará en 1 hora."
+    },
+    "welcome": {
+      "subject": "¡Bienvenido a {{appName}}!",
+      "greeting": "Hola {{displayName}},",
+      "welcomeMessage": "¡Gracias por registrarte en {{appName}}! Estamos emocionados de tenerte con nosotros.",
+      "instruction": "Con {{appName}}, puedes dividir gastos fácilmente con amigos, familiares y compañeros de piso. Crea grupos, añade gastos y deja que calculemos quién debe qué.",
+      "buttonText": "Comenzar"
     }
   }
 }
