@@ -10,6 +10,10 @@ const translation = translationEn;
  *
  * This modal allows system admins to edit user profiles (displayName, email)
  * and manage user roles.
+ *
+ * ## Selector Strategy
+ * - Single dialog invariant: only one modal open at a time, so `getByRole('dialog')` is unambiguous
+ * - All selectors scoped to `getModal()` for clarity
  */
 export class UserEditorModalPage extends BasePage {
     constructor(page: Page) {
@@ -17,24 +21,25 @@ export class UserEditorModalPage extends BasePage {
     }
 
     // ✅ Protected locators - internal use only
+    // Single dialog invariant: only one modal open at a time
     protected getModal(): Locator {
         return this.page.getByRole('dialog');
     }
 
     protected getProfileTab(): Locator {
-        return this.page.getByRole('tab', { name: translation.admin.userEditor.tabs.profile });
+        return this.getModal().getByRole('tab', { name: translation.admin.userEditor.tabs.profile });
     }
 
     protected getRoleTab(): Locator {
-        return this.page.getByRole('tab', { name: translation.admin.userEditor.tabs.role });
+        return this.getModal().getByRole('tab', { name: translation.admin.userEditor.tabs.role });
     }
 
     protected getDisplayNameInput(): Locator {
-        return this.page.getByLabel(translation.admin.userEditor.profile.displayName);
+        return this.getModal().getByLabel(translation.admin.userEditor.profile.displayName);
     }
 
     protected getEmailInput(): Locator {
-        return this.page.getByLabel(translation.admin.userEditor.profile.email);
+        return this.getModal().getByLabel(translation.admin.userEditor.profile.email);
     }
 
     protected getSaveProfileButton(): Locator {
@@ -50,11 +55,12 @@ export class UserEditorModalPage extends BasePage {
     }
 
     protected getSuccessAlert(): Locator {
+        // Success toasts appear at page level, not inside modal
         return this.page.getByText(translation.admin.userEditor.success.profileUpdated);
     }
 
     protected getRoleOption(label: string): Locator {
-        return this.page.getByText(label);
+        return this.getModal().getByText(label);
     }
 
     // ✅ Navigation / Wait methods

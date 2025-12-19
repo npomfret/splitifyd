@@ -166,7 +166,8 @@ export class GroupSettingsModalPage extends BasePage {
     // ============================================================================
 
     protected getSaveButton(): Locator {
-        // Save button in the general tab footer (not in identity section)
+        // Modal has two Save buttons: one in identity section, one in general tab footer.
+        // We want the footer button (last in DOM order). Using .last() is intentional.
         return this.getModalContainer().getByRole('button', { name: translation.common.save }).last();
     }
 
@@ -487,6 +488,8 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getConfirmDeleteButton(): Locator {
+        // Delete dialog may have duplicate button text from modal footer underneath.
+        // Scoped to delete dialog, .last() ensures we get the confirm button.
         return this
             .getDeleteDialog()
             .getByRole('button', { name: translation.editGroupModal.deleteConfirmDialog.confirmText })
@@ -1248,7 +1251,7 @@ export class GroupSettingsModalPage extends BasePage {
      * elements are positioned off-screen and fail viewport checks.
      */
     protected getGroupLockToggle(): Locator {
-        // The visible switch track is the first label[for="group-lock-toggle"]
+        // .first(): Multiple labels for same input; first is the visible switch track
         return this.getModalContainer().locator('label[for="group-lock-toggle"]').first();
     }
 
@@ -1257,9 +1260,10 @@ export class GroupSettingsModalPage extends BasePage {
     }
 
     protected getGroupLockSection(): Locator {
-        // Find the h3 heading's parent div (the section container)
-        // Use xpath to go up to the parent that contains both the heading and the toggle
-        return this.getGroupLockSectionHeading().locator('xpath=ancestor::div[contains(@class, "border-t")]');
+        // Scope-first: find the section that contains the lock section heading
+        return this.getModalContainer().locator('section').filter({
+            has: this.page.getByRole('heading', { name: translation.group.locked.sectionTitle }),
+        });
     }
 
     protected getGroupLockSuccessAlert(): Locator {

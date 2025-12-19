@@ -26,7 +26,8 @@ export class HeaderPage extends BasePage {
     }
 
     protected getUnreadIndicator(): Locator {
-        // The red dot indicator next to bell - a span with bg-semantic-error inside the bell button
+        // CSS class selector: scoped to bell button, testing that red dot indicator
+        // exists with semantic error styling (style assertion for visual indicator)
         return this.getNotificationsBell().locator('span.bg-semantic-error');
     }
 

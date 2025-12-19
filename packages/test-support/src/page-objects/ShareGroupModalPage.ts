@@ -56,7 +56,9 @@ export class ShareGroupModalPage extends BasePage {
     }
 
     /**
-     * Copy success indicator (checkmark icon that appears after successful copy)
+     * Copy success indicator (checkmark icon that appears after successful copy).
+     * CSS class selector: scoped to copy button, testing that success icon
+     * appears with semantic success styling (style assertion for visual feedback).
      */
     protected getCopySuccessIcon(): Locator {
         return this.getCopyLinkButton().locator('svg.text-semantic-success');

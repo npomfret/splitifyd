@@ -10,6 +10,10 @@ const translation = translationEn;
  * Leave Group Dialog Page Object Model for Playwright tests
  * Handles leave group confirmation with outstanding balance warnings
  * Reusable across unit tests and e2e tests
+ *
+ * ## Selector Strategy
+ * - Single dialog invariant: only one confirmation dialog open at a time
+ * - All selectors scoped to `getDialogContainer()` for clarity
  */
 export class LeaveGroupDialogPage extends BasePage {
     constructor(page: Page) {
@@ -22,6 +26,7 @@ export class LeaveGroupDialogPage extends BasePage {
 
     /**
      * Main dialog container - Modal component has role="dialog"
+     * Single dialog invariant: only one dialog open at a time
      */
     protected getDialogContainer(): Locator {
         return this.page.getByRole('dialog');
@@ -64,7 +69,9 @@ export class LeaveGroupDialogPage extends BasePage {
      * Outstanding balance warning message - identified by text content
      */
     protected getBalanceWarningMessage(): Locator {
-        return this.getConfirmationDialog().locator('#confirm-dialog-description').filter({ hasText: /outstanding balance/i });
+        return this.getConfirmationDialog().locator('#confirm-dialog-description').filter({
+            hasText: translation.membersList.leaveGroupDialog.messageWithBalance,
+        });
     }
 
     /**

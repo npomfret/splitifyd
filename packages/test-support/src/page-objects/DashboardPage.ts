@@ -44,6 +44,7 @@ export class DashboardPage extends BasePage {
      * Groups container - found by the "Your Groups" heading
      */
     protected getGroupsContainer(): Locator {
+        // .first(): Container may match multiple wrappers; get first (visible one)
         return this
             .page
             .locator('section, div')
@@ -189,11 +190,15 @@ export class DashboardPage extends BasePage {
         const groupCard = this.getGroupCard(groupName);
         await expect(groupCard).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
-        const quickActions = groupCard.getByRole('button', { name: new RegExp(`${translation.groupActions.archive}|${translation.groupActions.unarchive}`) });
+        // Check each action separately to avoid conditional regex
+        const archiveButton = groupCard.getByRole('button', { name: translation.groupActions.archive });
+        const unarchiveButton = groupCard.getByRole('button', { name: translation.groupActions.unarchive });
+
         await expect(async () => {
-            const count = await quickActions.count();
-            if (count !== 0) {
-                throw new Error(`Expected no archive or unarchive quick actions for "${groupName}", but found ${count}.`);
+            const archiveCount = await archiveButton.count();
+            const unarchiveCount = await unarchiveButton.count();
+            if (archiveCount !== 0 || unarchiveCount !== 0) {
+                throw new Error(`Expected no archive or unarchive quick actions for "${groupName}", but found archive=${archiveCount}, unarchive=${unarchiveCount}.`);
             }
         })
             .toPass({
@@ -217,12 +222,12 @@ export class DashboardPage extends BasePage {
     }
 
     private getPaginationNextButtonMobile(): Locator {
-        // Mobile pagination next button - first navigation element is mobile, second is desktop
+        // .first(): Mobile pagination is first nav element; desktop is second
         return this.page.getByRole('navigation', { name: translation.pagination.navigation }).first().getByRole('button', { name: translation.pagination.next });
     }
 
     private getPaginationPreviousButtonMobile(): Locator {
-        // Mobile pagination previous button - first navigation element is mobile, second is desktop
+        // .first(): Mobile pagination is first nav element; desktop is second
         return this.page.getByRole('navigation', { name: translation.pagination.navigation }).first().getByRole('button', { name: translation.pagination.previous });
     }
 
@@ -789,6 +794,7 @@ export class DashboardPage extends BasePage {
 
     /**
      * Verify groups grid is populated
+     * .first(): Verify at least one group card is visible
      */
     async verifyGroupsDisplayed(expectedCount?: number): Promise<void> {
         await expect(this.getGroupsGrid()).toBeVisible();
@@ -822,6 +828,7 @@ export class DashboardPage extends BasePage {
 
     /**
      * Verify the "create first group" prompt is visible (empty state for new users)
+     * .first(): Description text may appear in multiple contexts
      */
     async verifyCreateFirstGroupPromptVisible(): Promise<void> {
         await expect(this.page.getByText(translation.emptyGroupsState.description).first()).toBeVisible();
@@ -857,6 +864,7 @@ export class DashboardPage extends BasePage {
      * Activity feed empty state (contains 'No activity yet' text)
      */
     private getActivityFeedEmptyState(): Locator {
+        // .first(): Multiple divs may contain empty state text; get first match
         return this
             .getActivityFeedContainer()
             .locator('div')

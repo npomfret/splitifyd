@@ -5,15 +5,31 @@ import { BasePage } from './BasePage';
 
 const translation = translationEn;
 
+/**
+ * TenantEditorModalPage - Admin modal for creating/editing tenant configurations
+ *
+ * ## Selector Strategy Justification
+ *
+ * This modal contains many form fields with duplicate or similar labels across sections
+ * (e.g., "Primary", "Secondary" appear in multiple color sections). The strategy is:
+ *
+ * 1. **Modal scoping**: All selectors are scoped to `getModal()` (the single dialog)
+ * 2. **test-ids for duplicate labels**: Color inputs, spacing inputs, etc. use data-testid
+ *    because their labels repeat across sections (justified per testing.md)
+ * 3. **Semantic selectors where unique**: Buttons, headings, and unique inputs use roles/labels
+ * 4. **Admin pages use hardcoded English**: Admin UI is not translated (internal tool)
+ *
+ * The modal is always the only dialog open during tests (single-dialog invariant).
+ */
 export class TenantEditorModalPage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
 
     // ✅ Section expansion helpers
-    // For sections with i18n-translated titles, use test-id
+    // For sections with i18n-translated titles, use test-id scoped to modal
     protected getSectionButtonByTestId(testId: string): Locator {
-        return this.page.getByTestId(testId);
+        return this.getModal().getByTestId(testId);
     }
 
     // For sections with hardcoded titles, use button name (more semantic)
@@ -129,79 +145,87 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCreateTenantHeading(): Locator {
-        return this.page.getByRole('heading', { name: translation.admin.tenantEditor.titleCreate });
+        return this.getModal().getByRole('heading', { name: translation.admin.tenantEditor.titleCreate });
     }
 
     protected getEditTenantHeading(): Locator {
-        return this.page.getByRole('heading', { name: translation.admin.tenantEditor.titleEdit });
+        return this.getModal().getByRole('heading', { name: translation.admin.tenantEditor.titleEdit });
     }
 
     protected getTenantIdInput(): Locator {
-        return this.page.getByLabel(/tenant id/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/tenant id/i);
     }
 
     protected getAppNameInput(): Locator {
-        return this.page.getByLabel(/app name/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/app name/i);
     }
 
     protected getLogoUploadField(): Locator {
-        return this.page.getByTestId('logo-upload-field');
+        return this.getModal().getByTestId('logo-upload-field');
     }
 
     protected getFaviconUploadField(): Locator {
-        return this.page.getByTestId('favicon-upload-field');
+        return this.getModal().getByTestId('favicon-upload-field');
     }
 
     // Color inputs use test-ids (justified: duplicate labels across sections like "Primary *", "Secondary *")
     protected getPrimaryColorInput(): Locator {
-        return this.page.getByTestId('primary-color-input');
+        return this.getModal().getByTestId('primary-color-input');
     }
 
     protected getSecondaryColorInput(): Locator {
-        return this.page.getByTestId('secondary-color-input');
+        return this.getModal().getByTestId('secondary-color-input');
     }
 
     protected getAccentColorInput(): Locator {
-        return this.page.getByTestId('accent-color-input');
+        return this.getModal().getByTestId('accent-color-input');
     }
 
     protected getSurfaceColorInput(): Locator {
-        return this.page.getByTestId('surface-base-color-input');
+        return this.getModal().getByTestId('surface-base-color-input');
     }
 
     protected getTextColorInput(): Locator {
-        return this.page.getByTestId('text-primary-color-input');
+        return this.getModal().getByTestId('text-primary-color-input');
     }
 
     protected getCustomCssInput(): Locator {
         // Custom CSS was removed from the form
-        return this.page.locator('[data-testid="custom-css-input"]');
+        return this.getModal().locator('[data-testid="custom-css-input"]');
     }
 
     protected getShowMarketingContentCheckbox(): Locator {
-        return this.page.getByLabel(/marketing content/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/marketing content/i);
     }
 
     protected getShowPricingPageCheckbox(): Locator {
-        return this.page.getByLabel(/pricing page/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/pricing page/i);
     }
 
     // Header Display
     protected getShowAppNameInHeaderCheckbox(): Locator {
-        return this.page.getByLabel(/show app name in header/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/show app name in header/i);
     }
 
     // Motion & Effects
     protected getEnableAuroraAnimationCheckbox(): Locator {
-        return this.page.getByLabel(/aurora background/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/aurora background/i);
     }
 
     protected getEnableMagneticHoverCheckbox(): Locator {
-        return this.page.getByLabel(/magnetic hover/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/magnetic hover/i);
     }
 
     protected getEnableScrollRevealCheckbox(): Locator {
-        return this.page.getByLabel(/scroll reveal/i);
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByLabel(/scroll reveal/i);
     }
 
     // Typography Controls - use semantic labels
@@ -217,38 +241,40 @@ export class TenantEditorModalPage extends BasePage {
         return this.getModal().getByLabel(/^Mono/);
     }
 
-    // Aurora Gradient (4 colors)
+    // Aurora Gradient (4 colors) - test-ids for duplicate color labels
     protected getAuroraGradientSection(): Locator {
-        return this.page.getByRole('heading', { name: /aurora gradient/i }).locator('..');
+        // Admin regex labels are intentionally hardcoded English
+        return this.getModal().getByRole('heading', { name: /aurora gradient/i }).locator('..');
     }
 
     protected getAuroraGradientColor1Input(): Locator {
-        return this.page.getByTestId('aurora-gradient-color-1-input');
+        return this.getModal().getByTestId('aurora-gradient-color-1-input');
     }
 
     protected getAuroraGradientColor2Input(): Locator {
-        return this.page.getByTestId('aurora-gradient-color-2-input');
+        return this.getModal().getByTestId('aurora-gradient-color-2-input');
     }
 
     protected getAuroraGradientColor3Input(): Locator {
-        return this.page.getByTestId('aurora-gradient-color-3-input');
+        return this.getModal().getByTestId('aurora-gradient-color-3-input');
     }
 
     protected getAuroraGradientColor4Input(): Locator {
-        return this.page.getByTestId('aurora-gradient-color-4-input');
+        return this.getModal().getByTestId('aurora-gradient-color-4-input');
     }
 
-    // Glassmorphism Colors
+    // Glassmorphism Colors - test-ids for duplicate color labels
     protected getGlassColorInput(): Locator {
-        return this.page.getByTestId('glass-color-input');
+        return this.getModal().getByTestId('glass-color-input');
     }
 
     protected getGlassBorderColorInput(): Locator {
-        return this.page.getByTestId('glass-border-color-input');
+        return this.getModal().getByTestId('glass-border-color-input');
     }
 
     protected getNewDomainInput(): Locator {
-        return this.page.getByPlaceholder(/example\.com|domain/i);
+        // Admin pages use hardcoded English placeholder
+        return this.getModal().getByPlaceholder('app.example.com');
     }
 
     protected getAddDomainButton(): Locator {
@@ -266,7 +292,7 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getCancelButton(): Locator {
-        return this.page.getByRole('button', { name: translation.common.cancel });
+        return this.getModal().getByRole('button', { name: translation.common.cancel });
     }
 
     protected getCloseModalButton(): Locator {
@@ -274,15 +300,17 @@ export class TenantEditorModalPage extends BasePage {
     }
 
     protected getPublishButton(): Locator {
-        return this.page.getByRole('button', { name: translation.admin.tenantEditor.buttons.publish });
+        return this.getModal().getByRole('button', { name: translation.admin.tenantEditor.buttons.publish });
     }
 
     protected getSuccessAlert(): Locator {
-        return this.page.locator('[role="alert"]').filter({ hasText: /successfully|published/i });
+        // Success alerts appear at page level (toast), not inside modal - intentionally unscoped
+        return this.page.locator('[role="alert"]').filter({ hasText: /successfully/i });
     }
 
     protected getErrorAlert(): Locator {
-        return this.page.locator('[role="alert"]').filter({ hasText: /error|invalid|required|failed/i });
+        // Error alerts use role="alert" with aria-live - scope to modal and use semantic role
+        return this.getModal().getByRole('alert');
     }
 
     protected getCreateTenantButton(): Locator {
@@ -321,7 +349,7 @@ export class TenantEditorModalPage extends BasePage {
         // The logo field uses ImageUploadField with URL input mode
         const logoField = this.getLogoUploadField();
         await logoField.getByRole('button', { name: translation.common.orEnterUrl }).click();
-        const urlInput = this.page.getByTestId('logo-upload-field-url-input');
+        const urlInput = this.getModal().getByTestId('logo-upload-field-url-input');
         await urlInput.fill(value);
         // Click Download button to set the URL
         await logoField.getByRole('button', { name: translation.common.download }).click();
@@ -333,7 +361,7 @@ export class TenantEditorModalPage extends BasePage {
         // The favicon field uses ImageUploadField with URL input mode
         const faviconField = this.getFaviconUploadField();
         await faviconField.getByRole('button', { name: translation.common.orEnterUrl }).click();
-        const urlInput = this.page.getByTestId('favicon-upload-field-url-input');
+        const urlInput = this.getModal().getByTestId('favicon-upload-field-url-input');
         await urlInput.fill(value);
         // Click Download button to set the URL
         await faviconField.getByRole('button', { name: translation.common.download }).click();
@@ -837,7 +865,7 @@ export class TenantEditorModalPage extends BasePage {
 
     // Domain verification methods
     protected getDomainItem(domain: string): Locator {
-        return this.page.getByText(domain, { exact: true });
+        return this.getModal().getByText(domain, { exact: true });
     }
 
     async verifyDomainVisible(domain: string): Promise<void> {
@@ -863,24 +891,25 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName(translation.admin.tenantEditor.sections.spacing.title);
     }
 
+    // Spacing inputs use test-ids (justified: identical "2xs", "xs", etc. labels repeat in multiple sections)
     protected getSpacing2xsInput(): Locator {
-        return this.page.getByTestId('spacing-2xs-input');
+        return this.getModal().getByTestId('spacing-2xs-input');
     }
 
     protected getSpacingXsInput(): Locator {
-        return this.page.getByTestId('spacing-xs-input');
+        return this.getModal().getByTestId('spacing-xs-input');
     }
 
     protected getSpacingSmInput(): Locator {
-        return this.page.getByTestId('spacing-sm-input');
+        return this.getModal().getByTestId('spacing-sm-input');
     }
 
     protected getSpacingMdInput(): Locator {
-        return this.page.getByTestId('spacing-md-input');
+        return this.getModal().getByTestId('spacing-md-input');
     }
 
     protected getSpacingLgInput(): Locator {
-        return this.page.getByTestId('spacing-lg-input');
+        return this.getModal().getByTestId('spacing-lg-input');
     }
 
     async verifySpacingFieldsVisible(): Promise<void> {
@@ -895,16 +924,17 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName(translation.admin.tenantEditor.sections.radii.title);
     }
 
+    // Radii inputs use test-ids (justified: identical "sm", "md", "lg" labels repeat in multiple sections)
     protected getRadiiSmInput(): Locator {
-        return this.page.getByTestId('radii-sm-input');
+        return this.getModal().getByTestId('radii-sm-input');
     }
 
     protected getRadiiMdInput(): Locator {
-        return this.page.getByTestId('radii-md-input');
+        return this.getModal().getByTestId('radii-md-input');
     }
 
     protected getRadiiLgInput(): Locator {
-        return this.page.getByTestId('radii-lg-input');
+        return this.getModal().getByTestId('radii-lg-input');
     }
 
     async verifyRadiiFieldsVisible(): Promise<void> {
@@ -929,16 +959,17 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName(translation.admin.tenantEditor.sections.shadows.title);
     }
 
+    // Shadow inputs use test-ids (justified: identical "sm", "md", "lg" labels repeat in multiple sections)
     protected getShadowSmInput(): Locator {
-        return this.page.getByTestId('shadow-sm-input');
+        return this.getModal().getByTestId('shadow-sm-input');
     }
 
     protected getShadowMdInput(): Locator {
-        return this.page.getByTestId('shadow-md-input');
+        return this.getModal().getByTestId('shadow-md-input');
     }
 
     protected getShadowLgInput(): Locator {
-        return this.page.getByTestId('shadow-lg-input');
+        return this.getModal().getByTestId('shadow-lg-input');
     }
 
     async verifyShadowFieldsVisible(): Promise<void> {
@@ -966,20 +997,21 @@ export class TenantEditorModalPage extends BasePage {
         await this.expandSectionByName(translation.admin.tenantEditor.sections.legal.title);
     }
 
+    // Legal inputs use test-ids (justified: unique within section but test-ids provide stability)
     protected getCompanyNameInput(): Locator {
-        return this.page.getByTestId('company-name-input');
+        return this.getModal().getByTestId('company-name-input');
     }
 
     protected getSupportEmailInput(): Locator {
-        return this.page.getByTestId('support-email-input');
+        return this.getModal().getByTestId('support-email-input');
     }
 
     protected getPrivacyPolicyUrlInput(): Locator {
-        return this.page.getByTestId('privacy-policy-url-input');
+        return this.getModal().getByTestId('privacy-policy-url-input');
     }
 
     protected getTermsOfServiceUrlInput(): Locator {
-        return this.page.getByTestId('terms-of-service-url-input');
+        return this.getModal().getByTestId('terms-of-service-url-input');
     }
 
     async verifyLegalFieldsVisible(): Promise<void> {
@@ -1018,16 +1050,17 @@ export class TenantEditorModalPage extends BasePage {
 
     // Interactive colors section (expandInteractiveSection defined above)
 
+    // Interactive color inputs use test-ids (justified: "Primary", "Hover", etc. labels repeat in other sections)
     protected getInteractivePrimaryInput(): Locator {
-        return this.page.getByTestId('interactive-primary-color-input');
+        return this.getModal().getByTestId('interactive-primary-color-input');
     }
 
     protected getInteractivePrimaryHoverInput(): Locator {
-        return this.page.getByTestId('interactive-primary-hover-color-input');
+        return this.getModal().getByTestId('interactive-primary-hover-color-input');
     }
 
     protected getInteractiveDestructiveInput(): Locator {
-        return this.page.getByTestId('interactive-destructive-color-input');
+        return this.getModal().getByTestId('interactive-destructive-color-input');
     }
 
     async verifyInteractiveFieldsVisible(): Promise<void> {
@@ -1058,6 +1091,7 @@ export class TenantEditorModalPage extends BasePage {
         const expandedButtons = this.getModal().locator('[aria-expanded="true"]');
         const count = await expandedButtons.count();
         for (let i = 0; i < count; i++) {
+            // .nth(0): Each iteration collapses first remaining expanded button
             await expandedButtons.nth(0).click();
             await this.page.waitForTimeout(50);
         }

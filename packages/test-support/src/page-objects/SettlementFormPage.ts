@@ -14,11 +14,20 @@ type ReadyOptions = {
 
 const MEMBER_PLACEHOLDER_PATTERN = /select/i;
 
+/**
+ * Settlement Form Page Object Model for Playwright tests
+ *
+ * ## Selector Strategy
+ * - Single dialog invariant: only one settlement modal open at a time
+ * - All selectors scoped to `getModal()` for clarity
+ * - Currency listbox uses portal rendering, so accessed at page level with justification
+ */
 export class SettlementFormPage extends BasePage {
     constructor(page: Page) {
         super(page);
     }
 
+    // Single dialog invariant: only one modal open at a time
     protected getModal(): Locator {
         return this.page.getByRole('dialog');
     }
@@ -86,11 +95,12 @@ export class SettlementFormPage extends BasePage {
         // 1. GroupActions button by accessible name (primary, semantic approach)
         // 2. BalanceSummary button (pre-fills the form with specific debt)
         const groupActionsButtonByName = this.page.getByRole('button', { name: translation.groupActions.settleUp });
+        // .first(): Multiple debt buttons may exist; need any one to open form
         const balanceSummaryButton = this.page.getByRole('button', { name: new RegExp(`${translation.settlementForm.recordSettlement}.*debt`, 'i') }).first();
 
         let openButton = groupActionsButtonByName;
 
-        // Wait for group detail to load by checking for balance summary region
+        // .first(): Responsive layout may have duplicate regions; wait for any
         await this.page.getByRole('region', { name: translation.pages.groupDetailPage.balances }).first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
 
         // Check if primary button is visible, fall back to balance summary button
@@ -164,7 +174,7 @@ export class SettlementFormPage extends BasePage {
         const currencyDropdown = this.page.getByRole('listbox');
         await expect(currencyDropdown).toBeVisible({ timeout: 3000 });
 
-        const searchInput = currencyDropdown.getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchInput = currencyDropdown.getByPlaceholder(translation.uiComponents.currencyAmountInput.searchPlaceholder);
         const searchVisible = await searchInput.isVisible().catch(() => false);
 
         if (searchVisible) {
@@ -456,7 +466,7 @@ export class SettlementFormPage extends BasePage {
     }
 
     protected getAmountError(): Locator {
-        // Amount precision error is the first alert in the form (appears below amount input)
+        // .first(): Amount precision error is the first alert; form may have multiple
         return this.getModal().getByRole('alert').first();
     }
 

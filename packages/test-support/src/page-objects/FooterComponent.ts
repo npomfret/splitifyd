@@ -23,6 +23,7 @@ export class FooterComponent extends BasePage {
     }
 
     protected getCompanyName(): Locator {
+        // .first(): Company name is the first heading in footer, before section headings
         return this.getFooter().getByRole('heading').first();
     }
 

@@ -74,6 +74,7 @@ export class TenantBrandingPage extends BasePage {
      * Access Denied Message
      */
     protected getAccessDeniedMessage(): Locator {
+        // Admin pages use hardcoded English - not translated
         return this.page.locator('text=/you do not have permission/i');
     }
 
@@ -81,10 +82,12 @@ export class TenantBrandingPage extends BasePage {
      * Success/Error Messages
      */
     protected getSuccessMessage(): Locator {
+        // Admin pages use hardcoded English - not translated
         return this.page.locator('text=/branding settings updated successfully/i');
     }
 
     protected getNotImplementedMessage(): Locator {
+        // Admin pages use hardcoded English - not translated
         return this.page.locator('text=/branding update not yet implemented/i');
     }
 

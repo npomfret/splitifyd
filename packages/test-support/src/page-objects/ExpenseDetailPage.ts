@@ -130,7 +130,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the confirmation dialog - identified by aria-labelledby="confirm-dialog-title"
      */
     protected getConfirmationDialog(): Locator {
-        return this.page.getByRole('dialog', { name: /delete expense/i });
+        return this.page.getByRole('dialog', { name: translation.expenseComponents.expenseActions.deleteTitle });
     }
 
     /**
@@ -347,8 +347,12 @@ export class ExpenseDetailPage extends BasePage {
         const confirmDialog = this.getConfirmationDialog();
         await expect(confirmDialog).toBeVisible();
 
-        // Verify the dialog shows the expense deletion message - using partial text match for the key parts
-        await expect(confirmDialog.getByText(/this action cannot be undone and will affect group balances/i)).toBeVisible();
+        // Verify the dialog shows the expense deletion message
+        // The deleteConfirm translation contains interpolation but ends with a static warning phrase
+        // Extract the static portion after the interpolation: "This action cannot be undone..."
+        const deleteConfirmText = translation.expenseComponents.expenseActions.deleteConfirm;
+        const staticWarningPortion = deleteConfirmText.split('?')[1]?.trim() || 'cannot be undone';
+        await expect(confirmDialog.getByText(new RegExp(staticWarningPortion, 'i'))).toBeVisible();
 
         // Click the confirm button to actually delete - use translation for exact match
         const confirmButton = confirmDialog.getByRole('button', {

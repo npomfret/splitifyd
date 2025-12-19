@@ -122,7 +122,8 @@ export class SettingsPage extends BasePage {
         if (text) {
             return alerts.filter({ hasText: text });
         }
-        return alerts.filter({ hasText: /successfully|updated|changed/i });
+        // All success messages contain "successfully" - no conditional regex needed
+        return alerts.filter({ hasText: /successfully/i });
     }
 
     /**
@@ -403,6 +404,7 @@ export class SettingsPage extends BasePage {
 
     /**
      * Avatar or initials element - scoped to profile summary section
+     * .first(): Profile card may have decorative images; avatar is first
      */
     protected getAvatarOrInitials(): Locator {
         // Profile summary card contains the avatar - scope by visible profile overview text
@@ -456,6 +458,7 @@ export class SettingsPage extends BasePage {
 
     /**
      * Profile Information section info icon (description is in tooltip)
+     * .first(): Section may have multiple info icons; profile info is first
      */
     protected getProfileInformationInfoIcon(): Locator {
         // The info icon is next to the Profile Information heading
@@ -471,6 +474,7 @@ export class SettingsPage extends BasePage {
 
     /**
      * Password section info icon (description is in tooltip)
+     * .first(): Section may have multiple info icons; password info is first
      */
     protected getPasswordInfoIcon(): Locator {
         // The info icon is next to the Password heading
@@ -479,6 +483,7 @@ export class SettingsPage extends BasePage {
 
     /**
      * Page hero/title label
+     * .first(): Hero label text may appear in multiple contexts; page header first
      */
     protected getHeroLabel(): Locator {
         return this.page.getByText(translation.settingsPage.heroLabel).first();

@@ -162,7 +162,7 @@ export class ExpenseFormPage extends BasePage {
      * "Each person pays:" instruction text
      */
     protected getEqualSplitInstructionText(): Locator {
-        return this.page.getByText(/each person pays/i);
+        return this.page.getByText(translation.expenseComponents.splitAmountInputs.equalInstruction);
     }
 
     /**
@@ -172,14 +172,14 @@ export class ExpenseFormPage extends BasePage {
     protected getExactSplitContainer(): Locator {
         // Find the instruction text and go up to its parent (the Stack component)
         // The instruction is wrapped in a <p> inside the Stack, so go up one level
-        return this.page.getByText(/enter exact amounts for each person/i).locator('..');
+        return this.page.getByText(translation.expenseComponents.splitAmountInputs.exactAmountsInstruction).locator('..');
     }
 
     /**
      * "Enter exact amounts for each person:" instruction text
      */
     protected getExactSplitInstructionText(): Locator {
-        return this.page.getByText(/enter exact amounts for each person/i);
+        return this.page.getByText(translation.expenseComponents.splitAmountInputs.exactAmountsInstruction);
     }
 
     /**
@@ -194,7 +194,7 @@ export class ExpenseFormPage extends BasePage {
      * Total text within exact split container (scoped to avoid false matches)
      */
     protected getExactSplitTotalText(): Locator {
-        return this.getExactSplitContainer().getByText(/total/i);
+        return this.getExactSplitContainer().getByText(translation.expenseComponents.splitAmountInputs.total);
     }
 
     // ============================================================================
@@ -277,11 +277,12 @@ export class ExpenseFormPage extends BasePage {
      * Time-related selectors.
      */
     protected getTimeButton(): Locator {
-        return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
+        // Use character class [AP]M instead of conditional regex (AM|PM)
+        return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} [AP]M/i });
     }
 
     protected getTimeInput(): Locator {
-        return this.page.getByPlaceholder(/Enter time/i);
+        return this.page.getByPlaceholder(translation.uiComponents.timeInput.placeholder);
     }
 
     protected getTimeSuggestion(time: string): Locator {
@@ -291,7 +292,16 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
+     * Currency search input - the search field inside the currency dropdown.
+     */
+    protected getCurrencySearchInput(): Locator {
+        return this.page.getByPlaceholder(translation.uiComponents.currencyAmountInput.searchPlaceholder);
+    }
+
+    /**
      * Labels input field (combobox for MultiLabelInput).
+     * Scoped to expense details section. .first() used because currency dropdown
+     * also renders a combobox - labels input appears first in DOM order.
      */
     protected getLabelsInput(): Locator {
         return this.getExpenseDetailsSection().getByRole('combobox').first();
@@ -340,6 +350,7 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Get the "max labels reached" indicator
+     * Uses regex to match dynamic number from expenseDetails.labels.maxReached translation
      */
     protected getMaxLabelsIndicator(): Locator {
         return this.getExpenseDetailsSection().getByText(/Max \d+ labels/);
@@ -347,6 +358,7 @@ export class ExpenseFormPage extends BasePage {
 
     /**
      * Get the labels hint text (e.g., "0/3 labels")
+     * Uses regex to match dynamic numbers from expenseDetails.labels.hint translation
      */
     protected getLabelsHintText(): Locator {
         return this.getExpenseDetailsSection().getByText(/\d+\/\d+ labels/);
@@ -382,6 +394,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     protected getSplitOptionsFirstCheckbox(): Locator {
+        // Scoped to split options card. .first() gets the "Select All" checkbox.
         return this.getSplitOptionsCard().getByRole('checkbox').first();
     }
 
@@ -452,7 +465,7 @@ export class ExpenseFormPage extends BasePage {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
 
-        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchInput = this.getCurrencySearchInput();
 
         // Open dropdown
         await expect(async () => {
@@ -470,7 +483,7 @@ export class ExpenseFormPage extends BasePage {
 
         // Close dropdown by clicking on description input (outside the dropdown)
         // Don't use Escape as it closes the entire modal
-        const descriptionInput = this.page.getByPlaceholder(/What was this expense for/i);
+        const descriptionInput = this.getDescriptionInput();
         await descriptionInput.click();
         await expect(searchInput).not.toBeVisible({ timeout: 2000 });
     }
@@ -482,7 +495,7 @@ export class ExpenseFormPage extends BasePage {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
 
-        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchInput = this.getCurrencySearchInput();
 
         // Open dropdown
         await expect(async () => {
@@ -500,7 +513,7 @@ export class ExpenseFormPage extends BasePage {
 
         // Close dropdown by clicking on description input (outside the dropdown)
         // Don't use Escape as it closes the entire modal
-        const descriptionInput = this.page.getByPlaceholder(/What was this expense for/i);
+        const descriptionInput = this.getDescriptionInput();
         await descriptionInput.click();
         await expect(searchInput).not.toBeVisible({ timeout: 2000 });
     }
@@ -521,7 +534,7 @@ export class ExpenseFormPage extends BasePage {
         const currencyButton = this.getCurrencySelect();
         await expect(currencyButton).toBeVisible();
 
-        const searchInput = this.page.getByPlaceholder(/Search by symbol, code, or country/i);
+        const searchInput = this.getCurrencySearchInput();
 
         // Click button and wait for dropdown to open (retry if needed due to focus timing)
         await expect(async () => {
@@ -615,6 +628,7 @@ export class ExpenseFormPage extends BasePage {
      */
     async selectSpecificParticipants(participantNames: string[]): Promise<void> {
         const allLabels = this.getSplitBetweenSection().locator('label');
+        // .first(): Wait for any participant label to be visible before iterating
         await allLabels.first().waitFor({ state: 'visible' });
 
         const count = await allLabels.count();
@@ -917,7 +931,8 @@ export class ExpenseFormPage extends BasePage {
 
         // Determine how many times to press ArrowDown to reach the target suggestion
         // We need to find the index of the target time in the visible suggestions
-        const allSuggestions = await this.page.getByRole('button').filter({ hasText: /\d{1,2}:\d{2}\s*(AM|PM)/i }).allTextContents();
+        // Use character class [AP]M instead of conditional regex (AM|PM)
+        const allSuggestions = await this.page.getByRole('button').filter({ hasText: /\d{1,2}:\d{2}\s*[AP]M/i }).allTextContents();
         const targetIndex = allSuggestions.findIndex(text => text === time);
 
         if (targetIndex === -1) {
@@ -976,7 +991,7 @@ export class ExpenseFormPage extends BasePage {
     async verifyEqualSplitsContainAmount(amount: string): Promise<void> {
         const container = this.getEqualSplitContainer();
         await expect(container).toBeVisible();
-        // Find the amount within the equal split container - use first() since amount may appear multiple times
+        // .first(): Amount may appear multiple times in split container
         await expect(container.getByText(amount, { exact: true }).first()).toBeVisible();
     }
 
@@ -1493,14 +1508,14 @@ export class ExpenseFormPage extends BasePage {
      * Percentage split container
      */
     protected getPercentageSplitContainer(): Locator {
-        return this.page.getByText(/enter percentage for each person/i).locator('..');
+        return this.page.getByText(translation.expenseComponents.splitAmountInputs.percentageInstruction).locator('..');
     }
 
     /**
      * "Enter percentage for each person:" instruction text
      */
     protected getPercentageSplitInstructionText(): Locator {
-        return this.page.getByText(/enter percentage for each person/i);
+        return this.page.getByText(translation.expenseComponents.splitAmountInputs.percentageInstruction);
     }
 
     /**

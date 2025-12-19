@@ -48,7 +48,7 @@ export class PolicyAcceptanceModalPage extends BasePage {
     }
 
     protected getPolicyTitle(): Locator {
-        // Policy name heading within the card (h3) - first heading only
+        // .first(): Policy card has heading followed by content; policy name is first
         return this.getPolicyCard().getByRole('heading').first();
     }
 

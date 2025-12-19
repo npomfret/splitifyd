@@ -133,7 +133,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     private getSuccessIcon(): Locator {
-        // Success icon is now an SVG inside the success container
+        // .first(): Multiple SVGs may exist in success container; first is the success icon
         return this.getJoinSuccessContainer().locator('svg').first();
     }
 

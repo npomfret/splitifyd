@@ -20,7 +20,7 @@ export class AdminPage extends BasePage {
     // ============================================================================
 
     protected getAdminLayout(): Locator {
-        // CSS class selector is appropriate here - test explicitly verifies this class exists
+        // CSS class selector: deliberately testing that admin layout class is applied (style assertion)
         return this.page.locator('.admin-layout');
     }
 
@@ -29,12 +29,12 @@ export class AdminPage extends BasePage {
     }
 
     protected getAdminGradientBackground(): Locator {
-        // CSS class selector is appropriate here - test verifies CSS styling
+        // CSS class selector: deliberately testing admin-specific gradient styling exists (style assertion)
         return this.page.locator('.admin-gradient-mixed');
     }
 
     protected getAdminGridPattern(): Locator {
-        // CSS class selector is appropriate here - test verifies CSS styling
+        // CSS class selector: deliberately testing admin-specific grid pattern styling exists (style assertion)
         return this.page.locator('.admin-grid-pattern');
     }
 

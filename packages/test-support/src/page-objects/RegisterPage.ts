@@ -612,6 +612,7 @@ export class RegisterPage extends BasePage {
      * Verify user display name is visible on page after navigation
      */
     async verifyUserDisplayNameVisible(displayName: DisplayName | string): Promise<void> {
+        // .first(): Display name may appear multiple times; verify at least one visible
         await expect(this.page.getByText(displayName).first()).toBeVisible();
     }
 }

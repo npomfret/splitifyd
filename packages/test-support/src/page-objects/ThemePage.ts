@@ -182,6 +182,7 @@ export class ThemePage extends BasePage {
     /**
      * Verify an element's CSS property matches an RGB triplet (e.g., "237 68 80")
      * Polls until condition met.
+     * .first(): CSS selector may match multiple; verify first instance
      */
     async expectElementColorMatches(selector: string, cssProperty: string, rgbTriplet: string): Promise<void> {
         const element = this.page.locator(selector).first();
@@ -203,6 +204,7 @@ export class ThemePage extends BasePage {
     /**
      * Verify an element's background gradient contains a specific RGB color.
      * Polls until condition met.
+     * .first(): CSS selector may match multiple; verify first instance
      */
     async expectGradientContainsColor(selector: string, rgbTriplet: string): Promise<void> {
         const element = this.page.locator(selector).first();

@@ -323,7 +323,7 @@ export abstract class BasePage {
         await expect(modalContainer).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
 
         // Try to focus on a focusable element within the modal to ensure keyboard events are captured
-        // First, try to find and focus the first input, button, or other focusable element
+        // .first(): Focus any focusable element to receive keyboard events
         const focusableElement = modalContainer.locator('input, button, textarea, select, [tabindex]:not([tabindex="-1"])').first();
         const hasFocusable = await focusableElement.count() > 0;
 
@@ -392,6 +392,7 @@ export abstract class BasePage {
      */
     async expectNoGlobalErrors(): Promise<void> {
         await expect(this._page.getByText(translation.errorBoundary.title)).toHaveCount(0);
+        // Development-only ErrorBoundary internal message (not user-facing, intentionally hardcoded)
         await expect(this._page.getByText(/ErrorBoundary caught an error/i)).toHaveCount(0);
     }
 
@@ -473,6 +474,7 @@ export abstract class BasePage {
 
     /**
      * Verify the first focusable element in a dialog is focused
+     * .first(): Explicitly testing focus trap sends focus to first element
      */
     async verifyDialogFirstElementFocused(): Promise<void> {
         const modal = this.getDialogLocator();
@@ -482,6 +484,7 @@ export abstract class BasePage {
 
     /**
      * Verify the last focusable element in a dialog is focused
+     * .last(): Explicitly testing focus trap sends focus to last element
      */
     async verifyDialogLastElementFocused(): Promise<void> {
         const modal = this.getDialogLocator();

@@ -71,6 +71,7 @@ export class AdminTenantsPage extends BasePage {
      * Access Denied Message
      */
     protected getAccessDeniedMessage(): Locator {
+        // Admin pages use hardcoded English - not translated
         return this.page.getByText(/you do not have permission/i);
     }
 
@@ -117,13 +118,15 @@ export class AdminTenantsPage extends BasePage {
 
     /**
      * Tenant Card Elements - Generic selectors for first card
+     * .first() is intentional: tests need first tenant in list order
      */
     protected getFirstTenantAppName(): Locator {
-        // getTenantCards() returns h3 headings directly
+        // .first(): Deliberately select first tenant for ordered list operations
         return this.getTenantCards().first();
     }
 
     protected getDefaultBadge(): Locator {
+        // .first(): Multiple tenants may have default badge; first in DOM order
         return this.page.getByText(translation.admin.tenants.status.default).first();
     }
 
@@ -148,7 +151,7 @@ export class AdminTenantsPage extends BasePage {
     async clickEditButtonForFirstTenant<T = TenantEditorModalPage>(
         pageFactory?: (page: Page) => T,
     ): Promise<T> {
-        // Get the first tenant card's heading to extract app name, then click its edit button
+        // .first(): Deliberately select first tenant for ordered list operations
         const firstTenantHeading = this.getTenantCards().first();
         const appName = await firstTenantHeading.textContent();
         if (!appName) {
@@ -263,8 +266,8 @@ export class AdminTenantsPage extends BasePage {
      * Finds the region (Card with ariaLabel) that contains the first tenant heading
      */
     protected getFirstTenantCardContainer(): Locator {
+        // .first() x2: First tenant heading, then first matching region container
         // Card components with ariaLabel render as role="region"
-        // Find the region that contains the first tenant heading (h3)
         return this.page.getByRole('region').filter({ has: this.getTenantCards().first() }).first();
     }
 
@@ -346,6 +349,7 @@ export class AdminTenantsPage extends BasePage {
         await expect(this.getLoadingSpinner()).not.toBeVisible({ timeout: 5000 });
 
         // Either we have tenant cards or an empty state
+        // .first(): Verify at least one tenant card is visible
         await Promise.race([
             this.getTenantCards().first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => null),
             this.getEmptyStateMessage().waitFor({ state: 'visible', timeout: 5000 }).catch(() => null),

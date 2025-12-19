@@ -141,7 +141,9 @@ export class GroupDetailPage extends BasePage {
     // ============================================================================
 
     /**
-     * Members section container - found by "Members" region with aria-label
+     * Members section container - found by "Members" region with aria-label.
+     * Uses .first() because responsive layout may have duplicate regions for
+     * sidebar (desktop) vs main (mobile) views.
      */
     protected getMembersContainer(): Locator {
         return this.page.getByRole('region', { name: translation.membersList.title }).first();
@@ -164,14 +166,16 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Settlement section container - found by "Settlements" region with aria-label
+     * Settlement section container - found by "Settlements" region with aria-label.
+     * Uses .first() for responsive layout compatibility (sidebar vs main area).
      */
     protected getSettlementContainer(): Locator {
         return this.page.getByRole('region', { name: translation.pages.groupDetailPage.paymentHistory }).first();
     }
 
     /**
-     * Activity feed section container - found by "Activity" region with aria-label
+     * Activity feed section container - found by "Activity" region with aria-label.
+     * Uses .first() for responsive layout compatibility (sidebar vs main area).
      */
     protected getActivityFeedContainer(): Locator {
         return this.page.getByRole('region', { name: translation.pages.groupDetailPage.activity }).first();
@@ -216,6 +220,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     private getMembersToggle(): Locator {
+        // .first(): Responsive layout may have duplicate toggles; get any visible one
         return this.page.getByRole('button', { name: /toggle.*member.*section/i }).first();
     }
 
@@ -359,9 +364,10 @@ export class GroupDetailPage extends BasePage {
     /**
      * Group stats display - finds the stats line in the group header card
      * Shows: "{X} members, {time} old, last updated {time}"
+     * CSS class selector: scoped to unique #group-header ID, .help-text identifies
+     * the stats container (no semantic alternative - content is dynamic with RelativeTime).
      */
     protected getGroupStats(): Locator {
-        // Stats are displayed in a help-text div within the group header section
         return this.page.locator('#group-header .help-text');
     }
 
@@ -662,7 +668,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Get the comments section container - found by "Comments" region with aria-label
-     * (there are separate mobile and desktop cards, first() gets the visible one)
+     * .first(): Responsive layout has separate mobile/desktop cards; get visible one
      */
     protected getCommentsSection(): Locator {
         return this.page.getByRole('region', { name: translation.pages.groupDetailPage.comments }).first();
@@ -762,7 +768,7 @@ export class GroupDetailPage extends BasePage {
 
     async uploadCommentAttachment(filePath: string): Promise<void> {
         await this.ensureCommentsSectionExpanded();
-        // File input is intentionally hidden (class="hidden") - setInputFiles works on hidden inputs
+        // .first(): Hidden file input may duplicate in responsive layout
         const input = this.getCommentsSection().locator(`input[type="file"][aria-label="${translation.comments.attachments.label}"]`).first();
         await input.setInputFiles(filePath);
     }
@@ -1296,6 +1302,7 @@ export class GroupDetailPage extends BasePage {
                 throw new Error(`Expense with description "${description}" not found yet`);
             }
 
+            // .first(): Multiple matches possible; verify at least one is visible
             const visible = await expenseElement.first().isVisible();
             if (!visible) {
                 throw new Error(`Expense with description "${description}" found but not visible yet`);
@@ -1324,6 +1331,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Verify user has debts
+     * .first(): Verify at least one debt item is visible
      */
     async verifyHasDebts(): Promise<void> {
         await this.ensureBalancesSectionExpanded();
@@ -1625,6 +1633,7 @@ export class GroupDetailPage extends BasePage {
             const settlementEntry = this.getSettlementItem(note);
             const count = await settlementEntry.count();
 
+            // .first(): Verify at least one matching settlement is visible
             if (count > 0) {
                 const visible = await settlementEntry.first().isVisible();
                 if (visible) {
@@ -1652,6 +1661,7 @@ export class GroupDetailPage extends BasePage {
                 throw new Error(`Settlement with note "${String(details.note)}" not found in payment history yet`);
             }
 
+            // .first(): Multiple matches possible; verify first matching item
             const firstItem = settlementItem.first();
             const visible = await firstItem.isVisible();
             if (!visible) {
@@ -1665,6 +1675,7 @@ export class GroupDetailPage extends BasePage {
                 if (amountCount === 0) {
                     throw new Error(`Settlement amount "${details.amount}" not found yet`);
                 }
+                // .first(): Amount may appear in multiple places; check any is visible
                 const amountVisible = await amountLocator.first().isVisible();
                 if (!amountVisible) {
                     throw new Error(`Settlement amount "${details.amount}" not visible yet`);
@@ -2039,6 +2050,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Verify debt items are visible
+     * .first(): Verify at least one debt item is visible
      */
     async verifyDebtItemsVisible(): Promise<void> {
         await expect(this.getDebtItems().first()).toBeVisible();
@@ -2338,6 +2350,7 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Verify activity feed contains an item with the specified event type
+     * .first(): Verify at least one item with event type exists
      */
     async verifyActivityFeedHasEventType(eventType: string): Promise<void> {
         await this.ensureActivitySectionExpanded();

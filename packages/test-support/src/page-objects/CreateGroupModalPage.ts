@@ -88,27 +88,36 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Group name info icon (help text is in tooltip)
+     * Group name info icon (help text is in tooltip).
+     * Scoped: find label containing group name text, then info icon within.
      */
     protected getGroupNameInfoIcon(): Locator {
-        // Info icon is next to the group name label, with aria-label "More information"
-        return this.getModalContainer().getByLabel(translation.common.moreInfo).first();
+        return this.getModalContainer()
+            .locator('label')
+            .filter({ hasText: translation.createGroupModal.groupNameLabel })
+            .getByLabel(translation.common.moreInfo);
     }
 
     /**
-     * Group description info icon (help text is in tooltip)
+     * Group description info icon (help text is in tooltip).
+     * Scoped: find label containing description text, then info icon within.
      */
     protected getGroupDescriptionInfoIcon(): Locator {
-        // Info icon is next to the description label
-        return this.getModalContainer().getByLabel(translation.common.moreInfo).nth(2);
+        return this.getModalContainer()
+            .locator('label')
+            .filter({ hasText: translation.createGroupModal.groupDescriptionLabel })
+            .getByLabel(translation.common.moreInfo);
     }
 
     /**
-     * Group display name info icon (help text is in tooltip)
+     * Group display name info icon (help text is in tooltip).
+     * Scoped: find label containing display name text, then info icon within.
      */
     protected getGroupDisplayNameInfoIcon(): Locator {
-        // Info icon is next to the display name label
-        return this.getModalContainer().getByLabel(translation.common.moreInfo).nth(1);
+        return this.getModalContainer()
+            .locator('label')
+            .filter({ hasText: translation.createGroupModal.groupDisplayNameLabel })
+            .getByLabel(translation.common.moreInfo);
     }
 
     // ============================================================================
@@ -130,17 +139,11 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     /**
-     * Close button (X icon in header)
+     * Close button (X icon in header).
+     * Uses aria-label for semantic selection.
      */
     protected getCloseButton(): Locator {
-        // The close button is in the header and has an SVG icon
-        return this
-            .getModalContainer()
-            .locator('button')
-            .filter({
-                has: this.page.locator('svg'),
-            })
-            .first();
+        return this.getModalContainer().getByRole('button', { name: translation.createGroupModal.closeButtonAriaLabel });
     }
 
     // ============================================================================
@@ -480,6 +483,7 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     async verifyErrorMessageVisible(): Promise<void> {
+        // .first(): Multiple alerts may exist; asserting at least one is visible
         await expect(this.getErrorMessage().first()).toBeVisible();
     }
 
