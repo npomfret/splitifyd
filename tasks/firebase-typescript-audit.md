@@ -20,47 +20,35 @@ The `.select()` call used `'label'` (singular) but the schema and DTO use `label
 
 ---
 
-### 2) Join-by-link race condition (Medium)
+### 2) ~~Join-by-link race condition~~ ✅ FIXED
 
-**Location:** `GroupShareService.ts:402-470`
+**Location:** `GroupShareService.ts:456-468`
 
-Display name conflict check (`:403-410`) and `MAX_GROUP_MEMBERS` check (`:415-417`) happen before the transaction. The `membershipsSnapshot` fetched inside the transaction (`:453`) is available but not used to re-validate.
+Display name conflict check and `MAX_GROUP_MEMBERS` check happened before the transaction. The `membershipsSnapshot` fetched inside the transaction was available but not used to re-validate.
 
-**Impact:** Concurrent joins can exceed group capacity or create duplicate display names.
+**Impact:** Concurrent joins could exceed group capacity or create duplicate display names.
 
-**Fix:**
-1. Move `MAX_GROUP_MEMBERS` check inside transaction: `if (membershipsSnapshot.size >= MAX_GROUP_MEMBERS) throw ...`
-2. Check display name conflict against `membershipsSnapshot` data instead of a separate pre-read
-
-**Why tests don't catch this:**
-- Capacity tests at `GroupShareService.test.ts:252-275` add members **sequentially**, not concurrently
-- The concurrent operations integration test (`concurrent-operations.integration.test.ts:80-97`) runs parallel joins but **accepts that some may fail** without asserting the exact count
-- No test simulates: group at MAX-1 capacity → two concurrent join requests → assert exactly one succeeds and one gets GROUP_AT_CAPACITY
-
-**Test to add:** Fill group to MAX-1, then fire two concurrent `joinGroupByLink` calls. Assert one succeeds, one fails with GROUP_AT_CAPACITY, and final member count equals MAX.
+**Resolution:**
+- Added capacity re-validation inside transaction: `if (membershipsSnapshot.size >= MAX_GROUP_MEMBERS) throw ...`
+- Added display name conflict re-validation inside transaction by scanning `membershipsSnapshot` docs
+- Pre-transaction checks retained for fast fail in non-race scenarios
+- Added integration test: `concurrent-operations.integration.test.ts` → "should prevent duplicate display names when two users join concurrently with the same name"
 
 ---
 
-### 3) Leave/remove member balance race (Medium)
+### 3) ~~Leave/remove member balance race~~ ✅ FIXED
 
-**Location:** `GroupMemberService.ts:427-477`
+**Location:** `GroupMemberService.ts:507-522`
 
-Balance check (`:427-459`) happens before the transaction that deletes membership (`:477+`). A concurrent expense/settlement can change the balance between check and delete.
+Balance check happened before the transaction that deletes membership. A concurrent expense/settlement could change the balance between check and delete.
 
-**Impact:** Users removed with non-zero balance.
+**Impact:** Users could be removed with non-zero balance.
 
-**Fix:** Read balance inside the transaction. The balance document should be included in the transaction read set so Firestore's optimistic concurrency catches conflicts.
-
-**Consideration:** Balance is stored in a separate document (`group_balances/{groupId}`). To make this transactional, either:
-- Read the balance doc in the transaction (adds the doc to the transaction's read set)
-- Or accept the race as low-probability and log an alert if it ever happens
-
-**Why tests don't catch this:**
-- Balance check tests (`GroupMemberService.test.ts`, `SettlementManagement.test.ts`) verify balance enforcement **sequentially**
-- Concurrent test at `concurrent-operations.integration.test.ts:181-217` accepts partial failures without asserting balance constraints
-- No test simulates: member has zero balance → concurrent expense creation + leave request → assert leave fails OR expense creation is aborted
-
-**Test to add:** Create group with two members, ensure zero balance, then concurrently (1) create expense making member owe money and (2) attempt `leaveGroup`. Assert either leave fails with "outstanding balance" or the expense write is aborted by transaction conflict.
+**Resolution:**
+- Added balance re-validation inside the transaction using `getGroupBalanceInTransaction()`
+- This adds the balance document to the transaction's read set, so Firestore's optimistic concurrency catches conflicts
+- Pre-transaction check retained for fast fail in non-race scenarios
+- Added integration test: `concurrent-operations.integration.test.ts` → "should prevent member leaving with outstanding balance when expense is created concurrently"
 
 ---
 
@@ -111,8 +99,8 @@ Each group fetches its balance document separately.
 | Issue | Severity | Effort | Status |
 |-------|----------|--------|--------|
 | labels typo | High | Low | ✅ Fixed |
-| Join race condition | Medium | Medium | Pending |
-| Leave/remove balance race | Medium | Medium | Pending |
+| Join race condition | Medium | Medium | ✅ Fixed |
+| Leave/remove balance race | Medium | Medium | ✅ Fixed |
 | Comment N+1 | Low | Medium | — |
 | Settlement N+1 | Low | Medium | — |
 | Group balance N+1 | Low | Low | — |

@@ -504,6 +504,23 @@ export class GroupMemberService {
                 }
             }
 
+            // Re-validate balance inside transaction to prevent race conditions
+            // (Pre-transaction check may have passed before a concurrent expense/settlement changed balance)
+            const groupBalanceInTx = await this.firestoreWriter.getGroupBalanceInTransaction(transaction, groupId);
+            const balancesByCurrencyInTx = groupBalanceInTx.balancesByCurrency;
+
+            for (const currencyStr in balancesByCurrencyInTx) {
+                const currency = toCurrencyISOCode(currencyStr);
+                const targetBalance = balancesByCurrencyInTx[currency][targetUserId];
+                if (targetBalance) {
+                    const balanceUnits = amountToSmallestUnit(targetBalance.netBalance, currency);
+                    if (balanceUnits !== 0) {
+                        const message = isLeaving ? 'Cannot leave group with outstanding balance' : 'Cannot remove member with outstanding balance';
+                        throw Errors.conflict(message);
+                    }
+                }
+            }
+
             activityRecipients = Array.from(new Set<UserId>([...remainingMemberIds, targetUserId]));
 
             const membershipDocId = newTopLevelMembershipDocId(targetUserId, groupId);

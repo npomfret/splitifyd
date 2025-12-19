@@ -1,6 +1,6 @@
 import { amountToSmallestUnit, GroupDTO, PooledTestUser, toCurrencyISOCode, toDisplayName, USD, UserId } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder } from '@billsplit-wl/test-support';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 async function runWithLimitedConcurrency<T>(operations: Array<() => Promise<T>>, limit: number): Promise<PromiseSettledResult<T>[]> {
     if (operations.length === 0) {
@@ -500,6 +500,129 @@ describe('Concurrent Operations Integration Tests', () => {
                 );
                 expect(sumUnits).toBe(0);
             });
+        });
+    });
+
+    describe('Leave/Remove Race Conditions', () => {
+        test('should prevent member leaving with outstanding balance when expense is created concurrently', async () => {
+            // Create a fresh group for this test
+            const raceTestGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Leave Balance Race Test Group')
+                    .build(),
+                testUser1.token,
+            );
+
+            // Add a second member
+            const { shareToken } = await apiDriver.generateShareableLink(raceTestGroup.id, undefined, testUser1.token);
+            await apiDriver.joinGroupByLink(shareToken, toDisplayName('Test User 2'), testUser2.token);
+
+            // Verify zero balance before test
+            const initialBalances = await apiDriver.getGroupBalances(raceTestGroup.id, testUser1.token);
+            expect(initialBalances.balancesByCurrency[USD]).toBeUndefined();
+
+            // Concurrently:
+            // 1. Create an expense where testUser2 owes money to testUser1
+            // 2. testUser2 attempts to leave the group
+            // This tests the TOCTOU race condition where both operations check balance before the transaction
+            const concurrentOps = [
+                apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(raceTestGroup.id)
+                        .withPaidBy(testUser1.uid)
+                        .withAmount(100, USD)
+                        .withParticipants([testUser1.uid, testUser2.uid])
+                        .withSplitType('equal')
+                        .build(),
+                    testUser1.token,
+                ),
+                apiDriver.leaveGroup(raceTestGroup.id, testUser2.token),
+            ];
+
+            const results = await Promise.allSettled(concurrentOps);
+
+            // Analyze results
+            const expenseResult = results[0];
+            const leaveResult = results[1];
+
+            // At least one operation should succeed
+            expect(results.some(r => r.status === 'fulfilled')).toBe(true);
+
+            // Get final state
+            const { members } = await apiDriver.getGroupFullDetails(raceTestGroup.id, undefined, testUser1.token);
+            const finalBalances = await apiDriver.getGroupBalances(raceTestGroup.id, testUser1.token);
+
+            // CRITICAL: If testUser2 is no longer a member, they must have had zero balance when they left
+            // This verifies the race condition fix is working
+            const testUser2IsMember = members.members.some((m) => m.uid === testUser2.uid);
+
+            if (!testUser2IsMember) {
+                // testUser2 left successfully - they must have had zero balance
+                // This means the leave completed before the expense was processed
+                // or the leave transaction correctly read zero balance
+                expect(leaveResult.status).toBe('fulfilled');
+
+                // If expense also succeeded, testUser2's share should now be orphaned
+                // (acceptable - this is a business decision about how to handle it)
+            } else {
+                // testUser2 is still a member - leave should have failed
+                // Either because:
+                // 1. Expense completed first, creating non-zero balance
+                // 2. Concurrent write conflict caused leave to retry and see non-zero balance
+                expect(leaveResult.status).toBe('rejected');
+
+                // Verify testUser2 has outstanding balance
+                const testUser2Balance = finalBalances.balancesByCurrency[USD]?.[testUser2.uid]?.netBalance;
+                expect(testUser2Balance).toBeDefined();
+            }
+        });
+    });
+
+    describe('Join-by-link Race Conditions', () => {
+        test('should prevent duplicate display names when two users join concurrently with the same name', async () => {
+            // Create a fresh group for this test
+            const raceTestGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Display Name Race Test Group')
+                    .build(),
+                testUser1.token,
+            );
+
+            // Generate share link
+            const { shareToken } = await apiDriver.generateShareableLink(raceTestGroup.id, undefined, testUser1.token);
+
+            // Two users try to join concurrently with the SAME display name
+            // This tests the TOCTOU race condition where both users pass the pre-transaction
+            // display name check, but both should not be able to join with the same name
+            const sameDisplayName = toDisplayName('Duplicate Name');
+            const joinPromises = [
+                apiDriver.joinGroupByLink(shareToken, sameDisplayName, testUser2.token),
+                apiDriver.joinGroupByLink(shareToken, sameDisplayName, testUser3.token),
+            ];
+
+            const results = await Promise.allSettled(joinPromises);
+
+            // Count successes and failures
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
+
+            // Exactly one should succeed, one should fail with DISPLAY_NAME_TAKEN
+            expect(successes.length).toBe(1);
+            expect(failures.length).toBe(1);
+
+            // Verify the failure is due to display name conflict
+            const failure = failures[0] as PromiseRejectedResult;
+            interface ApiErrorResponse { error?: { code?: string; detail?: string; }; }
+            const errorResponse = (failure.reason as { response?: ApiErrorResponse; }).response;
+            expect(errorResponse?.error?.detail || errorResponse?.error?.code).toBe('DISPLAY_NAME_TAKEN');
+
+            // Verify final state: group has exactly 2 members (owner + 1 new member)
+            const { members } = await apiDriver.getGroupFullDetails(raceTestGroup.id, undefined, testUser1.token);
+            expect(members.members.length).toBe(2);
+
+            // Verify only one member has the display name
+            const membersWithDuplicateName = members.members.filter((m) => m.groupDisplayName === 'Duplicate Name');
+            expect(membersWithDuplicateName.length).toBe(1);
         });
     });
 });

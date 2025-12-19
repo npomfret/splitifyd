@@ -453,6 +453,20 @@ export class GroupShareService {
             const membershipsSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
             timer.endPhase();
 
+            // Re-validate capacity inside transaction to prevent race conditions
+            // (Pre-transaction check may have passed for multiple concurrent requests)
+            if (membershipsSnapshot.size >= MAX_GROUP_MEMBERS) {
+                throw Errors.invalidRequest(ErrorDetail.GROUP_AT_CAPACITY);
+            }
+
+            // Re-validate display name inside transaction to prevent race conditions
+            for (const doc of membershipsSnapshot.docs) {
+                const data = doc.data() as { groupDisplayName?: string; };
+                if (data.groupDisplayName === groupDisplayName) {
+                    throw Errors.alreadyExists('Display name', ErrorDetail.DISPLAY_NAME_TAKEN);
+                }
+            }
+
             timer.startPhase('transaction:touchGroup');
             // Update group timestamp to reflect membership change
             await context.touchGroup();
