@@ -3,7 +3,7 @@ import { useModalOpen } from '@/app/hooks/useModalOpen';
 import { getAuthStore } from '@/app/stores/auth-store';
 import { CommentsSection } from '@/components/comments';
 import { ReactionBar } from '@/components/reactions';
-import { Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
+import { AuthenticatedImage, Avatar, Badge, Button, Card, CurrencyAmount, LoadingSpinner, Stack, Tooltip, Typography } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { ClockIcon, MapPinIcon, XIcon } from '@/components/ui/icons';
 import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
@@ -255,32 +255,14 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             </div>
                         )}
 
-                        {/* Hero: Amount + Receipt thumbnail */}
-                        <div className='flex items-center justify-center gap-4'>
-                            <div className='text-center flex-1'>
-                                <div
-                                    className='text-4xl font-bold text-text-primary'
-                                    aria-label={t('expenseComponents.expenseDetailModal.expenseAmount')}
-                                >
-                                    <CurrencyAmount amount={expense.amount} currency={expense.currency} />
-                                </div>
+                        {/* Hero: Amount */}
+                        <div className='text-center'>
+                            <div
+                                className='text-4xl font-bold text-text-primary'
+                                aria-label={t('expenseComponents.expenseDetailModal.expenseAmount')}
+                            >
+                                <CurrencyAmount amount={expense.amount} currency={expense.currency} />
                             </div>
-                            {expense.receiptUrl && (
-                                <Clickable
-                                    onClick={() => setShowReceiptModal(true)}
-                                    aria-label={t('expenseComponents.expenseDetailModal.viewReceipt')}
-                                    eventName='receipt_thumbnail_click'
-                                    eventProps={{ expenseId }}
-                                    className='shrink-0'
-                                >
-                                    <img
-                                        src={expense.receiptUrl}
-                                        alt={t('expenseComponents.expenseDetailModal.receipt')}
-                                        className='w-16 h-16 object-cover rounded-lg shadow-sm cursor-pointer hover:opacity-80 transition-opacity'
-                                        loading='lazy'
-                                    />
-                                </Clickable>
-                            )}
                         </div>
 
                         {/* Metadata row */}
@@ -351,6 +333,29 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             />
                         </div>
 
+                        {/* Receipt */}
+                        {expense.receiptUrl && (
+                            <Card variant='glass' className='border-border-default' ariaLabel={t('expenseComponents.expenseDetailModal.receipt')}>
+                                <Stack spacing='sm'>
+                                    <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.receipt')}</h3>
+                                    <div className='flex justify-center'>
+                                        <Clickable
+                                            onClick={() => setShowReceiptModal(true)}
+                                            aria-label={t('expenseComponents.expenseDetailModal.viewReceipt')}
+                                            eventName='receipt_thumbnail_click'
+                                            eventProps={{ expenseId }}
+                                        >
+                                            <AuthenticatedImage
+                                                src={expense.receiptUrl}
+                                                alt={t('expenseComponents.expenseDetailModal.receipt')}
+                                                className='max-w-xs max-h-48 object-contain rounded-lg border border-border-default cursor-pointer hover:opacity-80 transition-opacity'
+                                            />
+                                        </Clickable>
+                                    </div>
+                                </Stack>
+                            </Card>
+                        )}
+
                         {/* Split Breakdown */}
                         <Card variant='glass' className='border-border-default'>
                             <SplitBreakdown expense={expense} members={members} />
@@ -360,7 +365,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                         <Card variant='glass' className='border-border-default' ariaLabel={t('pages.expenseDetailPage.discussion')}>
                             <Stack spacing='md'>
                                 <h3 className='font-semibold text-text-primary'>{t('expenseComponents.expenseDetailModal.comments')}</h3>
-                                <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} groupId={groupId} maxHeight='200px' />
+                                <CommentsSection target={{ type: 'expense', expenseId: expenseId! }} groupId={groupId} maxHeight='200px' allowAttachmentUpload={false} />
                             </Stack>
                         </Card>
 
@@ -417,7 +422,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                             eventName='receipt_image_click'
                             eventProps={{ expenseId }}
                         >
-                            <img
+                            <AuthenticatedImage
                                 src={expense.receiptUrl}
                                 alt='Receipt full size'
                                 className='max-w-full max-h-full object-contain rounded-lg'

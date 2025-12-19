@@ -2,11 +2,21 @@ import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { signal } from '@preact/signals';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Card, LoadingSpinner } from '../ui';
+import { AuthenticatedImage, Button, Card, LoadingSpinner } from '../ui';
 
 const MAX_SIZE_MB = 10;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const ACCEPT_STRING = 'image/jpeg,image/png,image/webp,image/heic,image/heif';
+
+/**
+ * Checks if a URL needs authentication (API paths) vs can be used directly (data URLs, blob URLs).
+ */
+function needsAuthentication(url: string): boolean {
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
+        return false;
+    }
+    return url.startsWith('/api/') || url.includes('/attachments/');
+}
 
 interface ReceiptUploaderProps {
     receiptUrl: string | null;
@@ -136,12 +146,23 @@ export function ReceiptUploader({
                 {/* Preview */}
                 {hasReceipt && preview && !imageLoadFailed && (
                     <div className='relative inline-block w-fit'>
-                        <img
-                            src={preview}
-                            alt={t('receiptUploader.previewAlt')}
-                            className='max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain'
-                            onError={handleImageError}
-                        />
+                        {needsAuthentication(preview)
+                            ? (
+                                <AuthenticatedImage
+                                    src={preview}
+                                    alt={t('receiptUploader.previewAlt')}
+                                    className='max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain'
+                                    onError={handleImageError}
+                                />
+                            )
+                            : (
+                                <img
+                                    src={preview}
+                                    alt={t('receiptUploader.previewAlt')}
+                                    className='max-w-xs max-h-48 rounded-lg border border-border-default bg-surface-raised object-contain'
+                                    onError={handleImageError}
+                                />
+                            )}
                         {!disabled && !uploading && (
                             <button
                                 type='button'

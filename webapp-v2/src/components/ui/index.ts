@@ -1,4 +1,5 @@
 export { Alert } from './Alert';
+export { AuthenticatedImage } from './AuthenticatedImage';
 export { Avatar } from './Avatar';
 export { Badge } from './Badge';
 export { Button } from './Button';

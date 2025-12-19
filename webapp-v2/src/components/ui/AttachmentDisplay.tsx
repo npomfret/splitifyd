@@ -3,6 +3,7 @@ import { formatFileSize, isImage } from '@/utils/attachment-utils';
 import type { CommentAttachmentRef, GroupId } from '@billsplit-wl/shared';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import { AuthenticatedImage } from './AuthenticatedImage';
 
 interface AttachmentDisplayProps {
     attachments: CommentAttachmentRef[];
@@ -35,11 +36,10 @@ export function AttachmentDisplay({ attachments, groupId, className = '' }: Atta
                         <div className='relative h-28 bg-surface-base border-b border-border-default flex items-center justify-center overflow-hidden'>
                             {isImageFile
                                 ? (
-                                    <img
+                                    <AuthenticatedImage
                                         src={url}
                                         alt={attachment.fileName}
                                         className='h-full w-full object-cover'
-                                        loading='lazy'
                                     />
                                 )
                                 : <DocumentTextIcon className='h-8 w-8 text-text-muted' aria-hidden='true' />}

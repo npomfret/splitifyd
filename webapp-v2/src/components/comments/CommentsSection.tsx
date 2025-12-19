@@ -17,9 +17,11 @@ interface CommentsSectionProps {
     className?: string;
     initialData?: ListCommentsResponse | null;
     groupId?: GroupId;
+    /** Whether to allow uploading new attachments. Default: true */
+    allowAttachmentUpload?: boolean;
 }
 
-export function CommentsSection({ target, maxHeight = '400px', className = '', initialData, groupId }: CommentsSectionProps) {
+export function CommentsSection({ target, maxHeight = '400px', className = '', initialData, groupId, allowAttachmentUpload = true }: CommentsSectionProps) {
     const { t } = useTranslation();
 
     // Use signals for reactive state
@@ -120,7 +122,7 @@ export function CommentsSection({ target, maxHeight = '400px', className = '', i
 
             {/* Comment input */}
             <div className='border-t border-border-default pt-4'>
-                {attachmentGroupId && (
+                {attachmentGroupId && allowAttachmentUpload && (
                     <div className='mb-3'>
                         <AttachmentUploader
                             groupId={attachmentGroupId}

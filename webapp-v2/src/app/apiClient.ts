@@ -304,6 +304,25 @@ class ApiClient implements PublicAPI, API<void>, AdminAPI<void> {
         // This avoids the chicken-and-egg problem and ensures proper user isolation
     }
 
+    /**
+     * Fetch a blob (image, PDF, etc.) from an authenticated endpoint.
+     * Used by AuthenticatedImage component to load images that require auth.
+     */
+    async fetchBlob(url: string): Promise<Blob> {
+        const headers: Record<string, string> = {};
+        if (this.authToken) {
+            headers.Authorization = `Bearer ${this.authToken}`;
+        }
+
+        const response = await fetch(url, { headers });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch blob: ${response.status}`);
+        }
+
+        return response.blob();
+    }
+
     // Set auth callbacks to avoid circular dependencies
     setAuthCallbacks(refreshCallback: () => Promise<void>, logoutCallback: () => Promise<void>) {
         this.authRefreshCallback = refreshCallback;
