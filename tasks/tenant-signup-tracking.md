@@ -10,22 +10,30 @@ Capture and store the tenant (`TenantId`) from which a user originates during th
 
 The implementation should resolve the tenant on the server using the request host (validated against forwarded headers/origin) and store the resolved `signupTenantId` on the user's Firestore document. Additionally, capture a `signupHostname` from the browser and require it to match the validated request host to detect spoofing.
 
+### Trust Boundary (Required)
+
+- `signupHostname` is untrusted user input. It is only used for **comparison** against the server-validated host and must never be used for tenant resolution.
+- Tenant resolution must always use the server-validated host (request host + forwarded header/origin checks).
+
 ### Phase 1: Data Model and Type Updates
 
 **1. Update User document schema:**
 - **File:** `firebase/functions/src/schemas/user.ts`
 - **Action:** Add `signupTenantId` field using the existing `TenantIdSchema` from shared package, marked optional for backward compatibility with existing users.
 - **Note:** This field is server-only (not exposed in `UserProfile` or API responses). Only surface in admin endpoints if needed for analytics.
+- **Expand/Contract:** Confirm backwards compatibility is required; keep the field optional and avoid any read-path assumptions. Backfill remains out of scope unless explicitly requested.
 
 **2. Update shared request types:**
 - **Files:** `packages/shared/src/shared-types.ts`, `packages/shared/src/schemas/apiRequests.ts`, `firebase/functions/src/auth/validation.ts`
 - **Action:** Add `signupHostname` to `UserRegistration` and validate/sanitize it. Treat it as required for registration so the server can compare it to the request host.
+- **Validation:** Validate in shared schema, then sanitize in the server validator (same patterns as other user-provided strings).
 
 ### Phase 2: Backend - User Creation Logic
 
 **1. Resolve tenant in the register handler:**
 - **Files:** `firebase/functions/src/ApplicationFactory.ts`, `firebase/functions/src/auth/handlers.ts`
 - **Action:** In the `/register` handler, resolve and validate the host (reuse `AuthHandlers` host logic or extract it into a shared utility), compare it to `signupHostname` from the request body. On mismatch, return `Errors.invalidRequest(ErrorDetail.HOST_MISMATCH)` (already exists in ErrorCode.ts:107). Then resolve the tenant via `TenantRegistryService.resolveTenant({ host })` and pass `signupTenantId` into the registration service.
+- **Error order:** Fail on `HOST_MISMATCH` before attempting tenant resolution so behavior is deterministic and avoids leaking tenant info.
 
 **2. Update User Creation Service:**
 - **File:** `firebase/functions/src/services/UserService2.ts`
@@ -51,6 +59,8 @@ The implementation should resolve the tenant on the server using the request hos
 - Test registration with mismatched `signupHostname` returns `HOST_MISMATCH` error
 - Test registration from unknown host returns `TENANT_NOT_FOUND` error
 - Test backward compatibility: existing users without `signupTenantId` continue to work
+- Use builders for all request payloads; no manual object literals.
+- Likely files to touch: registration-related tests under `firebase/functions/src/__tests__/unit/api/` (confirm exact file names during implementation).
 
 **Service Unit Tests** (if host resolution is extracted to utility):
 - Test host resolution from various header combinations
