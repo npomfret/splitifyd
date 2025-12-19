@@ -12,10 +12,6 @@ import { stdin as input, stdout as output } from 'node:process';
 import { createInterface } from 'readline/promises';
 import { getFirestore } from '../../functions/src/firebase';
 import { initializeFirebase, parseEnvironment, type ScriptEnvironment } from '../lib/firebase-init';
-import { getInstanceEnvironment, loadRuntimeConfig } from '../lib/scripts-config';
-
-// Load runtime configuration at the start
-loadRuntimeConfig();
 
 const PROTECTED_COLLECTIONS = new Set(['users']);
 const BATCH_SIZE = 200;
@@ -158,35 +154,19 @@ async function wipeCollections(firestore: Firestore, requestedCollectionIds: str
     console.log(`   • Protected collections skipped: ${Array.from(PROTECTED_COLLECTIONS).join(', ')}`);
 }
 
-function ensureInstanceModeMatchesTarget(env: ScriptEnvironment): void {
-    const runtimeEnv = getInstanceEnvironment();
-
-    if (env.isEmulator) {
-        if (!runtimeEnv.isEmulator) {
-            console.error(`❌ INSTANCE_NAME must be a dev instance when targeting the emulator. Current: ${runtimeEnv.instanceName}`);
-            process.exit(1);
-        }
-        return;
-    }
-
-    if (!runtimeEnv.isDeployed) {
-        console.error(`❌ INSTANCE_NAME must be a staging instance when targeting deployed environment. Current: ${runtimeEnv.instanceName}`);
-        process.exit(1);
-    }
-}
-
 async function main(): Promise<void> {
     const rawArgs = process.argv.slice(2);
+
+    // parseEnvironment auto-sets __INSTANCE_NAME based on CLI arg (emulator/staging)
     const env = parseEnvironment(rawArgs);
     const requestedCollections = rawArgs.slice(1).map((name) => name.trim()).filter((name) => name.length > 0);
     const uniqueRequestedCollections = Array.from(new Set(requestedCollections));
-    ensureInstanceModeMatchesTarget(env);
     await initializeFirebase(env);
 
     if (env.isEmulator) {
         console.log('⚠️  You are connected to the EMULATOR. This script will clear emulator data only.');
     } else {
-        console.log('⚠️  You are connected to PRODUCTION. Ensure you intend to wipe live data.');
+        console.log('⚠️  You are connected to STAGING. Ensure you intend to wipe live data.');
     }
 
     try {

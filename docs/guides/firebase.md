@@ -11,7 +11,7 @@ Concise rules for working with the Firebase emulator stack and the instance swit
 ## Instance Selection & Config Files
 
 - `__INSTANCE_NAME` identifies which Firebase environment you're working with: `dev1`, `dev2`, `dev3`, `dev4`, or `staging-1`.
-- Each `firebase/functions/.env.instance*` contains Firebase client keys and dev form defaults. The `__INSTANCE_NAME` is included in each file.
+- Each `firebase/functions/.env.instance*` contains Firebase client keys and dev form defaults. `__INSTANCE_NAME` is read from `.current-instance` file (set by `switch-instance`) or auto-set by scripts based on CLI args.
 - `npm run switch-instance <n>` (invoked by `dev1.sh` … `dev4.sh`) writes the instance name to `firebase/.current-instance`, symlinks (dev) or copies (staging) the template to `.env`, then regenerates `firebase/firebase.json` from port mappings in `instances.json`.
 - Never edit `firebase.json`; it is always generated.
 - `firebase/scripts/dev/start-with-data.ts` reads `__INSTANCE_NAME`, validates it's a dev instance, reads ports from the generated config, seeds policies, and provisions the default user.

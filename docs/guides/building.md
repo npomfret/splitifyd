@@ -17,7 +17,7 @@
 ## Package Builds
 - **webapp-v2**: Vite + `@preact/preset-vite`. `npm run build` performs `tsc --noEmit` against `tsconfig.build.json` before invoking `vite build`. `watch` leverages Vite’s build watcher for emulator hosting consistency.
 - **firebase/backend**: `npm run build` runs `tsc --project tsconfig.build.json` for scripts (no emit) and delegates to `functions` workspace for actual output. Scripts rely on `tsx`, so the build primarily type-checks.
-- **firebase/functions**: `build` triggers `tsconfig.build.json` (`--noEmit`) for fast CI validation, then `scripts/conditional-build.js` reads `__INSTANCE_NAME` from `.env` to decide whether to produce tsx wrappers (dev1-4) or compiled artifacts (staging-*). `build:prod` forces a clean emit to `lib/` using `tsconfig.deploy.json` and copies locales.
+- **firebase/functions**: `build` triggers `tsconfig.build.json` (`--noEmit`) for fast CI validation, then `scripts/conditional-build.js` reads `__INSTANCE_NAME` from `.current-instance` file to decide whether to produce tsx wrappers (dev1-4) or compiled artifacts (staging-*). `build:prod` forces a clean emit to `lib/` using `tsconfig.deploy.json` and copies locales.
 - **e2e-tests**: `npm run build` runs `tsc --noEmit` to validate Playwright + Jest suites.
 - **Shared packages** (`packages/*`): built via `npm run build:packages` before anything depends on them; consumers reference `"*"` versions so stale builds cause runtime drift—keep them fresh.
 

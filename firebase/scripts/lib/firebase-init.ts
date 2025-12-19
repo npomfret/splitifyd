@@ -22,14 +22,23 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
     if (!targetEnvironment || !['emulator', 'staging', 'deployed'].includes(targetEnvironment)) {
         console.error('❌ Usage: script.ts <emulator|staging>');
         console.error('');
-        console.error('  emulator - Connect to Firebase emulator (requires __INSTANCE_NAME=dev1-4)');
-        console.error('  staging  - Connect to deployed Firebase (requires __INSTANCE_NAME=staging-1)');
-        console.error('');
-        console.error('Current __INSTANCE_NAME from .current-instance: ' + (loadRuntimeConfig().__INSTANCE_NAME || 'not set'));
+        console.error('  emulator - Connect to Firebase emulator');
+        console.error('  staging  - Connect to deployed Firebase');
         process.exit(1);
     }
 
-    // Load runtime config to ensure __INSTANCE_NAME is validated
+    // Auto-set __INSTANCE_NAME based on target environment BEFORE loading config
+    // This allows scripts to work without running switch-instance first
+    if (targetEnvironment === 'staging' || targetEnvironment === 'deployed') {
+        process.env.__INSTANCE_NAME = 'staging-1';
+    } else if (targetEnvironment === 'emulator') {
+        // For emulator, use .current-instance if set to a dev instance, otherwise default to dev1
+        if (!process.env.__INSTANCE_NAME?.startsWith('dev')) {
+            process.env.__INSTANCE_NAME = 'dev1';
+        }
+    }
+
+    // Load runtime config with the correct instance
     loadRuntimeConfig();
 
     const isEmulator = targetEnvironment === 'emulator';
