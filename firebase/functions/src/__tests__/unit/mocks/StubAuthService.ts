@@ -1,7 +1,7 @@
 import type { Email, UserId } from '@billsplit-wl/shared';
 import type { CreateRequest, DecodedIdToken, UpdateRequest, UserRecord } from 'firebase-admin/auth';
 import { ErrorDetail, Errors } from '../../../errors';
-import type { EmailVerificationEmailContext, IAuthService, PasswordResetEmailContext, WelcomeEmailContext } from '../../../services/auth';
+import type { EmailChangeEmailContext, EmailVerificationEmailContext, IAuthService, PasswordResetEmailContext, WelcomeEmailContext } from '../../../services/auth';
 
 /**
  * In-memory stub implementation of IAuthService for unit testing
@@ -202,6 +202,11 @@ export class StubAuthService implements IAuthService {
     }
 
     async sendEmailVerification(_email: Email, _context: EmailVerificationEmailContext): Promise<void> {
+        // Stub implementation - always succeeds silently (like the real implementation)
+        // In a real scenario, this would send an email, but for testing we just return
+    }
+
+    async sendEmailChangeVerification(_currentEmail: Email, _context: EmailChangeEmailContext): Promise<void> {
         // Stub implementation - always succeeds silently (like the real implementation)
         // In a real scenario, this would send an email, but for testing we just return
     }

@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { PooledTestUser, toPassword } from '@billsplit-wl/shared';
+import { PooledTestUser, toEmail, toPassword } from '@billsplit-wl/shared';
 import { ApiDriver, borrowTestUsers, generateTestEmail, TestUserBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 
 describe('Authentication and Registration - Integration Tests (Essential Firebase Behavior Only)', () => {
@@ -271,6 +271,25 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             // Email is processed by Postmark but not actually delivered
             await expect(
                 apiDriver.sendEmailVerification({ email: userData.email }),
+            ).resolves.not.toThrow();
+        });
+    });
+
+    describe('Email Change Verification', () => {
+        test('should send email change verification via Postmark sandbox', async () => {
+            // Borrow a pre-authenticated test user from the pool
+            // These users have matching sidebadger.me domain for Postmark sandbox
+            const [user] = await borrowTestUsers(1);
+            const newEmail = toEmail(`emailchange-new-${Date.now()}@sidebadger.me`);
+
+            // Request email change - this sends verification email to the new address
+            // via Postmark sandbox (processed but not delivered)
+            // The actual email change happens when user clicks the link
+            await expect(
+                apiDriver.changeEmail(
+                    { currentPassword: toPassword(user.password), newEmail },
+                    user.token,
+                ),
             ).resolves.not.toThrow();
         });
     });

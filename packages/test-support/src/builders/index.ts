@@ -24,6 +24,7 @@ export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';
 export { CreatePolicyRequestBuilder } from './CreatePolicyRequestBuilder';
 export { CreateSettlementRequestBuilder } from './CreateSettlementRequestBuilder';
 export { type CursorData, CursorDataBuilder } from './CursorDataBuilder';
+export { EmailChangeEmailVariablesBuilder } from './EmailChangeEmailVariablesBuilder';
 export { EmailVerificationEmailVariablesBuilder } from './EmailVerificationEmailVariablesBuilder';
 export { ExpenseDraftBuilder } from './ExpenseDraftBuilder';
 export { ExpenseDTOBuilder } from './ExpenseDTOBuilder';

@@ -1646,6 +1646,15 @@
       "buttonText": "E-Mail bestätigen",
       "linkLabel": "Oder kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
       "expiryNotice": "Dieser Link läuft in 24 Stunden ab."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Neue E-Mail-Adresse bestätigen",
+      "ignoreNotice": "Ignorieren Sie diese E-Mail, wenn Sie keine E-Mail-Änderung bei {{domain}} angefordert haben.",
+      "greeting": "Hallo {{displayName}},",
+      "instruction": "Wir haben eine Anfrage erhalten, die E-Mail-Adresse Ihres {{appName}}-Kontos auf diese Adresse zu ändern.",
+      "buttonText": "Neue E-Mail bestätigen",
+      "linkLabel": "Oder kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:",
+      "expiryNotice": "Dieser Link läuft in 24 Stunden ab."
     }
   }
 }

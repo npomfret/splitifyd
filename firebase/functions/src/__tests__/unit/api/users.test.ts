@@ -687,7 +687,16 @@ describe('user, policy and notification tests', () => {
             const CURRENT_PASSWORD = toPassword('password12345');
             const NEW_EMAIL = toEmail('newemail@example.com');
 
-            it('should successfully change email with valid credentials', async () => {
+            beforeEach(() => {
+                // Email change requires a tenant with domain match for localhost
+                appDriver.seedLocalhostTenant();
+            });
+
+            it('should send verification email with valid credentials', async () => {
+                // changeEmail now sends verification email instead of immediately changing
+                // The email should NOT be changed yet - that happens when user clicks the link
+                const originalProfile = await appDriver.getUserProfile(user1);
+
                 await appDriver.changeEmail(
                     new ChangeEmailRequestBuilder()
                         .withCurrentPassword(CURRENT_PASSWORD)
@@ -696,22 +705,25 @@ describe('user, policy and notification tests', () => {
                     user1,
                 );
 
+                // Email should NOT be changed - verification email sent instead
                 const profile = await appDriver.getUserProfile(user1);
-                expect(profile.email).toBe(NEW_EMAIL);
-                expect(profile.emailVerified).toBe(false);
+                expect(profile.email).toBe(originalProfile.email);
             });
 
-            it('should lowercase email address', async () => {
-                await appDriver.changeEmail(
-                    new ChangeEmailRequestBuilder()
-                        .withCurrentPassword(CURRENT_PASSWORD)
-                        .withNewEmail('NewEmail@EXAMPLE.COM')
-                        .build(),
-                    user1,
-                );
-
+            it('should validate new email is different from current', async () => {
                 const profile = await appDriver.getUserProfile(user1);
-                expect(profile.email).toBe('newemail@example.com');
+
+                await expect(
+                    appDriver.changeEmail(
+                        new ChangeEmailRequestBuilder()
+                            .withCurrentPassword(CURRENT_PASSWORD)
+                            .withNewEmail(profile.email)
+                            .build(),
+                        user1,
+                    ),
+                ).rejects.toMatchObject({
+                    code: 'INVALID_REQUEST',
+                });
             });
         });
     });

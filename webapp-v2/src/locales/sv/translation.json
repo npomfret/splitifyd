@@ -1647,6 +1647,15 @@
       "buttonText": "Verifiera e-post",
       "linkLabel": "Eller kopiera och klistra in denna länk i din webbläsare:",
       "expiryNotice": "Denna länk upphör att gälla om 24 timmar."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Verifiera din nya e-postadress",
+      "ignoreNotice": "Ignorera detta e-postmeddelande om du inte begärde en e-poständring på {{domain}}.",
+      "greeting": "Hej {{displayName}},",
+      "instruction": "Vi har mottagit en begäran om att ändra e-postadressen för ditt {{appName}}-konto till denna adress.",
+      "buttonText": "Verifiera ny e-post",
+      "linkLabel": "Eller kopiera och klistra in denna länk i din webbläsare:",
+      "expiryNotice": "Denna länk upphör att gälla om 24 timmar."
     }
   }
 }

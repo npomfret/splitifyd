@@ -1647,6 +1647,15 @@
       "buttonText": "I-verify ang Email",
       "linkLabel": "O kopyahin at i-paste ang link na ito sa iyong browser:",
       "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 24 na oras."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: I-verify ang iyong bagong email address",
+      "ignoreNotice": "Balewalain ang email na ito kung hindi ka humiling ng pagpapalit ng email sa {{domain}}.",
+      "greeting": "Kumusta {{displayName}},",
+      "instruction": "Nakatanggap kami ng kahilingan na palitan ang email address ng iyong {{appName}} account sa address na ito.",
+      "buttonText": "I-verify ang Bagong Email",
+      "linkLabel": "O kopyahin at i-paste ang link na ito sa iyong browser:",
+      "expiryNotice": "Ang link na ito ay mag-e-expire sa loob ng 24 na oras."
     }
   }
 }

@@ -238,10 +238,15 @@ describe('UserHandlers - Integration Tests', () => {
                 createUnitTestServiceConfig(),
                 new StubGroupAttachmentStorage(storage),
             );
-            const handlers = new UserHandlers(componentBuilder.buildUserService());
+            const handlers = new UserHandlers(
+                componentBuilder.buildUserService(),
+                authService,
+                componentBuilder.buildTenantRegistryService(),
+            );
             expect(handlers).toBeInstanceOf(UserHandlers);
             expect(handlers.updateUserProfile).toBeDefined();
             expect(handlers.changePassword).toBeDefined();
+            expect(handlers.changeEmail).toBeDefined();
         });
     });
 });

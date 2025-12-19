@@ -1646,6 +1646,15 @@
       "buttonText": "Verify Email",
       "linkLabel": "Or copy and paste this link into your browser:",
       "expiryNotice": "This link will expire in 24 hours."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Verify your new email address",
+      "ignoreNotice": "Ignore this email if you didn't request an email change on {{domain}}.",
+      "greeting": "Hi {{displayName}},",
+      "instruction": "We received a request to change the email address for your {{appName}} account to this address.",
+      "buttonText": "Verify New Email",
+      "linkLabel": "Or copy and paste this link into your browser:",
+      "expiryNotice": "This link will expire in 24 hours."
     }
   }
 }

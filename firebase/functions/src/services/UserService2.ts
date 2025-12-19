@@ -34,6 +34,16 @@ export interface RegisterUserResult {
 }
 
 /**
+ * Result of validating an email change request.
+ * Contains the information needed to send a verification email.
+ */
+export interface ValidatedEmailChange {
+    currentEmail: Email;
+    newEmail: Email;
+    displayName: string;
+}
+
+/**
  * Service for fetching user profiles from Firebase Auth
  */
 export class UserService {
@@ -416,12 +426,14 @@ export class UserService {
     }
 
     /**
-     * Change a user's email address
+     * Validates email change request and returns info needed to send verification email.
+     * Does NOT actually change the email - that happens when the user clicks the verification link.
      * @param userId - Firebase UID of the user
      * @param requestBody - Raw request payload containing current password and new email
+     * @returns Validated email change data including current email, new email, and display name
      */
-    async changeEmail(userId: UserId, requestBody: unknown): Promise<void> {
-        LoggerContext.update({ userId, operation: 'change-email' });
+    async validateEmailChange(userId: UserId, requestBody: unknown): Promise<ValidatedEmailChange> {
+        LoggerContext.update({ userId, operation: 'validate-email-change' });
 
         const validatedData = validateChangeEmail(requestBody);
 
@@ -440,28 +452,24 @@ export class UserService {
                 throw Errors.authInvalid(ErrorDetail.INVALID_PASSWORD);
             }
 
-            await this.authService.updateUser(userId, {
-                email: validatedData.newEmail,
-                emailVerified: false,
-            });
+            return {
+                currentEmail: toEmail(userRecord.email),
+                newEmail: toEmail(validatedData.newEmail),
+                displayName: userRecord.displayName ?? 'User',
+            };
         } catch (error: unknown) {
             if (error instanceof ApiError) {
                 throw error;
             }
 
-            const firebaseCode = this.extractErrorCode(error);
-            if (firebaseCode && this.isSensitiveRegistrationErrorCode(firebaseCode)) {
-                throw Errors.alreadyExists('Email', ErrorDetail.EMAIL_ALREADY_EXISTS);
-            }
-
             if (error && typeof error === 'object' && 'code' in error && (error as { code?: string; }).code === 'auth/user-not-found') {
                 const err = error instanceof Error ? error : new Error(String(error));
-                logger.error('User not found in Firebase Auth during email change', err);
+                logger.error('User not found in Firebase Auth during email change validation', err);
                 throw Errors.notFound('User', ErrorDetail.USER_NOT_FOUND);
             }
 
             const err = error instanceof Error ? error : new Error(String(error));
-            logger.error('Failed to change user email', err);
+            logger.error('Failed to validate email change', err);
             throw Errors.serviceError(ErrorDetail.UPDATE_FAILED);
         }
     }

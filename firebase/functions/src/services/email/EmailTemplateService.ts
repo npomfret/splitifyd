@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
+import type { EmailChangeEmailVariables, EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 
 /**
@@ -31,6 +31,19 @@ export interface WelcomeEmailTranslations {
  * Email verification email template translations
  */
 export interface EmailVerificationEmailTranslations {
+    subject: string;
+    ignoreNotice: string;
+    greeting: string;
+    instruction: string;
+    buttonText: string;
+    linkLabel: string;
+    expiryNotice: string;
+}
+
+/**
+ * Email change email template translations
+ */
+export interface EmailChangeEmailTranslations {
     subject: string;
     ignoreNotice: string;
     greeting: string;
@@ -78,10 +91,21 @@ const FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS: EmailVerificationEmailTranslatio
     expiryNotice: 'This link will expire in 24 hours.',
 };
 
+const FALLBACK_EMAIL_CHANGE_TRANSLATIONS: EmailChangeEmailTranslations = {
+    subject: '{{appName}}: Verify your new email address',
+    ignoreNotice: "Ignore this email if you didn't request an email change on {{domain}}.",
+    greeting: 'Hi {{displayName}},',
+    instruction: 'We received a request to change the email address for your {{appName}} account to this address.',
+    buttonText: 'Verify New Email',
+    linkLabel: 'Or copy and paste this link into your browser:',
+    expiryNotice: 'This link will expire in 24 hours.',
+};
+
 type EmailTranslations = {
     passwordReset: PasswordResetEmailTranslations;
     welcome: WelcomeEmailTranslations;
     verification: EmailVerificationEmailTranslations;
+    emailChange: EmailChangeEmailTranslations;
 };
 
 /**
@@ -200,6 +224,93 @@ export class EmailTemplateService {
     }
 
     private verificationToRecord(vars: EmailVerificationEmailVariables): Record<string, string> {
+        return {
+            appName: vars.appName,
+            displayName: vars.displayName,
+            domain: vars.domain,
+            verificationLink: vars.verificationLink,
+        };
+    }
+
+    /**
+     * Generate email change verification email content with translated templates
+     */
+    generateEmailChangeEmail(variables: EmailChangeEmailVariables, lang: string = 'en'): EmailContent {
+        const translations = this.loadTranslations(lang);
+        const t = translations.emailChange;
+        const vars = this.emailChangeToRecord(variables);
+
+        const subject = this.interpolate(t.subject, vars);
+        const textBody = this.generateEmailChangeTextBody(t, vars);
+        const htmlBody = this.generateEmailChangeHtmlBody(t, vars);
+
+        return { subject, textBody, htmlBody };
+    }
+
+    private generateEmailChangeTextBody(
+        t: EmailChangeEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        return [
+            this.interpolate(t.ignoreNotice, vars),
+            '',
+            this.interpolate(t.greeting, vars),
+            '',
+            this.interpolate(t.instruction, vars),
+            '',
+            `${this.interpolate(t.buttonText, vars)}: ${vars.verificationLink}`,
+            '',
+            this.interpolate(t.expiryNotice, vars),
+        ].join('\n');
+    }
+
+    private generateEmailChangeHtmlBody(
+        t: EmailChangeEmailTranslations,
+        vars: Record<string, string>,
+    ): string {
+        const escapedVars: Record<string, string> = {
+            appName: escapeHtml(vars.appName),
+            displayName: escapeHtml(vars.displayName),
+            domain: escapeHtml(vars.domain),
+            verificationLink: escapeAttribute(vars.verificationLink),
+        };
+
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <p style="color: #666; font-size: 14px; margin-bottom: 24px;">
+        ${this.interpolate(t.ignoreNotice, escapedVars)}
+    </p>
+
+    <p style="font-size: 18px;">${this.interpolate(t.greeting, escapedVars)}</p>
+
+    <p>${this.interpolate(t.instruction, escapedVars)}</p>
+
+    <p style="margin: 32px 0;">
+        <a href="${escapedVars.verificationLink}"
+           style="display: inline-block; background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
+            ${this.interpolate(t.buttonText, escapedVars)}
+        </a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">
+        ${this.interpolate(t.linkLabel, escapedVars)}<br>
+        <a href="${escapedVars.verificationLink}" style="color: #4F46E5; word-break: break-all;">${escapedVars.verificationLink}</a>
+    </p>
+
+    <p style="color: #666; font-size: 14px;">
+        ${this.interpolate(t.expiryNotice, escapedVars)}
+    </p>
+</body>
+</html>`.trim();
+    }
+
+    private emailChangeToRecord(vars: EmailChangeEmailVariables): Record<string, string> {
         return {
             appName: vars.appName,
             displayName: vars.displayName,
@@ -355,6 +466,7 @@ export class EmailTemplateService {
                 passwordReset: FALLBACK_PASSWORD_RESET_TRANSLATIONS,
                 welcome: FALLBACK_WELCOME_TRANSLATIONS,
                 verification: FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS,
+                emailChange: FALLBACK_EMAIL_CHANGE_TRANSLATIONS,
             };
 
         this.translationsCache.set(lang, translations);

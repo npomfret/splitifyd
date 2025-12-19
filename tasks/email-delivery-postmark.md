@@ -6,30 +6,14 @@ Implement transactional emails for authentication flows using Postmark as the em
 
 ## Current State
 
-Password reset, welcome, and email verification emails are fully implemented with:
+All transactional authentication emails are fully implemented:
 - `EmailTemplateService` - i18n-aware template generation with XSS protection
 - `PostmarkEmailService` - REST API integration with message stream routing
 - Translations in all 13 supported languages
 - Unit tests and integration tests (Postmark sandbox)
 - Welcome email sent automatically during registration (best-effort, non-blocking)
 - Email verification available via POST /api/email-verification endpoint
-
-## Remaining Emails
-
-### 1. Email Change Confirmation
-
-Sent when user changes their email address. May need to send to both old and new addresses.
-
-**Content (to new address):**
-- Verification link for new email
-- Expiry notice
-- Support contact
-
-**Content (to old address - optional):**
-- Notification that email was changed
-- Security notice (contact support if not you)
-
-**Trigger:** When user updates email in account settings
+- Email change verification sends link to NEW email address; Firebase handles the actual change when user clicks
 
 ## Implementation Checklist
 
@@ -47,12 +31,13 @@ Sent when user changes their email address. May need to send to both old and new
 - [x] Implement `sendEmailVerification()` in AuthService with API endpoint
 - [x] Add integration test
 
-### Email Change Confirmation
-- [ ] Add `email.emailChange.*` translation keys to all locale files
-- [ ] Add `generateEmailChangeEmail()` method to `EmailTemplateService`
-- [ ] Add unit tests for email change template
-- [ ] Integrate into account settings email update flow
-- [ ] Add integration test
+### Email Change Confirmation ✅
+- [x] Add `email.emailChange.*` translation keys to all locale files
+- [x] Add `generateEmailChangeEmail()` method to `EmailTemplateService`
+- [x] Add unit tests for email change template (17 tests)
+- [x] Add `sendEmailChangeVerification()` to IAuthService/FirebaseAuthService
+- [x] Integrate into account settings email update flow (UserHandlers.changeEmail)
+- [x] Add integration test
 
 ## Technical Notes
 
@@ -62,16 +47,28 @@ Sent when user changes their email address. May need to send to both old and new
 - Translations follow existing pattern in `webapp-v2/src/locales/*/translation.json`
 - Backend reads translations directly from locale files (whitelisted in `translation-keys.test.ts`)
 
+### Email Change Flow
+The email change flow works as follows:
+1. User requests email change via PUT /api/users/me/email with currentPassword and newEmail
+2. Backend validates password and calls `validateEmailChange()` (does NOT change email yet)
+3. Backend sends verification email to the NEW email address using Firebase's `generateVerifyAndChangeEmailLink`
+4. User clicks link in email → Firebase verifies and changes the email
+5. Email is only changed after user clicks the verification link
+
 ## Files Reference
 
 | File | Purpose |
 |------|---------|
 | `firebase/functions/src/services/email/EmailTemplateService.ts` | Template generation |
 | `firebase/functions/src/services/email/PostmarkEmailService.ts` | Email sending |
-| `firebase/functions/src/services/auth/IAuthService.ts` | Auth service interface (sendWelcomeEmail) |
+| `firebase/functions/src/services/auth/IAuthService.ts` | Auth service interface |
 | `firebase/functions/src/services/auth/FirebaseAuthService.ts` | Auth service implementation |
 | `firebase/functions/src/auth/handlers.ts` | Registration handler with welcome email |
+| `firebase/functions/src/user/UserHandlers.ts` | Email change handler |
+| `firebase/functions/src/services/UserService2.ts` | User service with validateEmailChange |
 | `firebase/functions/src/__tests__/unit/services/email/EmailTemplateService.test.ts` | Unit tests |
+| `firebase/functions/src/__tests__/unit/api/users.test.ts` | User API unit tests |
 | `firebase/functions/src/__tests__/integration/auth-and-registration.test.ts` | Integration tests |
 | `webapp-v2/src/locales/*/translation.json` | i18n translations |
 | `packages/test-support/src/__tests__/unit/translation-keys.test.ts` | Backend key whitelist |
+| `packages/test-support/src/builders/EmailChangeEmailVariablesBuilder.ts` | Test builder |

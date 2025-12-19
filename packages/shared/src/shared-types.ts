@@ -2044,3 +2044,14 @@ export interface EmailVerificationEmailVariables {
     domain: string;
     verificationLink: string;
 }
+
+/**
+ * Variables for email change email interpolation.
+ * Used by EmailTemplateService to generate email change verification emails.
+ */
+export interface EmailChangeEmailVariables {
+    appName: string;
+    displayName: string;
+    domain: string;
+    verificationLink: string;
+}

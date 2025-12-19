@@ -57,7 +57,11 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         componentBuilder.buildGroupMemberService(),
         componentBuilder.buildGroupAttachmentStorage(),
     );
-    const userHandlers = new UserHandlers(componentBuilder.buildUserService());
+    const userHandlers = new UserHandlers(
+        componentBuilder.buildUserService(),
+        authService,
+        componentBuilder.buildTenantRegistryService(),
+    );
     const policyHandlers = new PolicyHandlers(componentBuilder.buildPolicyService());
     const policyUserHandlers = new PolicyUserHandlers(componentBuilder.buildUserPolicyService());
     const activityFeedHandlers = new ActivityFeedHandlers(

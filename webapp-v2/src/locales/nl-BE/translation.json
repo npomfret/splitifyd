@@ -1647,6 +1647,15 @@
       "buttonText": "E-mail bevestigen",
       "linkLabel": "Of kopieer en plak deze link in uw browser:",
       "expiryNotice": "Deze link verloopt over 24 uur."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Bevestig uw nieuwe e-mailadres",
+      "ignoreNotice": "Negeer deze e-mail als u geen e-mailwijziging hebt aangevraagd op {{domain}}.",
+      "greeting": "Hallo {{displayName}},",
+      "instruction": "We hebben een verzoek ontvangen om het e-mailadres van uw {{appName}}-account te wijzigen naar dit adres.",
+      "buttonText": "Nieuwe e-mail bevestigen",
+      "linkLabel": "Of kopieer en plak deze link in uw browser:",
+      "expiryNotice": "Deze link verloopt over 24 uur."
     }
   }
 }

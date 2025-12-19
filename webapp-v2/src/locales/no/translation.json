@@ -1646,6 +1646,15 @@
       "buttonText": "Bekreft e-post",
       "linkLabel": "Eller kopier og lim inn denne lenken i nettleseren din:",
       "expiryNotice": "Denne lenken utløper om 24 timer."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Bekreft din nye e-postadresse",
+      "ignoreNotice": "Ignorer denne e-posten hvis du ikke ba om å endre e-post på {{domain}}.",
+      "greeting": "Hei {{displayName}},",
+      "instruction": "Vi mottok en forespørsel om å endre e-postadressen for din {{appName}}-konto til denne adressen.",
+      "buttonText": "Bekreft ny e-post",
+      "linkLabel": "Eller kopier og lim inn denne lenken i nettleseren din:",
+      "expiryNotice": "Denne lenken utløper om 24 timer."
     }
   }
 }

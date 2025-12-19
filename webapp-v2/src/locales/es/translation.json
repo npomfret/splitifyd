@@ -1646,6 +1646,15 @@
       "buttonText": "Verificar correo",
       "linkLabel": "O copia y pega este enlace en tu navegador:",
       "expiryNotice": "Este enlace expirará en 24 horas."
+    },
+    "emailChange": {
+      "subject": "{{appName}}: Verifica tu nueva dirección de correo electrónico",
+      "ignoreNotice": "Ignora este correo si no solicitaste un cambio de correo en {{domain}}.",
+      "greeting": "Hola {{displayName}},",
+      "instruction": "Hemos recibido una solicitud para cambiar la dirección de correo electrónico de tu cuenta de {{appName}} a esta dirección.",
+      "buttonText": "Verificar nuevo correo",
+      "linkLabel": "O copia y pega este enlace en tu navegador:",
+      "expiryNotice": "Este enlace expirará en 24 horas."
     }
   }
 }

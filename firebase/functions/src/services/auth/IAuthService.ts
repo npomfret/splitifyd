@@ -72,6 +72,31 @@ export interface EmailVerificationEmailContext {
     displayName: string;
 }
 
+export interface EmailChangeEmailContext {
+    /**
+     * Public base URL for the tenant domain (scheme + host, optional port).
+     * Example: https://demo.sidebadger.me or http://localhost:5002
+     */
+    baseUrl: string;
+    /**
+     * Tenant app name for email copy.
+     */
+    appName: string;
+    /**
+     * Support email for the tenant.
+     */
+    supportEmail: Email;
+    /**
+     * User's display name for personalization.
+     */
+    displayName: string;
+    /**
+     * The new email address to change to.
+     * The verification email is sent to this address.
+     */
+    newEmail: Email;
+}
+
 export interface IAuthService {
     // ========================================================================
     // User Management Operations
@@ -178,4 +203,13 @@ export interface IAuthService {
      * @throws ApiError if operation fails
      */
     sendEmailVerification(email: Email, context: EmailVerificationEmailContext): Promise<void>;
+
+    /**
+     * Send an email change verification email to a user's new email address
+     * @param currentEmail - User's current email address
+     * @param context - Tenant-aware email context including the new email address
+     * @returns Promise that resolves when email is sent
+     * @throws ApiError if operation fails
+     */
+    sendEmailChangeVerification(currentEmail: Email, context: EmailChangeEmailContext): Promise<void>;
 }

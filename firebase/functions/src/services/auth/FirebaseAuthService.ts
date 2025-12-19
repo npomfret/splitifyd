@@ -63,7 +63,7 @@ import { LoggerContext } from '../../utils/logger-context';
 import { EmailTemplateService, type EmailMessage, type IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
-import type { EmailVerificationEmailContext, PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';
+import type { EmailChangeEmailContext, EmailVerificationEmailContext, PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';
 
 export interface IdentityToolkitConfig {
     apiKey: string;
@@ -676,6 +676,74 @@ export class FirebaseAuthService implements IAuthService {
     private buildTenantVerificationLink(baseUrl: string, oobCode: string): string {
         const normalized = baseUrl.replace(/\/$/, '');
         const params = new URLSearchParams({ mode: 'verifyEmail', oobCode });
+        return `${normalized}/__/auth/action?${params.toString()}`;
+    }
+
+    async sendEmailChangeVerification(currentEmail: Email, changeContext: EmailChangeEmailContext): Promise<void> {
+        const context = this.createContext('sendEmailChangeVerification', currentEmail);
+
+        LoggerContext.update({
+            operation: 'sendEmailChangeVerification',
+            email: currentEmail,
+            newEmail: changeContext.newEmail,
+            baseUrl: changeContext.baseUrl,
+        });
+
+        return this.executeWithMetrics(
+            'FirebaseAuthService.sendEmailChangeVerification',
+            async () => {
+                const user = await this.getUserByEmail(currentEmail);
+                if (!user) {
+                    logger.info('Email change verification email silently succeeded for non-existent email', { ...context });
+                    return;
+                }
+
+                let firebaseLink: string;
+                try {
+                    firebaseLink = await this.auth.generateVerifyAndChangeEmailLink(currentEmail, changeContext.newEmail);
+                } catch (error) {
+                    const mappedError = this.mapFirebaseError(error, context);
+                    logger.error('Email change verification link generation failed', mappedError, { ...context });
+                    throw mappedError;
+                }
+
+                const oobCode = this.extractOobCode(firebaseLink);
+                const verificationLink = this.buildTenantEmailChangeLink(changeContext.baseUrl, oobCode);
+
+                const domain = this.extractDomain(changeContext.baseUrl);
+
+                const emailContent = this.emailTemplateService.generateEmailChangeEmail({
+                    appName: changeContext.appName,
+                    displayName: changeContext.displayName,
+                    domain,
+                    verificationLink,
+                });
+
+                const messageStream = process.env['__POSTMARK_MESSAGE_STREAM'];
+                if (!messageStream) {
+                    throw Errors.serviceError(ErrorDetail.EMAIL_SERVICE_ERROR);
+                }
+
+                const message: EmailMessage = {
+                    to: changeContext.newEmail,
+                    from: changeContext.supportEmail,
+                    subject: emailContent.subject,
+                    textBody: emailContent.textBody,
+                    htmlBody: emailContent.htmlBody,
+                    messageStream,
+                };
+
+                await this.emailService.sendEmail(message);
+
+                logger.info('Email change verification email sent successfully', { ...context, newEmail: changeContext.newEmail });
+            },
+            context,
+        );
+    }
+
+    private buildTenantEmailChangeLink(baseUrl: string, oobCode: string): string {
+        const normalized = baseUrl.replace(/\/$/, '');
+        const params = new URLSearchParams({ mode: 'verifyAndChangeEmail', oobCode });
         return `${normalized}/__/auth/action?${params.toString()}`;
     }
 }

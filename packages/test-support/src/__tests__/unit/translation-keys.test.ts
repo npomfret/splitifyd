@@ -98,6 +98,14 @@ const BACKEND_TRANSLATION_KEYS = new Set([
     'email.verification.linkLabel',
     'email.verification.expiryNotice',
     'email.verification.ignoreNotice',
+    // Email change
+    'email.emailChange.subject',
+    'email.emailChange.ignoreNotice',
+    'email.emailChange.greeting',
+    'email.emailChange.instruction',
+    'email.emailChange.buttonText',
+    'email.emailChange.linkLabel',
+    'email.emailChange.expiryNotice',
 ]);
 
 // Extract base key from a pluralized key (e.g., 'foo.bar_one' -> 'foo.bar')
