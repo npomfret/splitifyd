@@ -1,8 +1,23 @@
-import { ActivityFeedAction, ActivityFeedEventType, ActivityFeedItem, GroupId, GroupName, ISOString, toSettlementId, UserId } from '@billsplit-wl/shared';
-import { ActivityFeedActions, ActivityFeedEventTypes, toGroupId, toGroupName } from '@billsplit-wl/shared';
-import { toExpenseId } from '@billsplit-wl/shared';
-import { CommentId, toCommentId } from '@billsplit-wl/shared';
-import { toUserId } from '@billsplit-wl/shared';
+import {
+    ActivityFeedAction,
+    ActivityFeedActions,
+    ActivityFeedEventType,
+    ActivityFeedEventTypes,
+    ActivityFeedItem,
+    ActivityFeedItemId,
+    CommentId,
+    GroupId,
+    GroupName,
+    ISOString,
+    toActivityFeedItemId,
+    toCommentId,
+    toExpenseId,
+    toGroupId,
+    toGroupName,
+    toSettlementId,
+    toUserId,
+    UserId,
+} from '@billsplit-wl/shared';
 import { convertToISOString, generateShortId, randomString } from '../../test-helpers';
 
 const DEFAULT_TIMESTAMP = () => new Date().toISOString();
@@ -33,7 +48,7 @@ export class ActivityFeedItemBuilder {
     }
 
     static create(): ActivityFeedItemBuilder {
-        const id = `activity-${generateShortId()}`;
+        const id = toActivityFeedItemId(`activity-${generateShortId()}`);
         const timestamp = convertToISOString(DEFAULT_TIMESTAMP());
         const actorName = 'Test User';
 
@@ -223,8 +238,8 @@ export class ActivityFeedItemBuilder {
         );
     }
 
-    withId(id: string): ActivityFeedItemBuilder {
-        this.item.id = id;
+    withId(id: string | ActivityFeedItemId): ActivityFeedItemBuilder {
+        this.item.id = typeof id === 'string' ? toActivityFeedItemId(id) : id;
         this.ensureActorId();
         return this;
     }

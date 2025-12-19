@@ -46,7 +46,7 @@ import { measureDb } from '../../monitoring/measure';
 import { assertTimestamp, safeParseISOToTimestamp } from '../../utils/dateHelpers';
 
 // Import all schemas for validation (these still validate Timestamp objects from Firestore)
-import { ShareLinkId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag, toUserId } from '@billsplit-wl/shared';
+import { ShareLinkId, toActivityFeedItemId, toCommentId, toExpenseId, toGroupId, toGroupName, toISOString, toSettlementId, toShareLinkId, toTenantDefaultFlag, toUserId } from '@billsplit-wl/shared';
 import {
     type ActivityFeedDocument,
     ActivityFeedDocumentSchema,
@@ -902,7 +902,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
 
                     const item: ActivityFeedItem = {
-                        id: converted.id,
+                        id: toActivityFeedItemId(converted.id),
                         userId: converted.userId,
                         groupId: converted.groupId,
                         groupName: converted.groupName,
@@ -1019,7 +1019,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const action = (converted.action as ActivityFeedAction | undefined) ?? EVENT_ACTION_MAP[eventType];
 
                     const item: ActivityFeedItem = {
-                        id: converted.id,
+                        id: toActivityFeedItemId(converted.id),
                         userId: converted.userId,
                         groupId: converted.groupId,
                         groupName: converted.groupName,

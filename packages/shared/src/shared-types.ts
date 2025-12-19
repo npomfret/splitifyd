@@ -146,7 +146,9 @@ export type Email = Brand<string, 'Email'>;
 export const toEmail = (value: string): Email => value as Email;
 
 export type Description = string;
-export type ActivityFeedItemId = string;
+
+export type ActivityFeedItemId = Brand<string, 'ActivityFeedItemId'>;
+export const toActivityFeedItemId = (value: string): ActivityFeedItemId => value as ActivityFeedItemId;
 
 export type ExpenseLabel = Brand<string, 'ExpenseLabel'>;
 export const toExpenseLabel = (value: string): ExpenseLabel => value as ExpenseLabel;

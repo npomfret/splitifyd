@@ -13,6 +13,7 @@ import {
     ReactionEmojis,
     SplitTypes,
     SystemUserRoles,
+    toActivityFeedItemId,
     toAttachmentId,
     toDisplayName,
     toEmail,
@@ -685,7 +686,7 @@ const ActivityFeedItemDetailsSchema = z
 
 export const ActivityFeedItemSchema = z
     .object({
-        id: z.string(),
+        id: z.string().transform(toActivityFeedItemId),
         userId: z.string().transform((value) => value as UserId),
         groupId: z.string().transform((value) => toGroupId(value)),
         groupName: z.string().transform(toGroupName),
