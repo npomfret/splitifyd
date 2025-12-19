@@ -593,9 +593,13 @@ export interface UserProfile {
 /**
  * Admin-facing user profile with Firebase Auth administrative fields.
  *
- * This extends UserProfile with Firebase Auth admin-only fields like disabled
- * status and metadata. These fields are only available to system administrators
- * and are not exposed to regular users.
+ * This extends UserProfile (minus email for privacy) with Firebase Auth admin-only
+ * fields like disabled status and metadata. These fields are only available to
+ * system administrators and are not exposed to regular users.
+ *
+ * **Privacy:** Email addresses are intentionally excluded from this type to protect
+ * user privacy. Admins can still search by email (server-side only) but email is
+ * never returned in responses.
  *
  * **Used by:**
  * - Admin API endpoints (PUT /admin/users/:uid)
@@ -608,7 +612,7 @@ export interface UserProfile {
  * @see UserProfile for server-side internal user data
  * @see ClientUser for client-facing minimal profile
  */
-export interface AdminUserProfile extends UserProfile {
+export interface AdminUserProfile extends Omit<UserProfile, 'email'> {
     /** Whether the user account is disabled */
     disabled: boolean;
     /** Firebase Auth metadata */
@@ -618,6 +622,8 @@ export interface AdminUserProfile extends UserProfile {
         /** When the user last signed in (may not exist if never signed in) */
         lastSignInTime?: string;
     };
+    /** Tenant ID where user signed up (for analytics) */
+    signupTenantId?: TenantId;
 }
 
 /**

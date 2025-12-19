@@ -1353,8 +1353,8 @@
         "placeholder": "Enter email or UID..."
       },
       "table": {
-        "email": "Email",
         "displayName": "Display Name",
+        "signupHost": "Signup Host",
         "role": "Role",
         "status": "Status",
         "created": "Created",
@@ -1385,11 +1385,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Edit the user's display name and email address",
+        "description": "Edit the user's display name",
         "displayName": "Display Name",
-        "displayNamePlaceholder": "Enter display name",
-        "email": "Email Address",
-        "emailPlaceholder": "Enter email address"
+        "displayNamePlaceholder": "Enter display name"
       },
       "role": {
         "description": "Select a role for this user"

@@ -1354,8 +1354,8 @@
         "placeholder": "Ilagay ang email o UID..."
       },
       "table": {
-        "email": "Email",
         "displayName": "Pangalan sa Display",
+        "signupHost": "Signup Host",
         "role": "Papel",
         "status": "Katayuan",
         "created": "Nilikha",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "I-edit ang pangalan sa display at email address ng user",
+        "description": "I-edit ang pangalan sa display ng user",
         "displayName": "Pangalan sa Display",
-        "displayNamePlaceholder": "Ilagay ang pangalan sa display",
-        "email": "Email Address",
-        "emailPlaceholder": "Ilagay ang email address"
+        "displayNamePlaceholder": "Ilagay ang pangalan sa display"
       },
       "role": {
         "description": "Pumili ng papel para sa user na ito"

@@ -1354,8 +1354,8 @@
         "placeholder": "Inserisci email o UID..."
       },
       "table": {
-        "email": "Email",
         "displayName": "Nome visualizzato",
+        "signupHost": "Host di registrazione",
         "role": "Ruolo",
         "status": "Stato",
         "created": "Creato",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Modifica il nome visualizzato e l'indirizzo email dell'utente",
+        "description": "Modifica il nome visualizzato dell'utente",
         "displayName": "Nome visualizzato",
-        "displayNamePlaceholder": "Inserisci nome visualizzato",
-        "email": "Indirizzo email",
-        "emailPlaceholder": "Inserisci indirizzo email"
+        "displayNamePlaceholder": "Inserisci nome visualizzato"
       },
       "role": {
         "description": "Seleziona un ruolo per questo utente"

@@ -247,10 +247,10 @@ export function AdminUsersTab() {
                             <thead className='bg-indigo-50'>
                                 <tr>
                                     <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        {t('admin.users.table.email')}
+                                        {t('admin.users.table.displayName')}
                                     </th>
                                     <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
-                                        {t('admin.users.table.displayName')}
+                                        {t('admin.users.table.signupHost')}
                                     </th>
                                     <th scope='col' className='px-4 py-3 text-start text-xs font-medium text-indigo-700 uppercase tracking-wider'>
                                         {t('admin.users.table.role')}
@@ -279,7 +279,7 @@ export function AdminUsersTab() {
                                     return (
                                         <tr key={uid} class={isCurrentUser ? 'bg-blue-50' : ''}>
                                             <td className='px-4 py-3 text-sm text-gray-900 break-all'>
-                                                {String(authUser.email ?? '')}
+                                                {String(authUser.displayName ?? '-')}
                                                 {isCurrentUser && (
                                                     <span className='ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700'>
                                                         {t('common.you')}
@@ -287,7 +287,7 @@ export function AdminUsersTab() {
                                                 )}
                                             </td>
                                             <td className='px-4 py-3 text-sm text-gray-700 break-all'>
-                                                {String(authUser.displayName ?? '-')}
+                                                {authUser.signupTenantId ?? '-'}
                                             </td>
                                             <td className='px-4 py-3 text-sm'>
                                                 <span class={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getRoleBadgeClass(role, false)}`}>
@@ -367,7 +367,6 @@ export function AdminUsersTab() {
                 }}
                 user={editingUser.value ?? {
                     uid: toUserId(''),
-                    email: toEmail(''),
                     displayName: toDisplayName(''),
                     disabled: false,
                     role: SystemUserRoles.SYSTEM_USER,

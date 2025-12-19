@@ -8,8 +8,8 @@ const translation = translationEn;
 /**
  * Page Object for the User Editor Modal in the Admin Panel
  *
- * This modal allows system admins to edit user profiles (displayName, email)
- * and manage user roles.
+ * This modal allows system admins to edit user profiles (displayName)
+ * and manage user roles. Email is intentionally excluded for privacy.
  *
  * ## Selector Strategy
  * - Single dialog invariant: only one modal open at a time, so `getByRole('dialog')` is unambiguous
@@ -36,10 +36,6 @@ export class UserEditorModalPage extends BasePage {
 
     protected getDisplayNameInput(): Locator {
         return this.getModal().getByLabel(translation.admin.userEditor.profile.displayName);
-    }
-
-    protected getEmailInput(): Locator {
-        return this.getModal().getByLabel(translation.admin.userEditor.profile.email);
     }
 
     protected getSaveProfileButton(): Locator {
@@ -85,10 +81,6 @@ export class UserEditorModalPage extends BasePage {
         await this.fillPreactInput(this.getDisplayNameInput(), value);
     }
 
-    async fillEmail(value: string): Promise<void> {
-        await this.fillPreactInput(this.getEmailInput(), value);
-    }
-
     async clickSaveProfile(): Promise<void> {
         await this.clickButton(this.getSaveProfileButton(), { buttonName: 'Save Profile' });
     }
@@ -118,16 +110,8 @@ export class UserEditorModalPage extends BasePage {
         await expect(this.getDisplayNameInput()).not.toBeVisible();
     }
 
-    async verifyEmailInputVisible(): Promise<void> {
-        await expect(this.getEmailInput()).toBeVisible();
-    }
-
     async verifyDisplayNameValue(expectedValue: string): Promise<void> {
         await expect(this.getDisplayNameInput()).toHaveValue(expectedValue);
-    }
-
-    async verifyEmailValue(expectedValue: string): Promise<void> {
-        await expect(this.getEmailInput()).toHaveValue(expectedValue);
     }
 
     async verifySaveProfileButtonDisabled(): Promise<void> {

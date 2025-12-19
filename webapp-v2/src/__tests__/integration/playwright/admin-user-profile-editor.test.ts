@@ -2,12 +2,12 @@
  * Admin User Profile Editor Tests
  *
  * Tests the user profile editing functionality in the admin panel:
- * - Profile tab with displayName and email fields
+ * - Profile tab with displayName field (email excluded for privacy)
  * - Save button enabled/disabled states
  * - Successful profile updates
  */
 
-import { SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toUserId } from '@billsplit-wl/shared';
 import { AdminUserProfileBuilder, AdminUsersPage } from '@billsplit-wl/test-support';
 import { test } from '../../utils/console-logging-fixture';
 
@@ -18,7 +18,6 @@ test.describe('Admin User Profile Editor', () => {
         const targetUser = new AdminUserProfileBuilder()
             .withUid(toUserId('test-user-123'))
             .withDisplayName(toDisplayName('Test User'))
-            .withEmail(toEmail('testuser@example.com'))
             .withRole(SystemUserRoles.SYSTEM_USER)
             .build();
 
@@ -37,13 +36,11 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.displayName);
 
         await userEditorModal.verifyProfileTabIsActive();
         await userEditorModal.verifyDisplayNameInputVisible();
-        await userEditorModal.verifyEmailInputVisible();
         await userEditorModal.verifyDisplayNameValue('Test User');
-        await userEditorModal.verifyEmailValue('testuser@example.com');
     });
 
     test('should enable save button when profile data changes', async ({ systemAdminPage, msw }) => {
@@ -52,7 +49,6 @@ test.describe('Admin User Profile Editor', () => {
         const targetUser = new AdminUserProfileBuilder()
             .withUid(toUserId('test-user-456'))
             .withDisplayName(toDisplayName('Original Name'))
-            .withEmail(toEmail('original@example.com'))
             .withRole(SystemUserRoles.SYSTEM_USER)
             .build();
 
@@ -71,7 +67,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.displayName);
 
         // Save button should be disabled initially (no changes)
         await userEditorModal.verifySaveProfileButtonDisabled();
@@ -89,7 +85,6 @@ test.describe('Admin User Profile Editor', () => {
         const targetUser = new AdminUserProfileBuilder()
             .withUid(toUserId('test-user-789'))
             .withDisplayName(toDisplayName('Old Display Name'))
-            .withEmail(toEmail('old@example.com'))
             .withRole(SystemUserRoles.SYSTEM_USER)
             .build();
 
@@ -118,11 +113,10 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.displayName);
 
-        // Update both fields
+        // Update display name
         await userEditorModal.fillDisplayName('New Display Name');
-        await userEditorModal.fillEmail('new@example.com');
 
         // Click save
         await userEditorModal.clickSaveProfile();
@@ -137,7 +131,6 @@ test.describe('Admin User Profile Editor', () => {
         const targetUser = new AdminUserProfileBuilder()
             .withUid(toUserId('test-user-tabs'))
             .withDisplayName(toDisplayName('Tab Test User'))
-            .withEmail(toEmail('tabs@example.com'))
             .withRole(SystemUserRoles.SYSTEM_USER)
             .build();
 
@@ -156,7 +149,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.displayName);
 
         // Profile tab should be active initially
         await userEditorModal.verifyDisplayNameInputVisible();
@@ -175,7 +168,6 @@ test.describe('Admin User Profile Editor', () => {
 
         // Profile inputs should be visible again
         await userEditorModal.verifyDisplayNameInputVisible();
-        await userEditorModal.verifyEmailInputVisible();
     });
 
     test('should close modal when clicking cancel', async ({ systemAdminPage, msw }) => {
@@ -184,7 +176,6 @@ test.describe('Admin User Profile Editor', () => {
         const targetUser = new AdminUserProfileBuilder()
             .withUid(toUserId('test-user-cancel'))
             .withDisplayName(toDisplayName('Cancel Test User'))
-            .withEmail(toEmail('cancel@example.com'))
             .withRole(SystemUserRoles.SYSTEM_USER)
             .build();
 
@@ -203,7 +194,7 @@ test.describe('Admin User Profile Editor', () => {
         const adminUsersPage = new AdminUsersPage(page);
         await adminUsersPage.navigate();
 
-        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.email);
+        const userEditorModal = await adminUsersPage.clickEditUserAndOpenModal(targetUser.displayName);
         await userEditorModal.verifyModalIsOpen();
 
         // Click cancel button

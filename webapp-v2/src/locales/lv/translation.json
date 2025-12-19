@@ -1354,8 +1354,8 @@
         "placeholder": "Ievadiet e-pastu vai UID..."
       },
       "table": {
-        "email": "E-pasts",
         "displayName": "Parādāmais vārds",
+        "signupHost": "Reģistrācijas resursdators",
         "role": "Loma",
         "status": "Statuss",
         "created": "Izveidots",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Rediģēt lietotāja parādāmo vārdu un e-pasta adresi",
+        "description": "Rediģēt lietotāja parādāmo vārdu",
         "displayName": "Parādāmais vārds",
-        "displayNamePlaceholder": "Ievadiet parādāmo vārdu",
-        "email": "E-pasta adrese",
-        "emailPlaceholder": "Ievadiet e-pasta adresi"
+        "displayNamePlaceholder": "Ievadiet parādāmo vārdu"
       },
       "role": {
         "description": "Atlasiet lomu šim lietotājam"

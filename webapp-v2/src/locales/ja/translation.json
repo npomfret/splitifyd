@@ -1354,8 +1354,8 @@
         "placeholder": "メールまたはUIDを入力..."
       },
       "table": {
-        "email": "メールアドレス",
         "displayName": "表示名",
+        "signupHost": "登録ホスト",
         "role": "役割",
         "status": "ステータス",
         "created": "作成日時",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "ユーザーの表示名とメールアドレスを編集します",
+        "description": "ユーザーの表示名を編集します",
         "displayName": "表示名",
-        "displayNamePlaceholder": "表示名を入力",
-        "email": "メールアドレス",
-        "emailPlaceholder": "メールアドレスを入力"
+        "displayNamePlaceholder": "表示名を入力"
       },
       "role": {
         "description": "このユーザーの役割を選択します"

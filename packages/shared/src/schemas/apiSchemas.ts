@@ -546,10 +546,12 @@ const UserProfileResponseSchema = z
     .passthrough();
 
 // Admin user profile schema - extends UserProfile with Firebase Auth admin fields
+// Note: email is intentionally excluded for privacy. Admins can search by email (server-side)
+// but email is never returned in responses.
 export const AdminUserProfileSchema = z
     .object({
         uid: z.string().transform((value) => toUserId(value)),
-        email: z.string().email().transform((value) => toEmail(value)),
+        // email intentionally excluded for privacy
         emailVerified: z.boolean(),
         displayName: z.string().transform((value) => toDisplayName(value)),
         photoURL: z.string().nullable(),
@@ -564,6 +566,7 @@ export const AdminUserProfileSchema = z
         updatedAt: z.string().optional(),
         preferredLanguage: z.string().optional(),
         acceptedPolicies: z.record(z.string(), z.record(z.string(), z.string())).optional(), // Record<PolicyId, Record<VersionHash, ISOString>>
+        signupTenantId: z.string().transform((value) => toTenantId(value)).optional(), // Tenant where user signed up
     })
     .passthrough();
 

@@ -1353,8 +1353,8 @@
         "placeholder": "Geben Sie E-Mail oder UID ein..."
       },
       "table": {
-        "email": "E-Mail",
         "displayName": "Anzeigename",
+        "signupHost": "Anmelde-Host",
         "role": "Rolle",
         "status": "Status",
         "created": "Erstellt",
@@ -1385,11 +1385,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Anzeigenamen und E-Mail-Adresse des Benutzers bearbeiten",
+        "description": "Anzeigenamen des Benutzers bearbeiten",
         "displayName": "Anzeigename",
-        "displayNamePlaceholder": "Anzeigenamen eingeben",
-        "email": "E-Mail-Adresse",
-        "emailPlaceholder": "E-Mail-Adresse eingeben"
+        "displayNamePlaceholder": "Anzeigenamen eingeben"
       },
       "role": {
         "description": "Rolle für diesen Benutzer auswählen"

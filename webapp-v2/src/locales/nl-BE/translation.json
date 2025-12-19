@@ -1354,8 +1354,8 @@
         "placeholder": "Voer e-mail of UID in..."
       },
       "table": {
-        "email": "E-mail",
         "displayName": "Weergavenaam",
+        "signupHost": "Registratiehost",
         "role": "Rol",
         "status": "Status",
         "created": "Aangemaakt",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Bewerk de weergavenaam en het e-mailadres van de gebruiker",
+        "description": "Bewerk de weergavenaam van de gebruiker",
         "displayName": "Weergavenaam",
-        "displayNamePlaceholder": "Voer weergavenaam in",
-        "email": "E-mailadres",
-        "emailPlaceholder": "Voer e-mailadres in"
+        "displayNamePlaceholder": "Voer weergavenaam in"
       },
       "role": {
         "description": "Selecteer een rol voor deze gebruiker"

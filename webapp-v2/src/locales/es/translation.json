@@ -1353,8 +1353,8 @@
         "placeholder": "Introducir correo electrónico o UID..."
       },
       "table": {
-        "email": "Correo electrónico",
         "displayName": "Nombre visible",
+        "signupHost": "Host de registro",
         "role": "Rol",
         "status": "Estado",
         "created": "Creado",
@@ -1385,11 +1385,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Editar el nombre visible y la dirección de correo electrónico del usuario",
+        "description": "Editar el nombre visible del usuario",
         "displayName": "Nombre visible",
-        "displayNamePlaceholder": "Introducir nombre visible",
-        "email": "Dirección de correo electrónico",
-        "emailPlaceholder": "Introducir dirección de correo electrónico"
+        "displayNamePlaceholder": "Introducir nombre visible"
       },
       "role": {
         "description": "Seleccionar un rol para este usuario"

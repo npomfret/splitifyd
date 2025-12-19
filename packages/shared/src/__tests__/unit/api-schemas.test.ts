@@ -363,9 +363,9 @@ describe('API Schema Validation', () => {
 
     describe('AdminUserProfileSchema', () => {
         it('should validate complete admin user profile with all fields', () => {
+            // Note: email is intentionally excluded for privacy
             const profile = {
                 uid: 'user123',
-                email: 'admin@example.com',
                 emailVerified: true,
                 displayName: 'Admin User',
                 photoURL: 'https://example.com/photo.jpg',
@@ -382,11 +382,11 @@ describe('API Schema Validation', () => {
                     terms: { 'v1.0': '2024-01-01T00:00:00.000Z' },
                     privacy: { 'v1.0': '2024-01-01T00:00:00.000Z' },
                 },
+                signupTenantId: 'tenant-abc',
             };
 
             const result = AdminUserProfileSchema.parse(profile);
 
-            expect(result.email).toBe('admin@example.com');
             expect(result.emailVerified).toBe(true);
             expect(result.displayName).toBe('Admin User');
             expect(result.photoURL).toBe('https://example.com/photo.jpg');
@@ -401,12 +401,13 @@ describe('API Schema Validation', () => {
                 terms: { 'v1.0': '2024-01-01T00:00:00.000Z' },
                 privacy: { 'v1.0': '2024-01-01T00:00:00.000Z' },
             });
+            expect(result.signupTenantId).toBe('tenant-abc');
         });
 
         it('should validate minimal admin user profile without optional fields', () => {
+            // Note: email is intentionally excluded for privacy
             const profile = {
                 uid: 'user123',
-                email: 'admin@example.com',
                 emailVerified: false,
                 displayName: 'Admin User',
                 photoURL: null,
@@ -419,20 +420,20 @@ describe('API Schema Validation', () => {
 
             const result = AdminUserProfileSchema.parse(profile);
 
-            expect(result.email).toBe('admin@example.com');
             expect(result.photoURL).toBeNull();
             expect(result.metadata.lastSignInTime).toBeUndefined();
             expect(result.createdAt).toBeUndefined();
+            expect(result.signupTenantId).toBeUndefined();
         });
     });
 
     describe('ListAuthUsersResponseSchema', () => {
         it('should validate list of users with pagination', () => {
+            // Note: email is intentionally excluded for privacy
             const response = {
                 users: [
                     {
                         uid: 'user1',
-                        email: 'user1@example.com',
                         emailVerified: true,
                         displayName: 'User One',
                         photoURL: null,
@@ -441,10 +442,10 @@ describe('API Schema Validation', () => {
                         metadata: {
                             creationTime: '2024-01-01T00:00:00.000Z',
                         },
+                        signupTenantId: 'tenant-1',
                     },
                     {
                         uid: 'user2',
-                        email: 'user2@example.com',
                         emailVerified: false,
                         displayName: 'User Two',
                         photoURL: 'https://example.com/photo.jpg',
@@ -454,6 +455,7 @@ describe('API Schema Validation', () => {
                             creationTime: '2024-01-02T00:00:00.000Z',
                             lastSignInTime: '2024-01-15T12:00:00.000Z',
                         },
+                        signupTenantId: 'tenant-2',
                     },
                 ],
                 nextPageToken: 'token123',
@@ -463,8 +465,10 @@ describe('API Schema Validation', () => {
             const result = ListAuthUsersResponseSchema.parse(response);
 
             expect(result.users).toHaveLength(2);
-            expect(result.users[0].email).toBe('user1@example.com');
-            expect(result.users[1].email).toBe('user2@example.com');
+            expect(result.users[0].displayName).toBe('User One');
+            expect(result.users[0].signupTenantId).toBe('tenant-1');
+            expect(result.users[1].displayName).toBe('User Two');
+            expect(result.users[1].signupTenantId).toBe('tenant-2');
             expect(result.nextPageToken).toBe('token123');
             expect(result.hasMore).toBe(true);
         });

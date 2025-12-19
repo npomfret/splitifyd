@@ -1,10 +1,12 @@
-import type { AdminUserProfile, DisplayName, Email, ISOString, PolicyId, SystemUserRole, UserId, VersionHash } from '@billsplit-wl/shared';
-import { SystemUserRoles, toDisplayName, toEmail, toUserId } from '@billsplit-wl/shared';
+import type { AdminUserProfile, DisplayName, ISOString, PolicyId, SystemUserRole, TenantId, UserId, VersionHash } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { generateShortId, randomBoolean, randomChoice, randomString, randomUrl } from '../test-helpers';
 
 /**
  * Builder for creating AdminUserProfile objects for testing
  * Used for admin endpoints that return full user data including Firebase Auth metadata
+ *
+ * Note: Email is intentionally excluded from AdminUserProfile for privacy.
  */
 export class AdminUserProfileBuilder {
     private user: AdminUserProfile;
@@ -15,7 +17,6 @@ export class AdminUserProfileBuilder {
         this.user = {
             uid: toUserId(`user-${randomId}`),
             displayName: toDisplayName(`${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`),
-            email: toEmail(`${randomString(6).toLowerCase()}@example.com`),
             photoURL: randomBoolean() ? randomUrl() : null,
             emailVerified: randomBoolean(),
             role: SystemUserRoles.SYSTEM_USER,
@@ -37,8 +38,8 @@ export class AdminUserProfileBuilder {
         return this;
     }
 
-    withEmail(email: Email | string): this {
-        this.user.email = typeof email === 'string' ? toEmail(email) : email;
+    withSignupTenantId(tenantId: TenantId | string): this {
+        this.user.signupTenantId = typeof tenantId === 'string' ? toTenantId(tenantId) : tenantId;
         return this;
     }
 

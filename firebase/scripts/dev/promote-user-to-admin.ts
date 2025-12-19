@@ -75,9 +75,10 @@ async function main(): Promise<void> {
         throw error;
     }
 
-    // List auth users to find the target user by email
+    // List auth users to find the target user by email (server-side search)
     const authUsers = await driver.listAuthUsers({ email: toEmail(email) }, adminToken);
-    const targetUser = authUsers.users.find((u) => u.email === email);
+    // Server filters by email, so first result is the match (if any)
+    const targetUser = authUsers.users[0];
 
     if (!targetUser) {
         console.error(`❌ User not found: ${email}`);
@@ -86,7 +87,7 @@ async function main(): Promise<void> {
     }
 
     const uid = toUserId(targetUser.uid);
-    console.log(`✅ Found user: ${targetUser.displayName || email} (${uid})`);
+    console.log(`✅ Found user: ${targetUser.displayName} (${uid})`);
 
     // Promote using the test-pool endpoint
     console.log('👑 Promoting to system_admin...');

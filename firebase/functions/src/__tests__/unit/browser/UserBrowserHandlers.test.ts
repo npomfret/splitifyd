@@ -1,4 +1,4 @@
-import { toEmail, toUserId } from '@billsplit-wl/shared';
+import { toEmail, toTenantId, toUserId } from '@billsplit-wl/shared';
 import { UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
@@ -27,23 +27,25 @@ describe('UserBrowserHandlers - Integration Tests', () => {
             expect(result.users).toBeDefined();
             expect(result.users).toEqual(
                 expect.arrayContaining([
-                    expect.objectContaining({ uid: user1.user.uid, email: 'user1@test.com' }),
-                    expect.objectContaining({ uid: user2.user.uid, email: 'user2@test.com' }),
+                    // Note: email is intentionally excluded from response for privacy
+                    expect.objectContaining({ uid: user1.user.uid, signupTenantId: toTenantId('localhost-tenant') }),
+                    expect.objectContaining({ uid: user2.user.uid, signupTenantId: toTenantId('localhost-tenant') }),
                 ]),
             );
             expect(result.hasMore).toBe(false);
         });
 
         it('should filter by email when email query param is provided', async () => {
-            // Arrange
+            // Arrange - admin can search by email (server-side), but email is not returned in response
             const user1 = await appDriver.registerUser(new UserRegistrationBuilder().withEmail('user1@test.com').build());
             await appDriver.registerUser(new UserRegistrationBuilder().withEmail('user2@test.com').build());
 
             // Act
             const result = await appDriver.listAuthUsers({ email: toEmail('user1@test.com') }, adminId);
 
-            // Assert
-            expect(result.users).toEqual([expect.objectContaining({ uid: user1.user.uid, email: 'user1@test.com' })]);
+            // Assert - email excluded from response for privacy, but search still works
+            expect(result.users).toEqual([expect.objectContaining({ uid: user1.user.uid })]);
+            expect(result.users[0]).not.toHaveProperty('email');
             expect(result.hasMore).toBe(false);
         });
 

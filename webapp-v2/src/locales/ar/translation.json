@@ -1353,8 +1353,8 @@
         "placeholder": "أدخل البريد الإلكتروني أو UID..."
       },
       "table": {
-        "email": "البريد الإلكتروني",
         "displayName": "اسم العرض",
+        "signupHost": "مضيف التسجيل",
         "role": "الدور",
         "status": "الحالة",
         "created": "تم الإنشاء",
@@ -1385,11 +1385,9 @@
         "firestore": "فايرستور"
       },
       "profile": {
-        "description": "تعديل اسم العرض والبريد الإلكتروني للمستخدم",
+        "description": "تعديل اسم العرض للمستخدم",
         "displayName": "اسم العرض",
-        "displayNamePlaceholder": "أدخل اسم العرض",
-        "email": "عنوان البريد الإلكتروني",
-        "emailPlaceholder": "أدخل عنوان البريد الإلكتروني"
+        "displayNamePlaceholder": "أدخل اسم العرض"
       },
       "role": {
         "description": "اختر دورًا لهذا المستخدم"

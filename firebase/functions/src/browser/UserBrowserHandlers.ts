@@ -1,5 +1,4 @@
 import { AdminUserProfile, toDisplayName, toUserId } from '@billsplit-wl/shared';
-import { toEmail } from '@billsplit-wl/shared';
 import type { Request, Response } from 'express';
 import { logger } from '../logger';
 import type { UserDocument } from '../schemas';
@@ -26,6 +25,9 @@ export class UserBrowserHandlers {
     /**
      * Enrich Firestore users with their Auth data to create complete AdminUserProfile.
      * Starts from Firestore (source of truth for app users) and enriches with Auth metadata.
+     *
+     * Note: Email is intentionally excluded from the response for privacy.
+     * Admins can still search by email (server-side only) but email is never returned.
      */
     private async enrichWithAuthData(firestoreUsers: UserDocument[]): Promise<AdminUserProfile[]> {
         // Fetch Auth records for all users in parallel
@@ -37,7 +39,6 @@ export class UserBrowserHandlers {
             const authUser = authUsers[index];
 
             // Auth data - use defaults if Auth record is missing (shouldn't happen normally)
-            const email = authUser?.email || firestoreUser.email || `${firestoreUser.id}@missing-email.local`;
             const displayName = authUser?.displayName || `User ${firestoreUser.id.substring(0, 8)}`;
 
             if (!authUser) {
@@ -47,7 +48,7 @@ export class UserBrowserHandlers {
             return {
                 uid: firestoreUser.id,
                 displayName: toDisplayName(displayName),
-                email: toEmail(email),
+                // email intentionally excluded for privacy
                 emailVerified: authUser?.emailVerified ?? false,
                 photoURL: authUser?.photoURL || null,
                 role: firestoreUser.role,
@@ -61,6 +62,7 @@ export class UserBrowserHandlers {
                 updatedAt: firestoreUser.updatedAt,
                 preferredLanguage: firestoreUser.preferredLanguage,
                 acceptedPolicies: firestoreUser.acceptedPolicies,
+                signupTenantId: firestoreUser.signupTenantId,
             };
         });
     }

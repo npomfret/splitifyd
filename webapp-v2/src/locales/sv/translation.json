@@ -1354,8 +1354,8 @@
         "placeholder": "Ange e-post eller UID..."
       },
       "table": {
-        "email": "E-post",
         "displayName": "Visningsnamn",
+        "signupHost": "Registreringsvärd",
         "role": "Roll",
         "status": "Status",
         "created": "Skapad",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Redigera användarens visningsnamn och e-postadress",
+        "description": "Redigera användarens visningsnamn",
         "displayName": "Visningsnamn",
-        "displayNamePlaceholder": "Ange visningsnamn",
-        "email": "E-postadress",
-        "emailPlaceholder": "Ange e-postadress"
+        "displayNamePlaceholder": "Ange visningsnamn"
       },
       "role": {
         "description": "Välj en roll for den här användaren"

@@ -1,4 +1,4 @@
-import type { Email, UserId } from '@billsplit-wl/shared';
+import type { DisplayName, UserId } from '@billsplit-wl/shared';
 import type { Locator, Page } from '@playwright/test';
 import { translationEn } from '../translations/translation-en';
 import { BasePage } from './BasePage';
@@ -10,6 +10,7 @@ const translation = translationEn.admin.users;
  * Page Object for the Admin Users Tab
  *
  * Handles navigation to the users tab and user management actions.
+ * Note: Users are identified by displayName since email is not displayed for privacy.
  */
 export class AdminUsersPage extends BasePage {
     readonly url = '/admin?tab=users';
@@ -21,21 +22,21 @@ export class AdminUsersPage extends BasePage {
     // ✅ Protected locators - internal use only
 
     /**
-     * Get the table row containing a user by their email
+     * Get the table row containing a user by their display name
      */
-    protected getUserRow(email: Email | string): Locator {
-        return this.page.getByRole('row').filter({ hasText: email });
+    protected getUserRow(displayName: DisplayName | string): Locator {
+        return this.page.getByRole('row').filter({ hasText: displayName });
     }
 
     /**
      * Get the edit button for a user by finding their row first
      */
-    protected getEditUserButton(email: Email | string): Locator {
-        return this.getUserRow(email).getByRole('button', { name: translation.actions.editUser });
+    protected getEditUserButton(displayName: DisplayName | string): Locator {
+        return this.getUserRow(displayName).getByRole('button', { name: translation.actions.editUser });
     }
 
     /**
-     * @deprecated Use getEditUserButton(email) instead - uses visible email to locate user
+     * @deprecated Use getEditUserButton(displayName) instead - uses visible displayName to locate user
      */
     protected getEditUserButtonByUid(uid: UserId): Locator {
         return this.page.locator(`button[aria-label="${translation.actions.editUser}"]`).filter({
@@ -56,17 +57,17 @@ export class AdminUsersPage extends BasePage {
     // ✅ Action methods
 
     /**
-     * Click the edit button for a user identified by their email
+     * Click the edit button for a user identified by their display name
      */
-    async clickEditUser(email: Email | string): Promise<void> {
-        await this.clickButtonNoWait(this.getEditUserButton(email), { buttonName: `Edit user ${email}` });
+    async clickEditUser(displayName: DisplayName | string): Promise<void> {
+        await this.clickButtonNoWait(this.getEditUserButton(displayName), { buttonName: `Edit user ${displayName}` });
     }
 
     /**
      * Click edit and wait for the modal to open
      */
-    async clickEditUserAndOpenModal(email: Email | string): Promise<UserEditorModalPage> {
-        await this.clickEditUser(email);
+    async clickEditUserAndOpenModal(displayName: DisplayName | string): Promise<UserEditorModalPage> {
+        await this.clickEditUser(displayName);
         const modal = new UserEditorModalPage(this.page);
         await modal.waitForModalToBeVisible();
         return modal;

@@ -1354,8 +1354,8 @@
         "placeholder": "이메일 또는 UID 입력..."
       },
       "table": {
-        "email": "이메일",
         "displayName": "표시 이름",
+        "signupHost": "가입 호스트",
         "role": "역할",
         "status": "상태",
         "created": "생성됨",
@@ -1386,11 +1386,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "사용자의 표시 이름 및 이메일 주소 편집",
+        "description": "사용자의 표시 이름 편집",
         "displayName": "표시 이름",
-        "displayNamePlaceholder": "표시 이름 입력",
-        "email": "이메일 주소",
-        "emailPlaceholder": "이메일 주소 입력"
+        "displayNamePlaceholder": "표시 이름 입력"
       },
       "role": {
         "description": "이 사용자의 역할 선택"

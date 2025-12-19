@@ -5,7 +5,7 @@ import { Alert, Button, Card, Input, LoadingSpinner } from '@/components/ui';
 import { Modal, ModalFooter, ModalHeader } from '@/components/ui/Modal';
 import { logError } from '@/utils/browser-logger';
 import type { AdminUserProfile, SystemUserRole, UpdateUserProfileAdminRequest } from '@billsplit-wl/shared';
-import { SystemUserRoles, toDisplayName, toEmail } from '@billsplit-wl/shared';
+import { SystemUserRoles, toDisplayName } from '@billsplit-wl/shared';
 import { useCallback, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 
@@ -30,7 +30,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
     // Profile tab state
     const [displayName, setDisplayName] = useState(String(user.displayName ?? ''));
-    const [email, setEmail] = useState(String(user.email ?? ''));
 
     // Async action for saving profile
     const saveProfileAction = useAsyncAction(
@@ -105,7 +104,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     // Reset form when modal opens or user changes
     useModalOpenOrChange(open, user.uid, useCallback(() => {
         setDisplayName(String(user.displayName ?? ''));
-        setEmail(String(user.email ?? ''));
         setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
         setErrorMessage('');
         setSuccessMessage('');
@@ -117,7 +115,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         saveRoleAction.reset();
         loadAuthAction.reset();
         loadFirestoreAction.reset();
-    }, [user.displayName, user.email, user.role, saveProfileAction, saveRoleAction, loadAuthAction, loadFirestoreAction]));
+    }, [user.displayName, user.role, saveProfileAction, saveRoleAction, loadAuthAction, loadFirestoreAction]));
 
     const handleSaveProfile = async () => {
         setErrorMessage('');
@@ -127,9 +125,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
 
         if (displayName.trim() !== String(user.displayName ?? '')) {
             updates.displayName = toDisplayName(displayName.trim());
-        }
-        if (email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase()) {
-            updates.email = toEmail(email.trim().toLowerCase());
         }
 
         if (Object.keys(updates).length === 0) {
@@ -178,15 +173,14 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
         { value: SystemUserRoles.SYSTEM_ADMIN, label: t('roles.systemAdmin.label'), description: t('roles.systemAdmin.description') },
     ];
 
-    const hasProfileChanges = displayName.trim() !== String(user.displayName ?? '')
-        || email.trim().toLowerCase() !== String(user.email ?? '').toLowerCase();
+    const hasProfileChanges = displayName.trim() !== String(user.displayName ?? '');
 
     return (
         <Modal open={open} onClose={onClose} size='lg' labelledBy='user-editor-modal-title'>
             <div className='flex flex-col max-h-[90vh] overflow-hidden'>
                 <ModalHeader>
                     <h2 id='user-editor-modal-title' className='text-xl font-semibold text-text-primary'>{t('admin.userEditor.title')}</h2>
-                    <p className='help-text mt-1'>{user.email}</p>
+                    <p className='help-text mt-1 font-mono text-xs'>{user.uid}</p>
                 </ModalHeader>
 
                 {/* Tabs */}
@@ -265,19 +259,6 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                                         value={displayName}
                                         onChange={setDisplayName}
                                         placeholder={t('admin.userEditor.profile.displayNamePlaceholder')}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor='user-editor-email' className='block text-sm font-medium text-text-primary mb-2'>
-                                        {t('admin.userEditor.profile.email')}
-                                    </label>
-                                    <Input
-                                        id='user-editor-email'
-                                        type='email'
-                                        value={email}
-                                        onChange={setEmail}
-                                        placeholder={t('admin.userEditor.profile.emailPlaceholder')}
                                     />
                                 </div>
                             </div>

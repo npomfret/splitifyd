@@ -1353,8 +1353,8 @@
         "placeholder": "Skriv inn e-post eller UID..."
       },
       "table": {
-        "email": "E-post",
         "displayName": "Visningsnavn",
+        "signupHost": "Registreringsvert",
         "role": "Rolle",
         "status": "Status",
         "created": "Opprettet",
@@ -1385,11 +1385,9 @@
         "firestore": "Firestore"
       },
       "profile": {
-        "description": "Rediger brukerens visningsnavn og e-postadresse",
+        "description": "Rediger brukerens visningsnavn",
         "displayName": "Visningsnavn",
-        "displayNamePlaceholder": "Skriv inn visningsnavn",
-        "email": "E-postadresse",
-        "emailPlaceholder": "Skriv inn e-postadresse"
+        "displayNamePlaceholder": "Skriv inn visningsnavn"
       },
       "role": {
         "description": "Velg en rolle for denne brukeren"
