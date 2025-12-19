@@ -150,9 +150,14 @@ simpleTest.describe('Group Locking - Dashboard Activity', () => {
         // Navigate to dashboard and verify activity shows lock event
         const dashboardPage = await navigateToDashboardFromGroup(groupDetailPage);
         await dashboardPage.verifyActivityFeedShows('locked');
+        // Close the notifications dropdown to avoid it blocking group card clicks
+        await dashboardPage.header.closeNotificationsDropdown();
 
         // Return to group and unlock
         const groupDetailPage2 = await dashboardPage.clickGroupCardAndNavigateToDetail(groupName);
+        // Wait for locked state to be fully loaded before opening settings
+        // This ensures permissions are loaded and General tab will be available
+        await groupDetailPage2.waitForLockedGroupBanner();
         const settingsModal2 = await groupDetailPage2.clickEditGroupAndOpenModal('general');
         await settingsModal2.unlockGroup();
         await settingsModal2.clickFooterClose();
