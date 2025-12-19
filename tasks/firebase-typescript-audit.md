@@ -54,43 +54,67 @@ Balance check happened before the transaction that deletes membership. A concurr
 
 ## Scaling Risks
 
-These are not bugs but will cause performance degradation at scale. Defer until usage warrants.
+Fix via schema denormalization. No existing users or data, so we can restructure freely.
 
-### 1) Comment listing N+1 (Low)
+### 1) Comment/Settlement/Expense Reactions N+1 🔧 IN PROGRESS
 
-**Location:** `CommentService.ts:68-76, :103-111`
+**Problem:** Each item fetches user reactions from subcollection individually.
 
-Each comment fetches user reactions individually. At limit=100, this is 100 reads.
+**Locations:**
+- `CommentService.ts:68-76, :103-111`
+- `SettlementService.ts:650-678`
 
-**Mitigation:** Batch lookup by comment IDs, or denormalize user reactions into comment documents.
+**Solution:** Denormalize `userReactions` into parent documents.
 
-**Current mitigation:** Default page size is 8.
+**Schema change:**
+```
+# Current (N+1 problem):
+groups/{groupId}/comments/{commentId}/reactions/{userId}_{emoji}
+settlements/{settlementId}/reactions/{userId}_{emoji}
+
+# New (O(1) reads):
+Store on parent doc: userReactions: Record<UserId, ReactionEmoji[]>
+```
+
+**API change:**
+- Old: `userReactions: ReactionEmoji[]` (current user only)
+- New: `userReactions: Record<UserId, ReactionEmoji[]>` (all users - more social)
+
+**Files to modify:**
+- `packages/shared/src/shared-types.ts` - Change `userReactions` type
+- `packages/shared/src/schemas/apiSchemas.ts` - Update response schemas
+- `firebase/functions/src/schemas/*.ts` - Update document schemas
+- `firebase/functions/src/services/ReactionService.ts` - Write `userReactions` map on toggle
+- `firebase/functions/src/services/firestore/FirestoreReader.ts` - Remove `getUserReactionsFor*` methods
+- `firebase/functions/src/services/CommentService.ts` - Remove reaction fetching loop
+- `firebase/functions/src/services/SettlementService.ts` - Remove reaction fetching loop
+- `webapp-v2/src/app/components/` - Update reaction display for new shape
 
 ---
 
-### 2) Settlement listing N+1 (Low)
+### 2) Group list balance reads N+1 🔧 IN PROGRESS
 
-**Location:** `SettlementService.ts:650-678`
-
-Each settlement makes 3 reads (payer profile, payee profile, user reactions).
-
-**Mitigation:**
-- Collect unique user IDs from page, batch-fetch profiles with `getAll()`
-- Batch reactions similarly
-
-**Current mitigation:** Reads are parallelized per settlement.
-
----
-
-### 3) Group list balance reads (Low)
+**Problem:** Each group fetches balance from subcollection individually.
 
 **Location:** `GroupService.ts:275-289`
 
-Each group fetches its balance document separately.
+**Solution:** Move balances to top-level collection for batch queries.
 
-**Mitigation:** Use Firestore `getAll()` to batch-read all balance documents for the page.
+**Schema change:**
+```
+# Current (N+1 problem):
+groups/{groupId}/metadata/balance
 
-**Current mitigation:** Reads are parallelized.
+# New (batch-queryable):
+balances/{groupId}
+```
+
+**Files to modify:**
+- `firebase/functions/src/services/firestore/FirestoreReader.ts` - Add `getBalancesByGroupIds()` using `getAll()`
+- `firebase/functions/src/services/firestore/FirestoreWriter.ts` - Update balance write path
+- `firebase/functions/src/services/firestore/IFirestoreReader.ts` - Update interface
+- `firebase/functions/src/services/GroupService.ts` - Use batch balance fetch
+- `firebase/firestore.rules` - Add `balances` collection rules
 
 ---
 
@@ -101,6 +125,5 @@ Each group fetches its balance document separately.
 | labels typo | High | Low | ✅ Fixed |
 | Join race condition | Medium | Medium | ✅ Fixed |
 | Leave/remove balance race | Medium | Medium | ✅ Fixed |
-| Comment N+1 | Low | Medium | — |
-| Settlement N+1 | Low | Medium | — |
-| Group balance N+1 | Low | Low | — |
+| Reactions N+1 | Low | Medium | 🔧 In Progress |
+| Group balance N+1 | Low | Low | 🔧 In Progress |
