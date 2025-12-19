@@ -14,11 +14,11 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 
 ## Requirements
 
-- [ ] Send transactional emails (password reset, email verification, etc.)
+- [x] Send transactional emails (password reset, email verification, etc.) - password reset implemented
 - [ ] Send notification emails (group invites, expense notifications, etc.)
 - [ ] Handle bounces and complaints
 - [ ] Track delivery status
-- [ ] Support email templates
+- [x] Support email templates - i18n EmailTemplateService with XSS protection
 
 ## Research Needed
 
@@ -71,8 +71,12 @@ Implement email delivery using Postmark (https://postmarkapp.com) as the transac
 
 ### Phase 3: Sending + Observability (medium)
 
-- [x] Integrate `IEmailService` into the first real email use-case (pick one: group invites or auth email flows)
+- [x] Integrate `IEmailService` into the first real email use-case (password reset via FirebaseAuthService)
+- [x] Add `EmailTemplateService` with i18n support (loads translations from webapp locales)
+- [x] Add `messageStream` field to route emails through correct Postmark stream
+- [x] Add success logging with Postmark MessageID for delivery tracking
 - [x] Add integration test exercising password reset email via Postmark sandbox
+- [x] Add unit tests for EmailTemplateService (XSS escaping, interpolation, caching, fallback)
 - [ ] Add delivery event tracking hooks (webhook ingestion) and persistence strategy (TBD)
 
 ### Password Reset Implementation Notes
