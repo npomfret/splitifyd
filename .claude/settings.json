@@ -21,6 +21,7 @@
       "Bash(curl:*)",
       "Bash(bat:*)",
       "Bash(echo:*)",
+      "Bash(for:*)",
       "Bash(lsof:*)",
       "Bash(cat:*)",
       "Bash(sed:*)",
