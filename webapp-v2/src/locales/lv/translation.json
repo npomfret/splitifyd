@@ -366,7 +366,8 @@
     "openNotifications": "Atvērt paziņojumus"
   },
   "errors": {
-    "invalidLink": "Nederīga saite"
+    "invalidLink": "Nederīga saite",
+    "displayNameTaken": "Šis parādāmais vārds jau ir aizņemts"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

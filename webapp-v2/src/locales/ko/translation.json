@@ -366,7 +366,8 @@
     "openNotifications": "알림 열기"
   },
   "errors": {
-    "invalidLink": "잘못된 링크"
+    "invalidLink": "잘못된 링크",
+    "displayNameTaken": "해당 표시 이름은 이미 사용 중입니다"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

@@ -366,7 +366,8 @@
     "openNotifications": "Meldingen openen"
   },
   "errors": {
-    "invalidLink": "Ongeldige link"
+    "invalidLink": "Ongeldige link",
+    "displayNameTaken": "Die weergavenaam is al in gebruik"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

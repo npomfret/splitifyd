@@ -366,7 +366,8 @@
     "openNotifications": "Buksan ang mga abiso"
   },
   "errors": {
-    "invalidLink": "Di-wastong Link"
+    "invalidLink": "Di-wastong Link",
+    "displayNameTaken": "Ginagamit na ang pangalan sa display na iyon"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

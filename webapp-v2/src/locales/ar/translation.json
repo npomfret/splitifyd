@@ -366,7 +366,8 @@
     "openNotifications": "فتح الإشعارات"
   },
   "errors": {
-    "invalidLink": "رابط غير صالح"
+    "invalidLink": "رابط غير صالح",
+    "displayNameTaken": "اسم العرض هذا مأخوذ بالفعل"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

@@ -366,7 +366,8 @@
     "openNotifications": "Apri notifiche"
   },
   "errors": {
-    "invalidLink": "Link non valido"
+    "invalidLink": "Link non valido",
+    "displayNameTaken": "Questo nome visualizzato è già in uso"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

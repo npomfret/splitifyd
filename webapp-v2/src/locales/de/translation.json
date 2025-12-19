@@ -366,7 +366,8 @@
     "openNotifications": "Benachrichtigungen öffnen"
   },
   "errors": {
-    "invalidLink": "Ungültiger Link"
+    "invalidLink": "Ungültiger Link",
+    "displayNameTaken": "Dieser Anzeigename ist bereits vergeben"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

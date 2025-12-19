@@ -366,7 +366,8 @@
     "openNotifications": "Åpne varsler"
   },
   "errors": {
-    "invalidLink": "Ugyldig lenke"
+    "invalidLink": "Ugyldig lenke",
+    "displayNameTaken": "Det visningsnavnet er allerede i bruk"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

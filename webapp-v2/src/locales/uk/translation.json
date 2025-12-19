@@ -366,7 +366,8 @@
     "openNotifications": "Відкрити сповіщення"
   },
   "errors": {
-    "invalidLink": "Недійсне посилання"
+    "invalidLink": "Недійсне посилання",
+    "displayNameTaken": "Це відображуване ім'я вже зайнято"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

@@ -366,7 +366,8 @@
     "openNotifications": "Öppna meddelanden"
   },
   "errors": {
-    "invalidLink": "Ogiltig länk"
+    "invalidLink": "Ogiltig länk",
+    "displayNameTaken": "Det visningsnamnet är redan taget"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

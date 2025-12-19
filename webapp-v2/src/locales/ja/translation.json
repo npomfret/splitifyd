@@ -366,7 +366,8 @@
     "openNotifications": "通知を開く"
   },
   "errors": {
-    "invalidLink": "無効なリンク"
+    "invalidLink": "無効なリンク",
+    "displayNameTaken": "その表示名は既に使用されています"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",

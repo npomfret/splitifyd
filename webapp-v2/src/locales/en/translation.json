@@ -366,7 +366,8 @@
     "openNotifications": "Open notifications"
   },
   "errors": {
-    "invalidLink": "Invalid Link"
+    "invalidLink": "Invalid Link",
+    "displayNameTaken": "That display name is already taken"
   },
   "seo": {
     "titleSuffix": " | {{appName}}",
