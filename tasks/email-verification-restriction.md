@@ -8,7 +8,8 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 
 ## User Experience
 
-- **Read-Only Mode:** An unverified user can browse the application (e.g., view groups they are invited to) but cannot perform any write actions (create/edit/delete expenses, change settings, invite members, etc.).
+- **Read-Only Mode:** An unverified user can browse the application (e.g., view groups they are invited to) but cannot perform write actions (create/edit/delete expenses, create groups, record settlements, invite members, etc.).
+- **Exception:** Profile updates are allowed (language preference, display name) so users can configure their account.
 - **UI Prompts:**
     - A persistent, non-dismissible banner will be displayed at the top of every page, informing the user that their account is restricted and they need to verify their email.
     - The banner will contain a "Resend verification email" button.
@@ -17,61 +18,107 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 
 ---
 
-## Proposed Implementation Plan
+## Key Discovery: Existing Infrastructure
+
+The codebase already has:
+- `POST /email-verification` endpoint working (sends verification email via `FirebaseAuthService.sendEmailVerification()`)
+- `emailVerified: boolean` in `ClientUser` and `UserProfile` types
+- `authStore.user?.emailVerified` available client-side
+- `apiClient.sendEmailVerification()` method implemented
+- Test builders support `emailVerified`
+- Email templates for verification already exist
+
+**What's missing:** Enforcement layer (blocking writes in middleware) and UI feedback (banner + disabled buttons via permissions).
+
+---
+
+## Implementation Plan
 
 ### Phase 1: Backend Enforcement (Authoritative)
 
-**1. Update Firestore Security Rules:**
-- **File:** `firebase/firestore.rules`
-- **Action:** Add `&& request.auth.token.email_verified == true` to client-write rules. Verify the actual rule paths in `firestore.rules` before modifying.
+**1. Add `emailVerified` to AuthenticatedUser:**
+- **File:** `packages/shared/src/shared-types.ts` (line ~635)
+- **Action:** Extend `AuthenticatedUser` interface to include `emailVerified: boolean`.
 
-**2. Add an email verification guard at the auth layer:**
-- **Files:** `packages/shared/src/shared-types.ts` (line ~624), `firebase/functions/src/auth/middleware.ts`
-- **Action:** Extend `AuthenticatedUser` interface in the shared package to include `emailVerified: boolean`. In middleware, populate it from Firebase Auth's `userRecord.emailVerified` during authentication. Add a write-guard middleware that rejects mutating routes when `emailVerified` is `false`.
-- **Error Handling:** Add `EMAIL_NOT_VERIFIED` to the `ErrorDetail` object in `firebase/functions/src/errors/ErrorCode.ts` (around line 47) and return `Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED)`.
-- **Allowlist:** Ensure the guard allows `register`, `login`, `password-reset`, and the new resend-verification endpoint, plus all read-only routes (GET requests).
+**2. Populate in Auth Middleware:**
+- **File:** `firebase/functions/src/auth/middleware.ts`
+- **Action:** In `authenticate()` middleware (around line 84), add `emailVerified: userRecord.emailVerified` to the `req.user` object. Firebase already provides this via `userRecord.emailVerified`.
 
-**3. Create Verification Resend Endpoint:**
-- **Files:** `firebase/functions/src/auth/handlers.ts`, `firebase/functions/src/routes/route-config.ts`, `packages/shared/src/api.ts`, `packages/shared/src/schemas/apiSchemas.ts`
-- **Action:** Create a new authenticated `POST` endpoint, e.g., `/user/resend-verification`, with a 204 response.
-- **Logic:** Generate the verification link via the auth service, render with `EmailTemplateService`, and send via `PostmarkEmailService`. Add new email translations in `webapp-v2/src/locales/*/translation.json`.
+**3. Add Error Detail Code:**
+- **File:** `firebase/functions/src/errors/ErrorCode.ts` (line ~47-128)
+- **Action:** Add `EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED'` to `ErrorDetail` object.
+
+**4. Create Write-Guard in Middleware:**
+- **File:** `firebase/functions/src/auth/middleware.ts`
+- **Action:** After authentication succeeds, check if the request is a write operation (POST/PUT/DELETE/PATCH) and if `!req.user.emailVerified`. If so, throw `Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED)`.
+- **Approach:** Centralized check in middleware avoids modifying route-config.ts.
+
+**5. Allowlist Endpoints:**
+These endpoints must NOT require verified email:
+- `POST /email-verification` (resend verification)
+- `POST /auth/login`, `POST /auth/register`, `POST /auth/password-reset` (auth flows)
+- All GET endpoints (read-only)
+- `PUT /user/profile`, `PATCH /user/profile` (allow updating own profile)
+- User preference endpoints
+
+**Decision:** No Firestore security rules changes - enforcement via middleware only.
 
 ### Phase 2: Frontend Implementation (UI/UX)
 
 **1. Create Email Verification Banner Component:**
-- **File:** `webapp-v2/src/components/layout/EmailVerificationBanner.tsx`
-- **Logic:** This component will read the user's verification status from the `authStore`. If `authStore.user?.emailVerified === false`, it will render the banner.
-- **Content:** The banner will include the prompt and the "Resend" button, which will call the new API endpoint via the `apiClient`.
+- **File:** `webapp-v2/src/components/ui/EmailVerificationBanner.tsx`
+- **Logic:** Read `authStore.user?.emailVerified`. Return `null` if verified or not logged in.
+- **Content:** Warning banner with message explaining restriction + "Resend verification email" button.
+- **Action:** Call existing `apiClient.sendEmailVerification()` on button click. Show success/error toast.
 
-**2. Integrate Banner into Layout:**
-- **File:** `webapp-v2/src/components/layout/BaseLayout.tsx` (or similar root layout component)
-- **Action:** Add the `<EmailVerificationBanner />` so it appears on all authenticated pages.
+**2. Add Banner to App.tsx:**
+- **File:** `webapp-v2/src/App.tsx` (after line ~152, near WarningBanner)
+- **Action:** Add `<EmailVerificationBanner />` component.
 
-**3. Update Client-Side Permission Engine:**
-- **File:** `webapp-v2/src/stores/permissions-store.ts` (and its `ClientPermissionEngine`)
-- **Action:** Modify the permission checks to incorporate `authStore.user?.emailVerified`. If the user is not verified, all write-related permissions should return `false`. This will automatically disable the relevant UI controls across the app.
-- **Note:** Ensure non-group write actions (settings, profile updates, invites, comments) are also disabled if they are not driven by `permissionsStore`.
+**3. Update Permission Store:**
+- **File:** `webapp-v2/src/stores/permissions-store.ts`
+- **Action:** In `ClientPermissionEngine.checkPermission()`, add early return `false` for write actions when `emailVerified === false`.
+- **Pattern:** Follow existing pattern used for `group.locked` handling.
 
-**4. Update API Client:**
-- **File:** `webapp-v2/src/app/apiClient.ts`
-- **Action:** Add the new `resendVerificationEmail()` method.
+**4. Add Translations:**
+- **File:** `webapp-v2/src/locales/en/translation.json`
+- **Action:** Add keys under new section:
+
+```json
+{
+  "emailVerification": {
+    "banner": {
+      "title": "Email not verified",
+      "message": "Please verify your email address to unlock all features.",
+      "resendButton": "Resend verification email",
+      "resendSuccess": "Verification email sent! Check your inbox.",
+      "resendError": "Failed to send verification email. Please try again."
+    },
+    "tooltip": {
+      "disabled": "Verify your email to enable this action"
+    }
+  }
+}
+```
 
 ---
 
-## Key Files to Modify
+## Files to Modify
 
 | Layer | File | Purpose |
 |---|---|---|
-| **Data Security** | `firebase/firestore.rules` | Add `email_verified` check to write rules. |
-| **API Logic** | `firebase/functions/src/auth/middleware.ts` | Attach `emailVerified` and block writes for unverified users. |
-| **API Logic** | `firebase/functions/src/services/email/EmailTemplateService.ts` | Add template for verification email. |
-| **API Endpoint** | `firebase/functions/src/auth/handlers.ts` | Create handler to resend verification email. |
-| **Shared** | `packages/shared/src/api.ts` | Define the new API endpoint interface. |
-| **UI Component** | `webapp-v2/src/components/layout/EmailVerificationBanner.tsx` | New banner component. |
-| **UI Layout** | `webapp-v2/src/components/layout/BaseLayout.tsx` | Integrate the banner. |
-| **UI Logic** | `webapp-v2/src/stores/permissions-store.ts` | Disable UI controls based on verification status. |
-| **UI State** | `webapp-v2/src/app/stores/auth-store.ts` | Ensure `emailVerified` state is correctly managed. |
-| **API Client** | `webapp-v2/src/app/apiClient.ts` | Add method to call the new resend endpoint. |
+| **Shared Types** | `packages/shared/src/shared-types.ts` | Add `emailVerified` to `AuthenticatedUser` |
+| **API Logic** | `firebase/functions/src/auth/middleware.ts` | Populate `emailVerified`, add write-guard |
+| **Error Codes** | `firebase/functions/src/errors/ErrorCode.ts` | Add `EMAIL_NOT_VERIFIED` detail |
+| **UI Component** | `webapp-v2/src/components/ui/EmailVerificationBanner.tsx` | New banner component |
+| **UI Layout** | `webapp-v2/src/App.tsx` | Add banner to app |
+| **UI Logic** | `webapp-v2/src/stores/permissions-store.ts` | Disable UI controls based on verification status |
+| **Translations** | `webapp-v2/src/locales/en/translation.json` | Add banner/tooltip text |
+
+**Not modifying:**
+- `firebase/firestore.rules` - enforcement via middleware only
+- `firebase/functions/src/auth/handlers.ts` - resend endpoint already exists
+- `webapp-v2/src/app/apiClient.ts` - `sendEmailVerification()` already exists
 
 ---
 
@@ -82,8 +129,8 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 **API Unit Tests** (`firebase/functions/src/__tests__/unit/api/`):
 - Test that write endpoints reject unverified users with `EMAIL_NOT_VERIFIED` error
 - Test that read endpoints allow unverified users
-- Test that allowlisted endpoints (register, login, resend-verification) work for unverified users
-- Test the resend-verification endpoint (success, rate limiting if applicable)
+- Test that allowlisted endpoints (register, login, profile update, resend-verification) work for unverified users
+- Test that verified users can perform all actions normally
 
 ### Frontend
 
@@ -92,3 +139,33 @@ Implement a security and onboarding flow where new users are placed in a "read-o
 - Test that write action buttons are disabled with appropriate tooltips
 - Test the "Resend verification email" button flow
 - Test that verified users do not see the banner
+
+---
+
+## Complexity Assessment
+
+| Task | Effort |
+|------|--------|
+| Backend type + middleware changes | Low |
+| Error code addition | Low |
+| Banner component | Medium |
+| Permission store integration | Low |
+| Backend tests | Medium |
+| Frontend tests | Medium |
+
+**Total:** Medium complexity - infrastructure exists, adding enforcement layer.
+
+---
+
+## Implementation Order
+
+1. Backend first (authoritative enforcement must come first)
+   - Add `emailVerified` to `AuthenticatedUser` type
+   - Add `EMAIL_NOT_VERIFIED` error detail
+   - Update auth middleware to populate and enforce
+2. Test backend enforcement manually
+3. Frontend banner component
+4. Update permission store
+5. Add translations
+6. Write automated tests
+7. Manual E2E validation
