@@ -112,3 +112,56 @@ describe('Expense Locking - Firebase Transaction Behavior', () => {
         expect(['200', '300']).toContain(finalAmount);
     });
 });
+
+describe('Expense Labels - List Response', () => {
+    let apiDriver: ApiDriver;
+
+    beforeAll(async () => {
+        apiDriver = await ApiDriver.create();
+    });
+
+    let user1: UserToken;
+
+    beforeEach(async () => {
+        [user1] = await borrowTestUsers(1);
+    });
+
+    test('should include labels in expense list response', async () => {
+        // Create group
+        const group = await apiDriver.createGroup(
+            new CreateGroupRequestBuilder()
+                .withName('Labels Test Group')
+                .build(),
+            user1.token,
+        );
+
+        // Create expense with labels
+        const expense = await apiDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(group.id)
+                .withDescription('Labeled Expense')
+                .withAmount(100, toCurrencyISOCode('USD'))
+                .withPaidBy(user1.uid)
+                .withLabels(['Food', 'Lunch'])
+                .withSplitType('equal')
+                .withParticipants([user1.uid])
+                .build(),
+            user1.token,
+        );
+
+        // Verify labels are present in creation response
+        expect(expense.labels).toHaveLength(2);
+        expect(expense.labels).toContain('Food');
+        expect(expense.labels).toContain('Lunch');
+
+        // Verify labels are present in list response (via getGroupFullDetails)
+        // This is where the bug manifests - the .select() uses 'label' instead of 'labels'
+        const expenses = await apiDriver.getGroupExpenses(group.id, user1.token);
+        expect(expenses.expenses).toHaveLength(1);
+
+        const listedExpense = expenses.expenses[0];
+        expect(listedExpense.labels).toHaveLength(2);
+        expect(listedExpense.labels).toContain('Food');
+        expect(listedExpense.labels).toContain('Lunch');
+    });
+});

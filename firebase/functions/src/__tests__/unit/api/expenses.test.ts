@@ -675,6 +675,44 @@ describe('expenses', () => {
             expect(result.expenses).toHaveLength(1);
             expect(result.expenses[0].id).toBe(expense1.id);
         });
+
+        it('should include labels in listed expenses', async () => {
+            const group = await appDriver.createGroup(new CreateGroupRequestBuilder().build(), user1);
+            const groupId = group.id;
+            const { shareToken } = await appDriver.generateShareableLink(groupId, undefined, user1);
+            await appDriver.joinGroupByLink(shareToken, undefined, user2);
+
+            const participants = [user1, user2];
+
+            // Create expense with labels
+            const createdExpense = await appDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription('Labeled expense')
+                    .withAmount(100, USD)
+                    .withPaidBy(user1)
+                    .withParticipants(participants)
+                    .withSplitType('equal')
+                    .withSplits(calculateEqualSplits(toAmount(100), USD, participants))
+                    .withLabels(['Food', 'Lunch'])
+                    .build(),
+                user1,
+            );
+
+            // Verify labels are present when fetching single expense
+            const singleExpense = await appDriver.getExpense(createdExpense.id, user1);
+            expect(singleExpense.labels).toHaveLength(2);
+            expect(singleExpense.labels).toContain('Food');
+            expect(singleExpense.labels).toContain('Lunch');
+
+            // Verify labels are present when LISTING expenses (this is the bug)
+            const listResult = await appDriver.listGroupExpenses(groupId, {}, user1);
+            expect(listResult.expenses).toHaveLength(1);
+            const listedExpense = listResult.expenses[0];
+            expect(listedExpense.labels).toHaveLength(2);
+            expect(listedExpense.labels).toContain('Food');
+            expect(listedExpense.labels).toContain('Lunch');
+        });
     });
 
     describe('edit history (supersededBy)', () => {

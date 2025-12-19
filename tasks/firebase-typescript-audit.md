@@ -7,20 +7,16 @@
 
 ## Bugs
 
-### 1) Expense list query drops labels (High)
+### 1) ~~Expense list query drops labels~~ ✅ FIXED
 
 **Location:** `FirestoreReader.ts:1518`
 
-The `.select()` call uses `'label'` (singular) but the schema and DTO use `labels` (plural array). List responses silently lose label data.
+The `.select()` call used `'label'` (singular) but the schema and DTO use `labels` (plural array).
 
-**Fix:** Change `'label'` to `'labels'` in the select clause.
-
-**Why tests don't catch this:**
-- Existing label tests (`ExpenseService.test.ts:317`, `expenses.test.ts:361`) verify labels via **single-expense retrieval** (`getExpense`), not via list endpoints
-- The list test at `ExpenseHandlers.test.ts:578` creates expenses **without labels** and only checks descriptions
-- No test exercises the path: create expense with labels → list expenses → assert labels in response
-
-**Test to add:** Create expense with labels, call `listGroupExpenses`, assert `labels` array is populated in the response.
+**Resolution:**
+- Changed `'label'` to `'labels'` in the select clause
+- Added unit test: `expenses.test.ts` → "should include labels in listed expenses"
+- Added integration test: `expense-locking.test.ts` → "should include labels in expense list response"
 
 ---
 
@@ -112,11 +108,11 @@ Each group fetches its balance document separately.
 
 ## Summary
 
-| Issue | Severity | Effort | Test Gap |
-|-------|----------|--------|----------|
-| labels typo | High | Low | Tests use single-fetch, not list |
-| Join race condition | Medium | Medium | Tests are sequential, not concurrent |
-| Leave/remove balance race | Medium | Medium | Tests are sequential, not concurrent |
+| Issue | Severity | Effort | Status |
+|-------|----------|--------|--------|
+| labels typo | High | Low | ✅ Fixed |
+| Join race condition | Medium | Medium | Pending |
+| Leave/remove balance race | Medium | Medium | Pending |
 | Comment N+1 | Low | Medium | — |
 | Settlement N+1 | Low | Medium | — |
 | Group balance N+1 | Low | Low | — |

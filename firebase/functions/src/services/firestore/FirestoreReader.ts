@@ -1515,7 +1515,7 @@ export class FirestoreReader implements IFirestoreReader {
                         'amount',
                         'currency',
                         'description',
-                        'label',
+                        'labels',
                         'date',
                         'splitType',
                         'participants',
