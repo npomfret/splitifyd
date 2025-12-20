@@ -1,7 +1,7 @@
 import { apiClient } from '@/app/apiClient';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { Avatar, Button, Card, ConfirmDialog, SidebarCard, SkeletonMemberItem, Stack, Tooltip, Typography } from '@/components/ui';
+import { Button, Card, ConfirmDialog, MemberDisplay, SidebarCard, SkeletonList, SkeletonMemberItem, Tooltip, Typography } from '@/components/ui';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
 import { getGroupDisplayName } from '@/utils/displayName';
@@ -131,12 +131,8 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
 
     if (loading.value) {
         return (
-            <Card className='p-6' aria-busy='true'>
-                <Stack spacing='sm'>
-                    <SkeletonMemberItem />
-                    <SkeletonMemberItem />
-                    <SkeletonMemberItem />
-                </Stack>
+            <Card className='p-6'>
+                <SkeletonList>{SkeletonMemberItem}</SkeletonList>
             </Card>
         );
     }
@@ -155,16 +151,14 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
                             className='flex items-center justify-between py-1.5 px-1.5 rounded-md hover:bg-surface-muted transition-colors list-none'
                             aria-label={getGroupDisplayName(member)}
                         >
-                            <div className='flex items-center gap-2 min-w-0 flex-1'>
-                                <Avatar displayName={getGroupDisplayName(member)} userId={member.uid} size='sm' themeColor={memberTheme} />
-                                <div className='flex flex-col min-w-0 flex-1'>
-                                    <span className='font-medium text-text-primary text-sm truncate leading-tight'>
-                                        {getGroupDisplayName(member)}
-                                        {member.uid === currentUserId && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
-                                    </span>
-                                    {getMemberRole(member) && <span className='help-text-xs leading-tight'>{getMemberRole(member)}</span>}
-                                </div>
-                            </div>
+                            <MemberDisplay
+                                displayName={getGroupDisplayName(member)}
+                                userId={member.uid}
+                                themeColor={memberTheme}
+                                isCurrentUser={member.uid === currentUserId}
+                                secondaryText={getMemberRole(member) || undefined}
+                                className='flex-1'
+                            />
                             {/* Show actions only if current user is admin */}
                             {isAdmin && member.uid !== currentUserId
                                 ? (() => {

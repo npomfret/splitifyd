@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ChevronRightIcon, ClockIcon } from '@/components/ui/icons';
 import { RelativeTime } from '@/components/ui/RelativeTime';
-import { SkeletonActivityItem } from '@/components/ui/Skeleton';
-import { Stack } from '@/components/ui/Stack';
+import { SkeletonActivityItem, SkeletonList } from '@/components/ui/Skeleton';
 import { routes } from '@/constants/routes';
 import { navigationService } from '@/services/navigation.service';
 import { logError } from '@/utils/browser-logger';
@@ -67,13 +66,7 @@ export function ActivityFeedDropdownContent({ userId, onItemClick }: ActivityFee
         <div className='p-4'>
             {/* Loading skeleton */}
             {loading.value && !initialized.value
-                ? (
-                    <Stack spacing='sm' aria-busy='true' aria-label={t('activityFeed.loading')}>
-                        <SkeletonActivityItem />
-                        <SkeletonActivityItem />
-                        <SkeletonActivityItem />
-                    </Stack>
-                )
+                ? <SkeletonList ariaLabel={t('activityFeed.loading')}>{SkeletonActivityItem}</SkeletonList>
                 : null}
 
             {error.value

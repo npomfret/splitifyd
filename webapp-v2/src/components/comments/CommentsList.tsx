@@ -4,7 +4,7 @@ import { toUserId } from '@billsplit-wl/shared';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Alert, EmptyState, ListStateRenderer, LoadingSpinner, SkeletonCommentItem, Stack } from '../ui';
+import { Alert, EmptyState, ListStateRenderer, LoadMoreButton, SkeletonCommentItem, SkeletonList, Stack } from '../ui';
 import { CommentItem } from './CommentItem';
 
 interface CommentsListProps {
@@ -50,11 +50,9 @@ export function CommentsList({
                 items: comments,
             }}
             renderLoading={() => (
-                <Stack spacing='lg' className='px-1' aria-busy='true' aria-label={t('comments.commentsList.loading')}>
-                    <SkeletonCommentItem />
-                    <SkeletonCommentItem />
-                    <SkeletonCommentItem />
-                </Stack>
+                <SkeletonList spacing='lg' className='px-1' ariaLabel={t('comments.commentsList.loading')}>
+                    {SkeletonCommentItem}
+                </SkeletonList>
             )}
             renderEmpty={() => (
                 <EmptyState
@@ -87,22 +85,12 @@ export function CommentsList({
 
                     {hasMore && (
                         <div className='mt-4 flex justify-center'>
-                            <button
-                                onClick={onLoadMore}
-                                disabled={loading}
-                                className='px-4 py-2 text-sm text-interactive-primary hover:text-interactive-primary font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-                            >
-                                {loading
-                                    ? (
-                                        <span className='flex items-center gap-2'>
-                                            <LoadingSpinner size='sm' color='text-current' />
-                                            {t('comments.commentsList.loadingMore')}
-                                        </span>
-                                    )
-                                    : (
-                                        t('comments.commentsList.loadMore')
-                                    )}
-                            </button>
+                            <LoadMoreButton
+                                onClick={onLoadMore!}
+                                loading={loading}
+                                idleText={t('comments.commentsList.loadMore')}
+                                loadingText={t('comments.commentsList.loadingMore')}
+                            />
                         </div>
                     )}
                 </div>

@@ -353,6 +353,9 @@
 @utility badge-error {
   @apply bg-semantic-error/10 text-semantic-error border border-semantic-error/20;
 }
+@utility badge-deleted {
+  @apply bg-surface-error text-semantic-error rounded;
+}
 
 /* Button hover effects per Modern UI/UX guide section 4.2 */
 @layer components {

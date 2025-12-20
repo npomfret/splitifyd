@@ -1,4 +1,5 @@
 import { translateMemberRole } from '@/app/i18n/dynamic-translations';
+import { Select } from '@/components/ui';
 import { GroupMember, MemberRole } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -27,18 +28,15 @@ export function MemberRolesSection({
                                 {translateMemberRole(memberRoleDrafts[member.uid] ?? member.memberRole, t)}
                             </div>
                         </div>
-                        <select
-                            className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-2 py-1 text-sm focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary transition-colors duration-200'
+                        <Select
                             value={memberRoleDrafts[member.uid] ?? member.memberRole}
-                            onChange={(event) => onRoleChange(member.uid, event.currentTarget.value as MemberRole)}
+                            onChange={(value) => onRoleChange(member.uid, value as MemberRole)}
                             aria-label={`${t('securitySettingsModal.memberRoles.heading')} ${member.groupDisplayName}`}
-                        >
-                            {(['admin', 'member', 'viewer'] as MemberRole[]).map((role) => (
-                                <option key={role} value={role}>
-                                    {translateMemberRole(role, t)}
-                                </option>
-                            ))}
-                        </select>
+                            options={(['admin', 'member', 'viewer'] as MemberRole[]).map((role) => ({
+                                value: role,
+                                label: translateMemberRole(role, t),
+                            }))}
+                        />
                     </div>
                 ))}
             </div>

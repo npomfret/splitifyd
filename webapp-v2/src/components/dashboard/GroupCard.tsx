@@ -1,4 +1,5 @@
 import { translateGroupCardKey } from '@/app/i18n/dynamic-translations';
+import { iconButton } from '@/components/ui/styles';
 import { absAmount, type Amount, amountToSmallestUnit, GroupDTO, GroupId } from '@billsplit-wl/shared';
 import type { JSX } from 'preact';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +116,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                                 <Clickable
                                     as='button'
                                     onClick={(e: MouseEvent) => handleActionClick(e, () => onAddExpense(group.id))}
-                                    className='p-1.5 text-text-muted/80 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
+                                    className={iconButton.ghostRounded}
                                     aria-label={t('groupCard.addExpenseTooltip', { groupName: group.name })}
                                     eventName='group_card_add_expense'
                                     eventProps={{ groupId: group.id, groupName: group.name }}
@@ -129,7 +130,7 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense, isArchivedVi
                                 <Clickable
                                     as='button'
                                     onClick={(e: MouseEvent) => handleActionClick(e, () => onInvite(group.id))}
-                                    className='p-1.5 text-text-muted/80 hover:text-interactive-primary hover:bg-interactive-primary/10 rounded-full transition-colors'
+                                    className={iconButton.ghostRounded}
                                     aria-label={t('groupCard.inviteTooltip', { groupName: group.name })}
                                     eventName='group_card_invite'
                                     eventProps={{ groupId: group.id, groupName: group.name }}

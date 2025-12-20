@@ -12,7 +12,7 @@ import { BanknotesIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outlin
 import { useComputed } from '@preact/signals';
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, ConfirmDialog, CurrencyAmount, EmptyState, RelativeTime, SkeletonSettlementItem, Stack, Tooltip } from '../ui';
+import { Checkbox, ConfirmDialog, CurrencyAmount, EmptyState, RelativeTime, SkeletonList, SkeletonSettlementItem, Stack, Tooltip } from '../ui';
 import { Avatar } from '../ui/Avatar';
 
 interface SettlementHistoryProps {
@@ -108,13 +108,7 @@ export function SettlementHistory({
     };
 
     if (isLoading.value && totalSettlements === 0) {
-        return (
-            <Stack spacing='sm' aria-busy='true' aria-label={t('common.loading')}>
-                <SkeletonSettlementItem />
-                <SkeletonSettlementItem />
-                <SkeletonSettlementItem />
-            </Stack>
-        );
+        return <SkeletonList>{SkeletonSettlementItem}</SkeletonList>;
     }
 
     // Remove error handling - the store manages errors now

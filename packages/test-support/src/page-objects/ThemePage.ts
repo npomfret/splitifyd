@@ -57,11 +57,12 @@ export class ThemePage extends BasePage {
      * Get sign up button's computed background colors (for comparison between themes)
      */
     async getSignUpButtonColors(): Promise<{ backgroundColor: string; backgroundImage: string; }> {
-        // Use exact match to differentiate header "Sign Up" from login form "Sign up"
-        const signUpButton = this.page.getByRole('button', { name: translation.header.signUp, exact: true });
-        await expect(signUpButton).toBeVisible();
+        // On login page, the "Sign in" button is always visible and uses the primary button style.
+        // We use this instead of header "Sign Up" because AuthLayout hides the header auth section.
+        const signInButton = this.page.getByRole('button', { name: translation.loginPage.submitButton, exact: true });
+        await expect(signInButton).toBeVisible();
 
-        const [backgroundColor, backgroundImage] = await signUpButton.evaluate((element) => {
+        const [backgroundColor, backgroundImage] = await signInButton.evaluate((element) => {
             const styles = getComputedStyle(element);
             return [styles.backgroundColor, styles.backgroundImage];
         });

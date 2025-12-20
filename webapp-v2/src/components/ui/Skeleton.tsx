@@ -1,5 +1,8 @@
 import { cx } from '@/utils/cx';
+import type { ComponentChildren, ComponentType } from 'preact';
 import { CSSProperties } from 'preact/compat';
+import { useTranslation } from 'react-i18next';
+import { Stack } from './Stack';
 
 interface SkeletonProps {
     /** Width of the skeleton - can be a number (pixels) or string (e.g., '100%', '5rem') */
@@ -209,5 +212,72 @@ export function SkeletonMemberItem({ className }: { className?: string; }) {
                 </div>
             </div>
         </div>
+    );
+}
+
+// =============================================================================
+// Skeleton List Component
+// =============================================================================
+
+interface SkeletonListProps {
+    /** Number of skeleton items to render. Defaults to 3. */
+    count?: number;
+    /** The skeleton item component to render, or a render function */
+    children: ComponentType<{ className?: string }> | (() => ComponentChildren);
+    /** Stack spacing between items. Defaults to 'sm'. */
+    spacing?: 'xs' | 'sm' | 'md' | 'lg';
+    /** Additional class names for the container */
+    className?: string;
+    /** Custom aria-label. Defaults to common.loading translation. */
+    ariaLabel?: string;
+}
+
+/**
+ * Renders a list of skeleton loading placeholders.
+ *
+ * Uses Stack for consistent spacing and includes proper ARIA attributes
+ * for accessibility (aria-busy, aria-label).
+ *
+ * @example
+ * // Using a component
+ * <SkeletonList count={3}>{SkeletonExpenseItem}</SkeletonList>
+ *
+ * @example
+ * // Using a render function
+ * <SkeletonList count={5}>
+ *     {() => <SkeletonMemberItem />}
+ * </SkeletonList>
+ *
+ * @example
+ * // With custom spacing
+ * <SkeletonList count={3} spacing='md'>
+ *     {SkeletonSettlementItem}
+ * </SkeletonList>
+ */
+export function SkeletonList({
+    count = 3,
+    children,
+    spacing = 'sm',
+    className,
+    ariaLabel,
+}: SkeletonListProps) {
+    const { t } = useTranslation();
+    const label = ariaLabel ?? t('common.loading');
+
+    const items = Array.from({ length: count }, (_, index) => {
+        if (typeof children === 'function' && children.length === 0) {
+            // Render function: () => <Component />
+            return <div key={index}>{(children as () => ComponentChildren)()}</div>;
+        } else {
+            // Component type: SkeletonExpenseItem
+            const Component = children as ComponentType<{ className?: string }>;
+            return <Component key={index} />;
+        }
+    });
+
+    return (
+        <Stack spacing={spacing} className={className} aria-busy='true' aria-label={label}>
+            {items}
+        </Stack>
     );
 }

@@ -27,6 +27,8 @@ interface SelectProps {
     className?: string;
     dataTestId?: string;
     selectRef?: Ref<HTMLSelectElement>;
+    /** Accessible label for screen readers when no visible label is provided */
+    'aria-label'?: string;
 }
 
 export function Select({
@@ -44,6 +46,7 @@ export function Select({
     className = '',
     dataTestId,
     selectRef,
+    'aria-label': ariaLabel,
 }: SelectProps) {
     const { t } = useTranslation();
     const selectId = id || name || `select-${Math.random().toString(36).substr(2, 9)}`;
@@ -85,6 +88,7 @@ export function Select({
                     disabled={disabled}
                     required={required}
                     className={selectClasses}
+                    aria-label={ariaLabel}
                     aria-invalid={!!error}
                     aria-describedby={error ? `${selectId}-error` : undefined}
                     data-testid={dataTestId}

@@ -1,11 +1,12 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
 import { CopyIcon } from '@/components/ui/icons';
+import { iconButton, listItem } from '@/components/ui/styles';
+import { cx } from '@/utils/cx';
 import { getGroupDisplayName } from '@/utils/displayName';
-import { ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
-import { DELETED_AT_FIELD } from '@billsplit-wl/shared';
+import { DELETED_AT_FIELD, ExpenseDTO, GroupMember } from '@billsplit-wl/shared';
 import { ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Avatar, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
+import { Avatar, Badge, CurrencyAmount, RelativeTime, Tooltip } from '../ui';
 import { Clickable } from '../ui/Clickable';
 
 interface ExpenseItemProps {
@@ -36,9 +37,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
 
     return (
         <article
-            className={`border border-border-default/50 rounded-lg px-4 py-3 cursor-pointer hover:border-interactive-primary/40 hover:bg-surface-muted backdrop-blur-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md relative group ${
-                isDeleted ? 'opacity-60 bg-surface-muted' : 'bg-surface-subtle'
-            }`}
+            className={cx(listItem.clickable, isDeleted && listItem.deleted)}
             onClick={() => onClick?.(expense)}
             aria-label={expense.description}
         >
@@ -47,11 +46,11 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                 <div className='flex items-center gap-3 flex-1 min-w-0'>
                     <Avatar displayName={payerName} userId={expense.paidBy} size='sm' themeColor={paidByTheme} />
                     <div className='flex items-center gap-2 min-w-0'>
-                        <p className={`font-medium text-sm truncate ${isDeleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>{expense.description}</p>
+                        <p className={cx('font-medium text-sm truncate', isDeleted ? listItem.deletedText : 'text-text-primary')}>{expense.description}</p>
                         {isDeleted && (
-                            <span className='text-xs bg-surface-error text-semantic-error px-2 py-0.5 rounded shrink-0'>
+                            <Badge variant='deleted' className='shrink-0'>
                                 {t('expenseItem.deleted')}
-                            </span>
+                            </Badge>
                         )}
                     </div>
                 </div>
@@ -68,7 +67,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <Tooltip content={t('expenseItem.copyExpense')}>
                             <Clickable
                                 onClick={handleCopyClick}
-                                className='opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 hover:bg-interactive-primary/10 rounded text-text-muted hover:text-interactive-primary'
+                                className={iconButton.ghostReveal}
                                 aria-label={t('expenseItem.copyExpense')}
                                 eventName='expense_copy'
                                 eventProps={{ expenseId: expense.id, labels: expense.labels }}

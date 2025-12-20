@@ -6,7 +6,7 @@ import { FieldError } from './FieldError';
 import { formInput, formLabel } from './styles';
 
 interface InputProps {
-    type?: 'text' | 'email' | 'password' | 'number';
+    type?: 'text' | 'email' | 'password' | 'number' | 'date';
     label?: string;
     error?: string;
     placeholder?: string;
@@ -22,6 +22,10 @@ interface InputProps {
     autoComplete?: string;
     dataTestId?: string;
     inputRef?: Ref<HTMLInputElement>;
+    /** Maximum value for date inputs */
+    max?: string;
+    /** Maximum character length */
+    maxLength?: number;
 }
 
 export function Input({
@@ -41,6 +45,8 @@ export function Input({
     autoComplete = 'off',
     dataTestId,
     inputRef,
+    max,
+    maxLength,
 }: InputProps) {
     const { t } = useTranslation();
     const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
@@ -85,6 +91,8 @@ export function Input({
                     required={required}
                     autoFocus={autoFocus}
                     autoComplete={autoComplete}
+                    max={max}
+                    maxLength={maxLength}
                     className={inputClasses}
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}

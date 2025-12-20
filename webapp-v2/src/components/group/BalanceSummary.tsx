@@ -5,7 +5,9 @@ import { Checkbox, CurrencyAmount, Tooltip } from '@/components/ui';
 import { Avatar } from '@/components/ui/Avatar';
 import { Clickable } from '@/components/ui/Clickable';
 import { ArrowDownIcon, ArrowRightIcon, BanknotesIcon } from '@/components/ui/icons';
+import { iconButton } from '@/components/ui/styles';
 import { getGroupDisplayName } from '@/utils/displayName';
+import { cx } from '@/utils/cx';
 import type { SimplifiedDebt, UserId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
 import { useMemo } from 'preact/hooks';
@@ -141,7 +143,7 @@ export function BalanceSummary({ onSettleUp }: BalanceSummaryProps) {
                                                 <Clickable
                                                     as='button'
                                                     onClick={() => onSettleUp(debt)}
-                                                    className='p-1.5 text-interactive-primary hover:text-interactive-primary hover:bg-interactive-primary/10 rounded transition-colors shrink-0 flex items-center gap-1'
+                                                    className={cx(iconButton.primary, 'shrink-0 flex items-center gap-1')}
                                                     aria-label={t('balanceSummary.settleUpButton')}
                                                     eventName='settle_up_click'
                                                     eventProps={{

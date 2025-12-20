@@ -1,7 +1,7 @@
 import { getGroupDisplayName } from '@/utils/displayName';
 import { toUserId, UserId } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Button, Card, Typography } from '../ui';
+import { Button, Card, MemberDisplay, Typography } from '../ui';
 import { Stack } from '../ui/Stack';
 import type { ExpenseFormMember } from './types';
 
@@ -62,11 +62,12 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                     className='text-interactive-primary focus:ring-interactive-primary disabled:opacity-50'
                                     autoComplete='off'
                                 />
-                                <Avatar displayName={getGroupDisplayName(member)} userId={toUserId(member.uid)} size='sm' />
-                                <span className='text-sm font-medium text-text-primary flex-1'>
-                                    {getGroupDisplayName(member)}
-                                    {isPayer && <span className='text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
-                                </span>
+                                <MemberDisplay
+                                    displayName={getGroupDisplayName(member)}
+                                    userId={toUserId(member.uid)}
+                                    suffix={isPayer && <span className='text-semantic-success ml-1'>{t('expenseComponents.participantSelector.payerSuffix')}</span>}
+                                    className='flex-1'
+                                />
                             </label>
                         );
                     })}

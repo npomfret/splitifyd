@@ -1,4 +1,4 @@
-import { SidebarCard } from '@/components/ui/SidebarCard';
+import { SectionTitle, SidebarCard } from '@/components/ui';
 import type { SimplifiedDebt } from '@billsplit-wl/shared';
 import { ScaleIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
@@ -18,12 +18,7 @@ export function BalancesSection({ onSettleUp, defaultCollapsed = false, idSuffix
         <SidebarCard
             id={idSuffix ? `balances-${idSuffix}` : 'balances'}
             ariaLabel={sectionLabel}
-            title={
-                <div className='flex items-center gap-2'>
-                    <ScaleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                    <span>{sectionLabel}</span>
-                </div>
-            }
+            title={<SectionTitle icon={ScaleIcon} label={sectionLabel} />}
             collapsible
             defaultCollapsed={defaultCollapsed}
             collapseToggleLabel={t('pages.groupDetailPage.toggleSection', { section: sectionLabel })}

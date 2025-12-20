@@ -3,6 +3,8 @@ import { translatePermission, translatePermissionOption } from '@/app/i18n/dynam
 import { Tooltip } from '@/components/ui';
 import { Clickable } from '@/components/ui/Clickable';
 import { InfoCircleIcon } from '@/components/ui/icons';
+import { formSelect } from '@/components/ui/styles';
+import { cx } from '@/utils/cx';
 import { GroupPermissions } from '@billsplit-wl/shared';
 import { useTranslation } from 'react-i18next';
 
@@ -44,7 +46,7 @@ export function CustomPermissionsSection({
                             </Tooltip>
                         </span>
                         <select
-                            className='border border-border-default bg-surface-raised backdrop-blur-xs text-text-primary rounded-md px-3 py-2 focus:outline-hidden focus:ring-2 focus:ring-interactive-primary focus:border-interactive-primary text-sm transition-colors duration-200'
+                            className={cx(...formSelect.base)}
                             value={permissionDraft[key]}
                             onChange={(event) => onPermissionChange(key, event.currentTarget.value)}
                         >

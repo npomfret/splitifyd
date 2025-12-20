@@ -1,13 +1,12 @@
 import { useStaggeredReveal } from '@/app/hooks/useScrollReveal';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
-import { EmptyState, ListStateRenderer } from '@/components/ui';
+import { EmptyState, ListStateRenderer, LoadMoreButton } from '@/components/ui';
 import type { ExpenseDTO } from '@billsplit-wl/shared';
 import { ReceiptPercentIcon } from '@heroicons/react/24/outline';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../ui/Button';
 import { Checkbox } from '../ui/Checkbox';
-import { SkeletonExpenseItem } from '../ui/Skeleton';
+import { SkeletonExpenseItem, SkeletonList } from '../ui/Skeleton';
 import { Stack } from '../ui/Stack';
 import { ExpenseItem } from './ExpenseItem';
 
@@ -48,13 +47,7 @@ export function ExpensesList({
                     loading: loading.value,
                     items: expenses.value,
                 }}
-                renderLoading={() => (
-                    <div className='space-y-3' aria-busy='true' aria-label={t('common.loading')}>
-                        <SkeletonExpenseItem />
-                        <SkeletonExpenseItem />
-                        <SkeletonExpenseItem />
-                    </div>
-                )}
+                renderLoading={() => <SkeletonList spacing='md'>{SkeletonExpenseItem}</SkeletonList>}
                 renderEmpty={() => (
                     <EmptyState
                         icon={<ReceiptPercentIcon className='w-12 h-12' aria-hidden='true' />}
@@ -79,9 +72,12 @@ export function ExpensesList({
                         ))}
 
                         {hasMore.value && (
-                            <Button variant='ghost' onClick={handleLoadMore} disabled={loading.value} className='w-full'>
-                                {loading.value ? t('common.loading') : t('expensesList.loadMore')}
-                            </Button>
+                            <LoadMoreButton
+                                onClick={handleLoadMore}
+                                loading={loading.value}
+                                idleText={t('expensesList.loadMore')}
+                                fullWidth
+                            />
                         )}
                     </Stack>
                 )}

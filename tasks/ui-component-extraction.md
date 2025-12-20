@@ -231,14 +231,14 @@ Could be a `Badge` variant: `<Badge variant='deleted'>{t('deleted')}</Badge>`
 
 ## Progress
 
-- [ ] Audit inline selects → refactor to Select component
-- [ ] Audit icon buttons → refactor to Button ghost variant
-- [ ] Create LoadMoreButton
-- [ ] Create SectionHeader
-- [ ] Create SkeletonList
-- [ ] Create ListItemCard
-- [ ] Create MemberListItem
-- [ ] Create TransactionFlowItem
-- [ ] Add DeletedItemBadge variant to Badge
-- [ ] Create GridSelector
-- [ ] Create ListFilterBar
+- [x] Audit inline selects → refactor to Select component
+- [x] Audit icon buttons → refactor to Button ghost variant (created iconButtonStyles primitive)
+- [x] Create LoadMoreButton
+- [x] Create SectionTitle (renamed from SectionHeader)
+- [x] Create SkeletonList
+- [x] Create listItemStyles primitive (component too complex due to layout differences)
+- [x] Create MemberDisplay component (simpler than MemberListItem - avatar+name pattern)
+- [ ] ~~Create TransactionFlowItem~~ (skipped - grid layouts differ too much, complexity outweighs benefit)
+- [x] Add DeletedItemBadge variant to Badge (badge-deleted utility + Badge variant='deleted')
+- [ ] ~~Create GridSelector~~ (skipped - only ParticipantSelector uses this pattern; TenantEditorModal has no member selection grid)
+- [ ] ~~Create ListFilterBar~~ (skipped - only 2 occurrences with different layouts: ExpensesList has single checkbox at bottom-right, SettlementHistory has 2 checkboxes in top bordered section)

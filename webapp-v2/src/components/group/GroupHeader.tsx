@@ -1,7 +1,7 @@
 import { GroupDTO, GroupMember } from '@billsplit-wl/shared';
 import { CogIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
-import { Button, RelativeTime, SidebarCard, Tooltip } from '../ui';
+import { Button, RelativeTime, SectionTitle, SidebarCard, Tooltip } from '../ui';
 
 interface GroupHeaderProps {
     group: GroupDTO;
@@ -32,12 +32,7 @@ export function GroupHeader({ group, members, onSettings, showSettingsButton }: 
     return (
         <SidebarCard
             id='group-header'
-            title={
-                <div className='flex items-center gap-2'>
-                    <InformationCircleIcon className='h-5 w-5 text-text-muted' aria-hidden='true' />
-                    <span>{group.name}</span>
-                </div>
-            }
+            title={<SectionTitle icon={InformationCircleIcon} label={group.name} />}
             collapsible
             defaultCollapsed={false}
             headerActions={settingsButton}
