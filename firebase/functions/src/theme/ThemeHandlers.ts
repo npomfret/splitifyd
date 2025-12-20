@@ -6,6 +6,22 @@ import { logger } from '../logger';
 import type { IFirestoreReader } from '../services/firestore';
 import type { TenantRegistryService } from '../services/tenant/TenantRegistryService';
 
+/** Error thrown when CSS fetch from storage fails. */
+class CssFetchError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'CssFetchError';
+    }
+}
+
+/** Error thrown when storage URL is invalid. */
+class StorageConfigError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'StorageConfigError';
+    }
+}
+
 export class ThemeHandlers {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -15,15 +31,20 @@ export class ThemeHandlers {
     /**
      * Serves the tenant's theme CSS.
      *
-     * This endpoint ALWAYS returns CSS with Content-Type: text/css.
-     * Errors are returned as CSS comments rather than JSON because:
-     * 1. Browsers expect CSS from <link> tags - JSON errors are useless to them
-     * 2. Ensures consistent MIME type handling across all response paths
-     * 3. Prevents "empty MIME type" errors when errors occur
+     * Always returns Content-Type: text/css to prevent MIME type errors in browsers.
+     * Errors are returned as CSS comments with appropriate HTTP status codes:
+     * - 200: Success or no theme published (valid state)
+     * - 500: Storage configuration or fetch errors
+     * - 503: Tenant resolution failures
+     *
+     * This approach ensures:
+     * 1. Browsers always receive valid CSS (even if empty/comment)
+     * 2. Monitoring tools see proper error status codes
+     * 3. No "empty MIME type" errors from missing Content-Type
      */
     serveThemeCss: RequestHandler = async (req, res) => {
-        // Set Content-Type and Cache-Control immediately.
-        // This endpoint ALWAYS returns CSS, even on errors.
+        // Set Content-Type immediately - this endpoint ALWAYS returns CSS.
+        // This prevents "empty MIME type" errors regardless of response path.
         res.setHeader('Content-Type', 'text/css; charset=utf-8');
         res.setHeader('Cache-Control', 'no-cache');
 
@@ -61,24 +82,36 @@ export class ThemeHandlers {
 
             res.status(HTTP_STATUS.OK).send(cssContent);
         } catch (error) {
-            // Return errors as CSS comments - JSON errors are useless to <link> tags.
-            // Content-Type is already set to text/css, Cache-Control to no-cache.
+            // Map error types to appropriate HTTP status codes.
+            // Content-Type is already set to text/css, so browsers handle gracefully.
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error('theme-css-error', error, { path: req.path });
-            res.status(HTTP_STATUS.OK).send(`/* Theme loading error: ${errorMessage.replace(/\*\//g, '* /')} */\n`);
+            const sanitizedMessage = errorMessage.replace(/\*\//g, '* /');
+
+            const status = this.getErrorStatusCode(error);
+            logger.error('theme-css-error', error, { path: req.path, status });
+
+            res.status(status).send(`/* Theme error: ${sanitizedMessage} */\n`);
         }
     };
+
+    private getErrorStatusCode(error: unknown): number {
+        if (error instanceof StorageConfigError || error instanceof CssFetchError) {
+            return HTTP_STATUS.INTERNAL_ERROR; // 500
+        }
+        // Tenant resolution failures or unknown errors
+        return HTTP_STATUS.SERVICE_UNAVAILABLE; // 503
+    }
 
     private async readCssContent(artifact: BrandingArtifactMetadata): Promise<string> {
         // Accept both https:// (production) and http:// (emulator)
         if (!artifact.cssUrl.startsWith('https://') && !artifact.cssUrl.startsWith('http://')) {
             logger.error('Invalid CSS artifact URL - must be HTTP(S)', { cssUrl: artifact.cssUrl });
-            throw new Error('Invalid theme storage URL');
+            throw new StorageConfigError('Invalid theme storage URL');
         }
 
         const response = await fetch(artifact.cssUrl);
         if (!response.ok) {
-            throw new Error(`Failed to fetch theme CSS: ${response.status}`);
+            throw new CssFetchError(`Failed to fetch theme CSS: ${response.status}`);
         }
         return response.text();
     }

@@ -21,38 +21,12 @@
                 window.__tenantTheme = {
                     storageKey: storageKey,
                     hash: storedHash,
-                    retryCount: 0,
                 };
 
+                // Update href with cache-busting hash if available
                 var link = document.getElementById('tenant-theme-stylesheet');
-
-                // Retry logic for theme.css load failures.
-                // Firebase emulator's hosting-to-functions proxy can fail intermittently,
-                // returning empty responses. This doesn't occur in production.
-                function retryThemeLoad() {
-                    var maxRetries = 3;
-                    var retryDelay = 500;
-                    if (window.__tenantTheme.retryCount < maxRetries) {
-                        window.__tenantTheme.retryCount++;
-                        setTimeout(function () {
-                            var baseHref = '/api/theme.css';
-                            var params = [];
-                            if (storedHash) {
-                                params.push('v=' + encodeURIComponent(storedHash));
-                            }
-                            params.push('_retry=' + window.__tenantTheme.retryCount);
-                            link.href = baseHref + '?' + params.join('&');
-                        }, retryDelay);
-                    }
-                }
-
-                if (link) {
-                    link.onerror = retryThemeLoad;
-
-                    // Update href with cache-busting hash if available
-                    if (storedHash) {
-                        link.href = '/api/theme.css?v=' + encodeURIComponent(storedHash);
-                    }
+                if (link && storedHash) {
+                    link.href = '/api/theme.css?v=' + encodeURIComponent(storedHash);
                 }
             })();
         </script>
