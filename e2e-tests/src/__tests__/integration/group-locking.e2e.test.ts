@@ -135,7 +135,9 @@ simpleTest.describe('Group Locking - Member Experience', () => {
 });
 
 simpleTest.describe('Group Locking - Dashboard Activity', () => {
-    simpleTest('locking and unlocking should show in dashboard activity feed', async ({ createLoggedInBrowsers }) => {
+    simpleTest('locking and unlocking should show in dashboard activity feed', {
+        annotation: { type: 'skip-error-checking', description: 'Expected 403 errors when locked group restricts access to pending members endpoint' },
+    }, async ({ createLoggedInBrowsers }) => {
         const [{ dashboardPage: adminDashboardPage }] = await createLoggedInBrowsers(1);
 
         // Create a group

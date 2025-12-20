@@ -99,21 +99,23 @@ export class GroupSettingsModalPage extends BasePage {
 
     async ensureSecurityTab(): Promise<void> {
         const presetButton = this.getPresetButton('open');
-        if (await presetButton.count()) {
-            try {
-                if (await presetButton.isVisible()) {
-                    return;
-                }
-            } catch {
-                // fall through
+        const securityTabButton = this.getTabButton('security');
+
+        // Use polling to handle race conditions with React's useEffect resetting the active tab.
+        await expect(async () => {
+            // Check if already on Security tab (preset button visible)
+            if ((await presetButton.count()) > 0 && await presetButton.isVisible()) {
+                return; // Success - we're on Security tab
             }
-        }
 
-        if (await this.hasTab('security')) {
-            await this.getTabButton('security').click();
-        }
+            // Not on Security tab - click the tab button if it exists
+            if ((await securityTabButton.count()) > 0) {
+                await securityTabButton.click();
+            }
 
-        await expect(presetButton).toBeVisible({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+            // Verify tab switched successfully
+            await expect(presetButton).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     // ============================================================================
@@ -1276,11 +1278,17 @@ export class GroupSettingsModalPage extends BasePage {
      * because sr-only elements are positioned off-screen and fail viewport checks.
      */
     async lockGroup(): Promise<void> {
-        await this.ensureGeneralTab();
-        const toggle = this.getUnlockedGroupToggle();
         const label = this.getGroupLockToggle();
-        // Verify group is currently unlocked
-        await expect(toggle).not.toBeChecked();
+
+        // Use polling to handle race conditions - tab may reset after ensureGeneralTab returns
+        await expect(async () => {
+            await this.ensureGeneralTab();
+            const toggle = this.getUnlockedGroupToggle();
+            // Verify group is currently unlocked and toggle is visible
+            await expect(toggle).toBeVisible({ timeout: 500 });
+            await expect(toggle).not.toBeChecked({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+
         // Click the visible label to toggle
         await label.scrollIntoViewIfNeeded();
         await label.click();
@@ -1301,11 +1309,17 @@ export class GroupSettingsModalPage extends BasePage {
      * because sr-only elements are positioned off-screen and fail viewport checks.
      */
     async unlockGroup(): Promise<void> {
-        await this.ensureGeneralTab();
-        const toggle = this.getLockedGroupToggle();
         const label = this.getGroupLockToggle();
-        // Verify group is currently locked
-        await expect(toggle).toBeChecked();
+
+        // Use polling to handle race conditions - tab may reset after ensureGeneralTab returns
+        await expect(async () => {
+            await this.ensureGeneralTab();
+            const toggle = this.getLockedGroupToggle();
+            // Verify group is currently locked and toggle is visible
+            await expect(toggle).toBeVisible({ timeout: 500 });
+            await expect(toggle).toBeChecked({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+
         // Click the visible label to toggle
         await label.scrollIntoViewIfNeeded();
         await label.click();
@@ -1322,8 +1336,11 @@ export class GroupSettingsModalPage extends BasePage {
      * Verify group lock toggle is visible (admin only)
      */
     async verifyGroupLockToggleVisible(): Promise<void> {
-        await this.ensureGeneralTab();
-        await expect(this.getGroupLockToggle()).toBeVisible();
+        // Use polling to handle race conditions - tab may reset after ensureGeneralTab returns
+        await expect(async () => {
+            await this.ensureGeneralTab();
+            await expect(this.getGroupLockToggle()).toBeVisible({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**
@@ -1337,16 +1354,22 @@ export class GroupSettingsModalPage extends BasePage {
      * Verify group is locked (shows "Unlock group" toggle which is checked)
      */
     async verifyGroupLocked(): Promise<void> {
-        await this.ensureGeneralTab();
-        await expect(this.getLockedGroupToggle()).toBeChecked();
+        // Use polling to handle race conditions - tab may reset after ensureGeneralTab returns
+        await expect(async () => {
+            await this.ensureGeneralTab();
+            await expect(this.getLockedGroupToggle()).toBeChecked({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**
      * Verify group is unlocked (shows "Lock group" toggle which is not checked)
      */
     async verifyGroupUnlocked(): Promise<void> {
-        await this.ensureGeneralTab();
-        await expect(this.getUnlockedGroupToggle()).not.toBeChecked();
+        // Use polling to handle race conditions - tab may reset after ensureGeneralTab returns
+        await expect(async () => {
+            await this.ensureGeneralTab();
+            await expect(this.getUnlockedGroupToggle()).not.toBeChecked({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**
