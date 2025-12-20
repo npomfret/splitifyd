@@ -362,6 +362,17 @@
       "cancel": "Cancelar"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Por favor, verifica tu dirección de correo electrónico para desbloquear todas las funciones.",
+      "resendButton": "Reenviar correo de verificación",
+      "resendSuccess": "¡Correo de verificación enviado! Revisa tu bandeja de entrada.",
+      "resendError": "No se pudo enviar el correo de verificación. Por favor, inténtalo de nuevo."
+    },
+    "tooltip": {
+      "disabled": "Verifica tu correo para habilitar esta acción"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Abrir menú de usuario",

@@ -12,9 +12,10 @@ interface GroupsListProps {
     onCreateGroup: () => void;
     onInvite?: (groupId: GroupId) => void;
     onAddExpense?: (groupId: GroupId) => void;
+    emailNotVerified?: boolean;
 }
 
-export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
+export function GroupsList({ onCreateGroup, onInvite, onAddExpense, emailNotVerified }: GroupsListProps) {
     const { t } = useTranslation();
     const showArchived = enhancedGroupsStore.showArchived;
 
@@ -58,7 +59,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                             description={t('dashboardComponents.groupsList.noArchivedDescription')}
                         />
                     )
-                    : <EmptyGroupsState onCreateGroup={onCreateGroup} />}
+                    : <EmptyGroupsState onCreateGroup={onCreateGroup} emailNotVerified={emailNotVerified} />}
                 onRetry={handleRetry}
             >
                 {(groups) => (

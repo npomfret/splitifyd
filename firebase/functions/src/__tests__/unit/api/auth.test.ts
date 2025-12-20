@@ -117,16 +117,15 @@ describe('auth endpoints', () => {
     describe('POST /login', () => {
         it('should return custom token for valid credentials', async () => {
             // Create a test user with known credentials
-            await appDriver.createTestUsers({
+            const { emails, password } = await appDriver.createTestUsers({
                 count: 1,
                 includeAdmin: false,
             });
-            // createTestUsers creates user1@example.com with password 'password12345'
 
             // Login with those credentials
             const response = await appDriver.login({
-                email: toEmail('user1@example.com'),
-                password: toPassword('password12345'),
+                email: toEmail(emails[0]),
+                password: toPassword(password),
             });
 
             expect(response.success).toBe(true);
@@ -137,7 +136,7 @@ describe('auth endpoints', () => {
 
         it('should return 401 for invalid password', async () => {
             // Create a test user with known credentials
-            await appDriver.createTestUsers({
+            const { emails } = await appDriver.createTestUsers({
                 count: 1,
                 includeAdmin: false,
             });
@@ -145,7 +144,7 @@ describe('auth endpoints', () => {
             // Try to login with wrong password
             await expect(
                 appDriver.login({
-                    email: toEmail('user1@example.com'),
+                    email: toEmail(emails[0]),
                     password: toPassword('WrongPassword123!'),
                 }),
             )

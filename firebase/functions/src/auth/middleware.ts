@@ -38,6 +38,34 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
+ * Paths that are allowed for unverified users (write operations).
+ * Read operations (GET/HEAD/OPTIONS) are always allowed.
+ */
+const EMAIL_VERIFICATION_ALLOWLIST = [
+    '/email-verification',     // Resend verification email
+    '/auth/login',             // Login
+    '/auth/register',          // Registration
+    '/auth/password-reset',    // Password reset
+    '/user/profile',           // Allow profile updates (language, display name)
+    '/user/email',             // Email change (needs verification)
+    '/user/email-preferences', // Email preferences
+];
+
+/**
+ * Check if a path is allowed for unverified users
+ */
+function isEmailVerificationAllowlisted(path: string): boolean {
+    return EMAIL_VERIFICATION_ALLOWLIST.some(allowed => path.startsWith(allowed));
+}
+
+/**
+ * Check if the request is a write operation
+ */
+function isWriteOperation(method: string): boolean {
+    return ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
+}
+
+/**
  * Verify Firebase Auth token and attach user to request
  */
 export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -81,10 +109,16 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
             uid: userId,
             displayName: toDisplayName(userRecord.displayName),
             role: userRole, // todo: what is this?
+            emailVerified: userRecord.emailVerified,
         };
 
         // Add user context to logging context
         LoggerContext.setUser(userId, userRecord.displayName, userRole);
+
+        // Enforce email verification for write operations (unless allowlisted)
+        if (isWriteOperation(req.method) && !isEmailVerificationAllowlisted(req.path) && !userRecord.emailVerified) {
+            throw Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED);
+        }
 
         next();
     } catch (error) {

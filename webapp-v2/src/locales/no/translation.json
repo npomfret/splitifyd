@@ -362,6 +362,17 @@
       "cancel": "Avbryt"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Vennligst bekreft e-postadressen din for å låse opp alle funksjoner.",
+      "resendButton": "Send bekreftelses-e-post på nytt",
+      "resendSuccess": "Bekreftelses-e-post sendt! Sjekk innboksen din.",
+      "resendError": "Kunne ikke sende bekreftelses-e-post. Vennligst prøv igjen."
+    },
+    "tooltip": {
+      "disabled": "Bekreft e-posten din for å aktivere denne handlingen"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Åpne brukermeny",

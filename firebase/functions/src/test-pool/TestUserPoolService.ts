@@ -87,6 +87,9 @@ export class TestUserPoolService {
             marketingEmailsAccepted: false,
         }, toTenantId('test-tenant'));
 
+        // Mark email as verified so pool users can perform write operations
+        await this.authService.updateUser(user.uid, { emailVerified: true });
+
         const token = await this.authService.createCustomToken(user.uid);
 
         return { email, password: POOL_PASSWORD, token };

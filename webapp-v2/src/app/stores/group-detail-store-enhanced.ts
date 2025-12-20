@@ -219,7 +219,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             });
 
             this.sideEffects.syncMemberThemes(fullDetails.members.members);
-            this.sideEffects.updatePermissionsSnapshot(fullDetails.group, fullDetails.members.members);
+            const authStore = await getAuthStore();
+            this.sideEffects.updatePermissionsSnapshot(fullDetails.group, fullDetails.members.members, authStore.user?.emailVerified);
         } catch (error: any) {
             logError('GroupDetailStore.loadGroup.failed', error, { groupId });
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';

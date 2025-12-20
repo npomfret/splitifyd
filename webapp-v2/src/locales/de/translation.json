@@ -362,6 +362,17 @@
       "cancel": "Abbrechen"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Bitte bestätigen Sie Ihre E-Mail-Adresse, um alle Funktionen freizuschalten.",
+      "resendButton": "Bestätigungs-E-Mail erneut senden",
+      "resendSuccess": "Bestätigungs-E-Mail gesendet! Überprüfen Sie Ihren Posteingang.",
+      "resendError": "Bestätigungs-E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es erneut."
+    },
+    "tooltip": {
+      "disabled": "Bestätigen Sie Ihre E-Mail, um diese Aktion zu aktivieren"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Benutzermenü öffnen",

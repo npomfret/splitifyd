@@ -226,10 +226,12 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
 
         try {
             // Create user in Firebase Auth (bypassing normal registration flow)
+            // Mark email as verified so admin can perform write operations immediately
             const userRecord = await authService.createUser({
                 email,
                 password,
                 displayName,
+                emailVerified: true,
             });
 
             const userId = toUserId(userRecord.uid);

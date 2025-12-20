@@ -7,7 +7,7 @@ import { useAuth } from './app/hooks/useAuth';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
-import { LoadingState, WarningBanner } from './components/ui';
+import { EmailVerificationBanner, LoadingState, WarningBanner } from './components/ui';
 import { useConfig } from './hooks/useConfig.ts';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { navigationService } from './services/navigation.service';
@@ -149,6 +149,7 @@ export function App() {
 
     return (
         <ErrorBoundary>
+            <EmailVerificationBanner />
             <WarningBanner />
             <TokenRefreshIndicator />
             <Router>

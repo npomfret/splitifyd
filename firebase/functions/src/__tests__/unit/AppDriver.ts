@@ -106,7 +106,7 @@ import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Timestamp } from 'firebase-admin/firestore';
 import { StubCloudTasksClient, StubFirestoreDatabase } from 'ts-firebase-simulator';
 import { expect } from 'vitest';
-import { ApiError, Errors } from '../../errors';
+import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { createRouteDefinitions, RouteDefinition } from '../../routes/route-config';
 import type { UserDocument } from '../../schemas';
 import { ComponentBuilder } from '../../services/ComponentBuilder';
@@ -213,6 +213,26 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
      */
     private createTestMiddleware() {
         const firestoreReader = new FirestoreReader(this.db);
+        const authService = this.authService;
+
+        // Email verification allowlist - paths that don't require verified email for write operations
+        const EMAIL_VERIFICATION_ALLOWLIST = [
+            '/email-verification',     // Resend verification email
+            '/auth/login',             // Login
+            '/auth/register',          // Registration
+            '/auth/password-reset',    // Password reset
+            '/user/profile',           // Allow profile updates (language, display name)
+            '/user/email',             // Email change (needs verification)
+            '/user/email-preferences', // Email preferences
+        ];
+
+        function isEmailVerificationAllowlisted(path: string): boolean {
+            return EMAIL_VERIFICATION_ALLOWLIST.some(allowed => path.startsWith(allowed));
+        }
+
+        function isWriteOperation(method: string): boolean {
+            return ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method.toUpperCase());
+        }
 
         /**
          * Test authentication middleware - validates user is attached to request
@@ -230,6 +250,22 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
                 }
             } catch (error) {
                 // User might not exist in Firestore yet (e.g., during registration), continue anyway
+            }
+
+            // Check email verification for write operations (mimics production middleware)
+            if (isWriteOperation(req.method) && !isEmailVerificationAllowlisted(req.path)) {
+                try {
+                    const userRecord = await authService.getUser(toUserId(req.user.uid));
+                    if (userRecord && !userRecord.emailVerified) {
+                        throw Errors.forbidden(ErrorDetail.EMAIL_NOT_VERIFIED);
+                    }
+                } catch (error: any) {
+                    // If it's already a forbidden error, rethrow
+                    if (error.code === 'FORBIDDEN') {
+                        throw error;
+                    }
+                    // User might not exist in Auth yet, continue anyway
+                }
             }
 
             // Await next to properly propagate errors from combined middlewares
@@ -456,10 +492,10 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /**
      * Marks a user's email as verified in Firebase Auth
      */
-    markEmailVerified(userId: UserId | string) {
-        const existingUser = (this.authService as any).getUser(userId);
+    async markEmailVerified(userId: UserId | string) {
+        const existingUser = await this.authService.getUser(toUserId(userId));
         if (existingUser) {
-            this.authService.setUser(userId, {
+            this.authService.setUser(userId as string, {
                 ...existingUser,
                 emailVerified: true,
             });
@@ -479,6 +515,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             uid: userId,
             email: user.email,
             displayName: user.displayName,
+            emailVerified: true,
         });
     }
 
@@ -495,6 +532,7 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             uid: userId,
             email: user.email,
             displayName: user.displayName,
+            emailVerified: true,
         });
     }
     /**
@@ -569,42 +607,55 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     async createTestUsers(options: {
         count: number;
         includeAdmin?: boolean;
-    }): Promise<{ users: UserId[]; admin?: UserId; }> {
+    }): Promise<{ users: UserId[]; emails: string[]; password: string; admin?: UserId; adminEmail?: string; }> {
         // Auto-seed localhost tenant for registration (idempotent - safe to call multiple times)
         this.seedLocalhostTenant();
 
         const users: UserId[] = [];
+        const emails: string[] = [];
+        const password = 'password12345';
+        // Use unique suffix to avoid conflicts when called multiple times in same test
+        const uniqueSuffix = Math.random().toString(36).substr(2, 6);
 
         // Create regular users
         for (let i = 0; i < options.count; i++) {
             const userNum = i + 1;
             const displayNames = ['one', 'two', 'three', 'four'];
             const displayName = userNum <= 4 ? displayNames[userNum - 1] : `${userNum}`;
+            const email = `user${userNum}-${uniqueSuffix}@example.com`;
 
             const registration = new UserRegistrationBuilder()
-                .withEmail(`user${userNum}@example.com`)
+                .withEmail(email)
                 .withDisplayName(`User ${displayName}`)
-                .withPassword('password12345')
+                .withPassword(password)
                 .build();
 
             const result = await this.registerUser(registration);
-            users.push(toUserId(result.user.uid));
+            const userId = toUserId(result.user.uid);
+            users.push(userId);
+            emails.push(email);
+            // Mark as email verified so tests can perform write operations
+            await this.markEmailVerified(userId);
         }
 
         // Create admin if requested
         let admin: UserId | undefined;
+        let adminEmail: string | undefined;
         if (options.includeAdmin) {
+            adminEmail = `admin-${uniqueSuffix}@example.com`;
             const adminReg = new UserRegistrationBuilder()
-                .withEmail('admin@example.com')
+                .withEmail(adminEmail)
                 .withDisplayName('Admin User')
-                .withPassword('password12345')
+                .withPassword(password)
                 .build();
             const adminResult = await this.registerUser(adminReg);
             admin = toUserId(adminResult.user.uid);
             this.seedAdminUser(admin);
+            // Mark admin as email verified
+            await this.markEmailVerified(admin);
         }
 
-        return { users, admin };
+        return { users, emails, password, admin, adminEmail };
     }
 
     dispose() {
@@ -1189,14 +1240,20 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         const req = createStubRequest('', userData);
         const res = await this.dispatchByHandler('register', req);
         this.throwIfError(res);
-        return res.getJson() as RegisterResponse;
+        const response = res.getJson() as RegisterResponse;
+        // Auto-verify email so tests can perform write operations without extra setup
+        await this.markEmailVerified(response.user.uid);
+        return response;
     }
 
     async registerWithOptions(userData: UserRegistration, options: Partial<StubRequestOptions>): Promise<RegisterResponse> {
         const req = createStubRequest('', userData, {}, options);
         const res = await this.dispatchByHandler('register', req);
         this.throwIfError(res);
-        return res.getJson() as RegisterResponse;
+        const response = res.getJson() as RegisterResponse;
+        // Auto-verify email so tests can perform write operations without extra setup
+        await this.markEmailVerified(response.user.uid);
+        return response;
     }
 
     async login(credentials: LoginRequest): Promise<LoginResponse> {
@@ -1227,6 +1284,18 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
     /** @deprecated Use register() instead */
     async registerUser(registration: UserRegistration): Promise<RegisterUserResult> {
         return this.register(registration);
+    }
+
+    /**
+     * Register a user WITHOUT auto-verifying their email.
+     * Use this only for tests that specifically test unverified user behavior.
+     */
+    async registerUnverified(userData: UserRegistration): Promise<RegisterResponse> {
+        this.seedLocalhostTenant();
+        const req = createStubRequest('', userData);
+        const res = await this.dispatchByHandler('register', req);
+        this.throwIfError(res);
+        return res.getJson() as RegisterResponse;
     }
 
     // ===== ADMIN API: POLICY MANAGEMENT =====

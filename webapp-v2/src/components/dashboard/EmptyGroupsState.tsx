@@ -4,9 +4,10 @@ import { BadgeCheckIcon, PlusIcon, UsersIcon } from '../ui/icons';
 
 interface EmptyGroupsStateProps {
     onCreateGroup: () => void;
+    emailNotVerified?: boolean;
 }
 
-export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
+export function EmptyGroupsState({ onCreateGroup, emailNotVerified }: EmptyGroupsStateProps) {
     const { t } = useTranslation();
 
     const groupIcon = <UsersIcon size={64} />;
@@ -20,6 +21,8 @@ export function EmptyGroupsState({ onCreateGroup }: EmptyGroupsStateProps) {
                 label: t('emptyGroupsState.createFirstGroup'),
                 onClick: onCreateGroup,
                 variant: 'primary',
+                disabled: emailNotVerified,
+                disabledTooltip: t('emailVerification.tooltip.disabled'),
             }}
         >
             {/* Additional getting started tips */}

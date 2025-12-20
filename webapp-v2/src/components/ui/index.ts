@@ -9,6 +9,7 @@ export { ColorInput, RgbaColorInput } from './ColorInput';
 export { ConfirmDialog } from './ConfirmDialog';
 export { CurrencyAmount } from './CurrencyAmount';
 export { CurrencyAmountInput } from './CurrencyAmountInput';
+export { EmailVerificationBanner } from './EmailVerificationBanner';
 export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { FieldError } from './FieldError';

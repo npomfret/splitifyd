@@ -14,6 +14,7 @@ interface EmptyStateProps {
         onClick: () => void;
         variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
         disabled?: boolean;
+        disabledTooltip?: string;
     };
     /** Optional secondary action */
     secondaryAction?: {
@@ -101,14 +102,16 @@ export function EmptyState({
             {/* Primary Action */}
             {action && (
                 <div className='flex items-center justify-center gap-3'>
-                    <Button
-                        onClick={action.onClick}
-                        variant={action.variant || 'primary'}
-                        size='lg'
-                        disabled={action.disabled}
-                    >
-                        {action.label}
-                    </Button>
+                    <div title={action.disabled ? action.disabledTooltip : undefined}>
+                        <Button
+                            onClick={action.onClick}
+                            variant={action.variant || 'primary'}
+                            size='lg'
+                            disabled={action.disabled}
+                        >
+                            {action.label}
+                        </Button>
+                    </div>
 
                     {/* Secondary Action */}
                     {secondaryAction && (

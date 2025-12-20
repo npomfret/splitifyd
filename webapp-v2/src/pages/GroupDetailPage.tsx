@@ -68,6 +68,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
     const membershipStatus = useComputed(() => currentMembership.value?.memberStatus ?? MemberStatuses.ACTIVE);
     const isArchivedMembership = useComputed(() => membershipStatus.value === MemberStatuses.ARCHIVED);
     const userPermissions = useComputed(() => permissionsStore.permissions.value || {});
+    const emailVerificationRequired = useComputed(() => permissionsStore.emailVerificationRequired.value);
     const canManageSettings = useComputed(() => Boolean(userPermissions.value.canManageSettings));
     const canApproveMembers = useComputed(() => Boolean(userPermissions.value.canApproveMembers));
     const isGroupMember = useComputed(() => members.value.some((member) => member.uid === currentUser.value?.uid));
@@ -376,6 +377,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                             isArchived={isArchivedMembership.value}
                             membershipActionDisabled={membershipActionInFlight.value}
                             isGroupLocked={isGroupLocked.value}
+                            emailNotVerified={emailVerificationRequired.value}
                         />
                     </>
                 }
@@ -408,6 +410,7 @@ export function GroupDetailPage({ id: groupId, expenseId: routeExpenseId }: Grou
                                 isArchived={isArchivedMembership.value}
                                 membershipActionDisabled={membershipActionInFlight.value}
                                 isGroupLocked={isGroupLocked.value}
+                                emailNotVerified={emailVerificationRequired.value}
                             />
                         </div>
 

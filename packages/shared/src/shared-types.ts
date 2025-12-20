@@ -636,6 +636,7 @@ export interface AuthenticatedUser {
     uid: UserId;
     displayName: DisplayName;
     role?: SystemUserRole;
+    emailVerified: boolean;
 }
 
 /**

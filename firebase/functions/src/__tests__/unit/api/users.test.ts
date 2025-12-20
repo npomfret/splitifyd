@@ -602,7 +602,8 @@ describe('user, policy and notification tests', () => {
             const profile = await appDriver.getUserProfile(user1);
 
             expect(profile.displayName).toBe('User one');
-            expect(profile.emailVerified).toBe(false);
+            // Users created via createTestUsers are auto-verified
+            expect(profile.emailVerified).toBe(true);
         });
 
         it('should register a new user through the registration workflow', async () => {

@@ -362,6 +362,17 @@
       "cancel": "Cancel"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Please verify your email address to unlock all features.",
+      "resendButton": "Resend verification email",
+      "resendSuccess": "Verification email sent! Check your inbox.",
+      "resendError": "Failed to send verification email. Please try again."
+    },
+    "tooltip": {
+      "disabled": "Verify your email to enable this action"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Open user menu",

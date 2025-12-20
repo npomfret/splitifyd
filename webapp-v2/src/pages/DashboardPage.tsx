@@ -15,6 +15,7 @@ import { BaseLayout, PageSection } from '../components/layout';
 export function DashboardPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
+    const emailNotVerified = authStore.user ? !authStore.user.emailVerified : undefined;
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [shareModalState, setShareModalState] = useState<{ isOpen: boolean; groupId: GroupId; groupName: GroupName; }>({
         isOpen: false,
@@ -127,18 +128,21 @@ export function DashboardPage() {
                                         {t('dashboard.groupsFilter.archived')}
                                     </Button>
                                 </div>
-                                <Button
-                                    variant='primary'
-                                    size='md'
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                    className='hidden lg:block'
-                                >
-                                    {t('dashboard.createGroup')}
-                                </Button>
+                                <div title={emailNotVerified ? t('emailVerification.tooltip.disabled') : undefined}>
+                                    <Button
+                                        variant='primary'
+                                        size='md'
+                                        onClick={() => setIsCreateModalOpen(true)}
+                                        disabled={emailNotVerified}
+                                        className='hidden lg:block'
+                                    >
+                                        {t('dashboard.createGroup')}
+                                    </Button>
+                                </div>
                             </>
                         }
                     >
-                        <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} />
+                        <GroupsList onCreateGroup={() => setIsCreateModalOpen(true)} onInvite={handleInvite} onAddExpense={handleAddExpense} emailNotVerified={emailNotVerified || undefined} />
                     </PageSection>
                 </Stack>
             </div>

@@ -362,6 +362,17 @@
       "cancel": "Annulla"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Verifica il tuo indirizzo email per sbloccare tutte le funzionalità.",
+      "resendButton": "Reinvia email di verifica",
+      "resendSuccess": "Email di verifica inviata! Controlla la tua casella di posta.",
+      "resendError": "Impossibile inviare l'email di verifica. Riprova."
+    },
+    "tooltip": {
+      "disabled": "Verifica la tua email per abilitare questa azione"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Apri menu utente",

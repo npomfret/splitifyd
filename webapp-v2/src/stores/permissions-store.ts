@@ -41,7 +41,7 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(group: GroupDTO, members: GroupMember[], userId: UserId, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any; } = {}): boolean {
+    static checkPermission(group: GroupDTO, members: GroupMember[], userId: UserId, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any; emailVerified?: boolean; } = {}): boolean {
         const member = members.find((m) => m.uid === userId);
         if (!member) {
             return false;
@@ -54,6 +54,11 @@ class ClientPermissionEngine {
 
         // Block all write actions if group is locked
         if (group.locked === true && action !== 'viewGroup') {
+            return false;
+        }
+
+        // Block all write actions if email is not verified (fail-safe: undefined = not verified)
+        if (options.emailVerified !== true && action !== 'viewGroup') {
             return false;
         }
 
@@ -95,14 +100,15 @@ class ClientPermissionEngine {
         }
     }
 
-    static getUserPermissions(group: GroupDTO, members: GroupMember[], userId: UserId): Record<string, boolean> {
+    static getUserPermissions(group: GroupDTO, members: GroupMember[], userId: UserId, emailVerified?: boolean): Record<string, boolean> {
+        const options = { emailVerified };
         return {
-            canEditAnyExpense: this.checkPermission(group, members, userId, 'expenseEditing'),
-            canDeleteAnyExpense: this.checkPermission(group, members, userId, 'expenseDeletion'),
-            canInviteMembers: this.checkPermission(group, members, userId, 'memberInvitation'),
-            canManageSettings: this.checkPermission(group, members, userId, 'settingsManagement'),
-            canApproveMembers: this.checkPermission(group, members, userId, 'memberApproval'),
-            canViewGroup: this.checkPermission(group, members, userId, 'viewGroup'),
+            canEditAnyExpense: this.checkPermission(group, members, userId, 'expenseEditing', options),
+            canDeleteAnyExpense: this.checkPermission(group, members, userId, 'expenseDeletion', options),
+            canInviteMembers: this.checkPermission(group, members, userId, 'memberInvitation', options),
+            canManageSettings: this.checkPermission(group, members, userId, 'settingsManagement', options),
+            canApproveMembers: this.checkPermission(group, members, userId, 'memberApproval', options),
+            canViewGroup: this.checkPermission(group, members, userId, 'viewGroup', options),
         };
     }
 }
@@ -114,6 +120,7 @@ class PermissionsStore {
     private currentUserId: UserId | null = null;
     private currentGroup: GroupDTO | null = null;
     private currentMembers: GroupMember[] = [];
+    private currentEmailVerified: boolean | undefined;
     private cache = new PermissionCache();
 
     // Reference counting infrastructure
@@ -124,9 +131,13 @@ class PermissionsStore {
     private membersSignal = signal<GroupMember[]>([]);
     private userIdSignal = signal<string | null>(null);
     private permissionsSignal = signal<Record<string, boolean>>({});
+    private emailVerifiedSignal = signal<boolean | undefined>(undefined);
 
     // Computed permissions
     permissions = computed(() => this.permissionsSignal.value);
+
+    // Computed: true when user's email is not verified (used for tooltip display)
+    emailVerificationRequired = computed(() => this.emailVerifiedSignal.value !== true);
 
     // NEW REFERENCE-COUNTED API
 
@@ -175,13 +186,18 @@ class PermissionsStore {
     }
 
     // Update group data (called by group detail store)
-    updateGroupData(group: GroupDTO, members?: GroupMember[]): void {
+    updateGroupData(group: GroupDTO, members?: GroupMember[], emailVerified?: boolean): void {
         this.groupSignal.value = group;
         this.currentGroup = group;
 
         if (members) {
             this.membersSignal.value = members;
             this.currentMembers = members;
+        }
+
+        if (emailVerified !== undefined) {
+            this.currentEmailVerified = emailVerified;
+            this.emailVerifiedSignal.value = emailVerified;
         }
 
         // Invalidate cache for this group
@@ -201,7 +217,12 @@ class PermissionsStore {
             return;
         }
 
-        const permissions = ClientPermissionEngine.getUserPermissions(this.currentGroup, this.currentMembers, this.currentUserId);
+        const permissions = ClientPermissionEngine.getUserPermissions(
+            this.currentGroup,
+            this.currentMembers,
+            this.currentUserId,
+            this.currentEmailVerified
+        );
 
         this.permissionsSignal.value = permissions;
     }
@@ -223,10 +244,12 @@ class PermissionsStore {
         this.currentGroup = null;
         this.currentMembers = [];
         this.currentUserId = null;
+        this.currentEmailVerified = undefined;
         this.groupSignal.value = null;
         this.membersSignal.value = [];
         this.userIdSignal.value = null;
         this.permissionsSignal.value = {};
+        this.emailVerifiedSignal.value = undefined;
         this.cache.invalidate();
         // Note: Don't clear subscriber counts here as other components might still be registered
     }

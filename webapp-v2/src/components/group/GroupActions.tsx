@@ -17,6 +17,7 @@ interface GroupActionsProps {
     isArchived?: boolean;
     membershipActionDisabled?: boolean;
     isGroupLocked?: boolean; // When true, disables add expense, settle up, and invite actions
+    emailNotVerified?: boolean; // When true, disables write actions and shows tooltip
 }
 
 export function GroupActions({
@@ -33,43 +34,57 @@ export function GroupActions({
     isArchived,
     membershipActionDisabled,
     isGroupLocked = false,
+    emailNotVerified = false,
 }: GroupActionsProps) {
     const { t } = useTranslation();
+
+    // Determine if write actions are disabled and the tooltip to show
+    const writeActionsDisabled = isGroupLocked || emailNotVerified;
+    const writeActionTooltip = emailNotVerified
+        ? t('emailVerification.tooltip.disabled')
+        : undefined;
+
     const commonButtons = (
         <>
-            <Button
-                onClick={onAddExpense}
-                disabled={isGroupLocked || !onAddExpense}
-                variant='primary'
-                size='md'
-                fullWidth={variant === 'vertical'}
-                className='flex items-center justify-center'
-            >
-                <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
-                {t('groupActions.addExpense')}
-            </Button>
-            <Button
-                onClick={onSettleUp}
-                disabled={isGroupLocked || !onSettleUp}
-                variant='primary'
-                size='md'
-                fullWidth={variant === 'vertical'}
-                className='flex items-center justify-center'
-            >
-                <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
-                {t('groupActions.settleUp')}
-            </Button>
-            <Button
-                onClick={onShare}
-                disabled={isGroupLocked || !onShare}
-                variant='primary'
-                size='md'
-                fullWidth={variant === 'vertical'}
-                className='flex items-center justify-center'
-            >
-                <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
-                {t('groupActions.inviteOthers')}
-            </Button>
+            <div title={writeActionTooltip}>
+                <Button
+                    onClick={onAddExpense}
+                    disabled={writeActionsDisabled || !onAddExpense}
+                    variant='primary'
+                    size='md'
+                    fullWidth={variant === 'vertical'}
+                    className='flex items-center justify-center'
+                >
+                    <PlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
+                    {t('groupActions.addExpense')}
+                </Button>
+            </div>
+            <div title={writeActionTooltip}>
+                <Button
+                    onClick={onSettleUp}
+                    disabled={writeActionsDisabled || !onSettleUp}
+                    variant='primary'
+                    size='md'
+                    fullWidth={variant === 'vertical'}
+                    className='flex items-center justify-center'
+                >
+                    <BanknotesIcon className='h-4 w-4 mr-2' aria-hidden='true' />
+                    {t('groupActions.settleUp')}
+                </Button>
+            </div>
+            <div title={writeActionTooltip}>
+                <Button
+                    onClick={onShare}
+                    disabled={writeActionsDisabled || !onShare}
+                    variant='primary'
+                    size='md'
+                    fullWidth={variant === 'vertical'}
+                    className='flex items-center justify-center'
+                >
+                    <UserPlusIcon className='h-4 w-4 mr-2' aria-hidden='true' />
+                    {t('groupActions.inviteOthers')}
+                </Button>
+            </div>
         </>
     );
 

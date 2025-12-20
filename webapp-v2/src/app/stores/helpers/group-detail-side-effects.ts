@@ -17,8 +17,8 @@ export class GroupDetailSideEffectsManager {
         }
     }
 
-    updatePermissionsSnapshot(group: GroupDTO, members: GroupMember[]): void {
-        this.permissions.updateGroupData(group, members);
+    updatePermissionsSnapshot(group: GroupDTO, members: GroupMember[], emailVerified?: boolean): void {
+        this.permissions.updateGroupData(group, members, emailVerified);
     }
 
     registerPermissions(groupId: GroupId, userId: UserId): void {

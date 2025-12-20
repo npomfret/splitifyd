@@ -362,6 +362,17 @@
       "cancel": "Atcelt"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Lūdzu, apstipriniet savu e-pasta adresi, lai atbloķētu visas funkcijas.",
+      "resendButton": "Atkārtoti nosūtīt apstiprinājuma e-pastu",
+      "resendSuccess": "Apstiprinājuma e-pasts nosūtīts! Pārbaudiet savu iesūtni.",
+      "resendError": "Neizdevās nosūtīt apstiprinājuma e-pastu. Lūdzu, mēģiniet vēlreiz."
+    },
+    "tooltip": {
+      "disabled": "Apstipriniet savu e-pastu, lai aktivizētu šo darbību"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Atvērt lietotāja izvēlni",

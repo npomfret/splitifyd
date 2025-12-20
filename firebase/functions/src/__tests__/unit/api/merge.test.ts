@@ -21,8 +21,8 @@ describe('Account Merge API', () => {
         [user1, user2] = users;
 
         // Mark emails as verified for merge eligibility
-        appDriver.markEmailVerified(user1);
-        appDriver.markEmailVerified(user2);
+        await appDriver.markEmailVerified(user1);
+        await appDriver.markEmailVerified(user2);
     });
 
     afterEach(() => {
@@ -109,7 +109,7 @@ describe('Account Merge API', () => {
             // Create a third user
             const { users } = await appDriver.createTestUsers({ count: 1 });
             const user3 = users[0];
-            appDriver.markEmailVerified(user3);
+            await appDriver.markEmailVerified(user3);
 
             // Create merge between user1 and user2
             const mergeResult = await appDriver.initiateMerge(

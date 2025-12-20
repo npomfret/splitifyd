@@ -362,6 +362,17 @@
       "cancel": "Annuleren"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Bevestig uw e-mailadres om alle functies te ontgrendelen.",
+      "resendButton": "Verificatie-e-mail opnieuw versturen",
+      "resendSuccess": "Verificatie-e-mail verzonden! Controleer uw inbox.",
+      "resendError": "Verzenden van verificatie-e-mail mislukt. Probeer het opnieuw."
+    },
+    "tooltip": {
+      "disabled": "Bevestig uw e-mail om deze actie in te schakelen"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Gebruikersmenu openen",

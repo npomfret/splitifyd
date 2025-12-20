@@ -362,6 +362,17 @@
       "cancel": "Kanselahin"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Pakikumpirma ang iyong email address upang ma-unlock ang lahat ng features.",
+      "resendButton": "Ipadala muli ang verification email",
+      "resendSuccess": "Naipadala na ang verification email! Tingnan ang iyong inbox.",
+      "resendError": "Hindi naipadala ang verification email. Pakisubukan muli."
+    },
+    "tooltip": {
+      "disabled": "I-verify ang iyong email upang paganahin ang aksyong ito"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Buksan ang menu ng user",

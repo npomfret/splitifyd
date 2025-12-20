@@ -506,6 +506,7 @@ describe('validation and edge cases', () => {
                     .build();
                 const userResult = await appDriver.registerUser(userReg);
                 const userId = toUserId(userResult.user.uid);
+                await appDriver.markEmailVerified(userId);
                 await appDriver.joinGroupByLink(shareToken, undefined, userId);
                 manyUsers.push(userId);
             }

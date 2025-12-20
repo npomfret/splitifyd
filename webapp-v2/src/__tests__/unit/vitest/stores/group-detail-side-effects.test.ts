@@ -37,11 +37,11 @@ describe('GroupDetailSideEffectsManager', () => {
         const group = { id: groupId } as any;
         const members = [{ uid: 'user-1' }] as any;
 
-        manager.updatePermissionsSnapshot(group, members);
+        manager.updatePermissionsSnapshot(group, members, true);
         manager.registerPermissions(groupId, toUserId('user-1'));
         manager.deregisterPermissions(groupId);
 
-        expect(permissions.updateGroupData).toHaveBeenCalledWith(group, members);
+        expect(permissions.updateGroupData).toHaveBeenCalledWith(group, members, true);
         expect(permissions.registerComponent).toHaveBeenCalledWith(groupId, 'user-1');
         expect(permissions.deregisterComponent).toHaveBeenCalledWith(groupId);
     });

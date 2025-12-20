@@ -362,6 +362,17 @@
       "cancel": "Avbryt"
     }
   },
+  "emailVerification": {
+    "banner": {
+      "message": "Verifiera din e-postadress för att låsa upp alla funktioner.",
+      "resendButton": "Skicka verifieringsmail igen",
+      "resendSuccess": "Verifieringsmail skickat! Kontrollera din inkorg.",
+      "resendError": "Kunde inte skicka verifieringsmail. Försök igen."
+    },
+    "tooltip": {
+      "disabled": "Verifiera din e-post för att aktivera denna åtgärd"
+    }
+  },
   "navigation": {
     "userMenu": {
       "openUserMenu": "Öppna användarmeny",
