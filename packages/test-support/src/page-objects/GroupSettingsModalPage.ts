@@ -52,52 +52,49 @@ export class GroupSettingsModalPage extends BasePage {
 
     async ensureGeneralTab(): Promise<void> {
         const groupNameInput = this.getGroupNameInput();
+        const generalTabButton = this.getTabButton('general');
 
-        if ((await groupNameInput.count()) > 0) {
-            try {
-                if (await groupNameInput.isVisible()) {
-                    // Wait for input to be editable to ensure modal is stable
-                    await expect(groupNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
-                    return;
-                }
-            } catch {
-                // ignore visibility race, fall through to tab click when possible
+        // Use polling to handle race conditions with React's useEffect resetting the active tab.
+        // The modal's useModalOpen hook may reset the tab after our click, so we need to retry.
+        await expect(async () => {
+            // Check if already on General tab (input visible and editable)
+            if ((await groupNameInput.count()) > 0 && await groupNameInput.isVisible()) {
+                await expect(groupNameInput).toBeEditable({ timeout: 500 });
+                return; // Success - we're on General tab
             }
-        }
 
-        if (await this.hasTab('general')) {
-            await this.getTabButton('general').click();
-        } else if ((await groupNameInput.count()) === 0) {
-            throw new Error('General tab content was not found in the Group Settings modal.');
-        }
+            // Not on General tab - click the tab button if it exists
+            if ((await generalTabButton.count()) > 0) {
+                await generalTabButton.click();
+            }
 
-        // Wait for input to be editable (not just visible) to ensure modal is stable
-        await expect(groupNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+            // Verify tab switched successfully
+            await expect(groupNameInput).toBeVisible({ timeout: 500 });
+            await expect(groupNameInput).toBeEditable({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     async ensureIdentityTab(): Promise<void> {
         const displayNameInput = this.getDisplayNameInput();
+        const identityTabButton = this.getTabButton('identity');
 
-        if ((await displayNameInput.count()) > 0) {
-            try {
-                if (await displayNameInput.isVisible()) {
-                    // Wait for input to be editable to ensure modal is stable
-                    await expect(displayNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
-                    return;
-                }
-            } catch {
-                // ignore and fall through to tab navigation
+        // Use polling to handle race conditions with React's useEffect resetting the active tab.
+        await expect(async () => {
+            // Check if already on Identity tab (input visible and editable)
+            if ((await displayNameInput.count()) > 0 && await displayNameInput.isVisible()) {
+                await expect(displayNameInput).toBeEditable({ timeout: 500 });
+                return; // Success - we're on Identity tab
             }
-        }
 
-        if (await this.hasTab('identity')) {
-            await this.getTabButton('identity').click();
-        } else if ((await displayNameInput.count()) === 0) {
-            throw new Error('Identity tab content was not found in the Group Settings modal.');
-        }
+            // Not on Identity tab - click the tab button if it exists
+            if ((await identityTabButton.count()) > 0) {
+                await identityTabButton.click();
+            }
 
-        // Wait for input to be editable (not just visible) to ensure modal is stable
-        await expect(displayNameInput).toBeEditable({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION });
+            // Verify tab switched successfully
+            await expect(displayNameInput).toBeVisible({ timeout: 500 });
+            await expect(displayNameInput).toBeEditable({ timeout: 500 });
+        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     async ensureSecurityTab(): Promise<void> {

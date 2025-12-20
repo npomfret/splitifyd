@@ -161,7 +161,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         </p>
                     </div>
                     {onClose && (
-                        <Tooltip content={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
+                        <Tooltip content={t('policyComponents.policyAcceptanceModal.closeAriaLabel')} showOnFocus={false}>
                             <Clickable
                                 as='button'
                                 type='button'

@@ -248,7 +248,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                     <Typography variant='subheading' id='create-group-modal-title'>
                         {t('createGroupModal.title')}
                     </Typography>
-                    <Tooltip content={t('createGroupModal.closeButtonAriaLabel')}>
+                    <Tooltip content={t('createGroupModal.closeButtonAriaLabel')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'

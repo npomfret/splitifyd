@@ -9,6 +9,10 @@ interface TooltipProps {
     children: JSX.Element;
     placement?: TooltipPlacement;
     className?: string;
+    /** Show tooltip when trigger receives focus. Defaults to true for accessibility.
+     * Set to false for elements where focus-triggered tooltip is distracting (e.g., modal close buttons
+     * that receive auto-focus) - ensure the element has aria-label for accessibility. */
+    showOnFocus?: boolean;
 }
 
 interface TooltipPosition {
@@ -32,7 +36,7 @@ function composeEventHandlers<T extends Event>(
     };
 }
 
-export function Tooltip({ content, children, placement = 'top', className }: TooltipProps) {
+export function Tooltip({ content, children, placement = 'top', className, showOnFocus = true }: TooltipProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [position, setPosition] = useState<TooltipPosition | null>(null);
     const triggerRef = useRef<HTMLSpanElement>(null);
@@ -111,8 +115,10 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
     const tooltipChild = isValidElement(children)
         ? cloneElement(children, {
             'aria-describedby': tooltipId,
-            onFocus: composeEventHandlers(children.props.onFocus, show),
-            onBlur: composeEventHandlers(children.props.onBlur, hide),
+            ...(showOnFocus && {
+                onFocus: composeEventHandlers(children.props.onFocus, show),
+                onBlur: composeEventHandlers(children.props.onBlur, hide),
+            }),
         })
         : children;
 
@@ -149,8 +155,7 @@ export function Tooltip({ content, children, placement = 'top', className }: Too
                 className={wrapperClasses}
                 onMouseEnter={show}
                 onMouseLeave={hide}
-                onFocus={show}
-                onBlur={hide}
+                {...(showOnFocus && { onFocus: show, onBlur: hide })}
             >
                 {tooltipChild}
             </span>

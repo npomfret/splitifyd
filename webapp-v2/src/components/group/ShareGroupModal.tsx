@@ -184,7 +184,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
                             </p>
                         )}
                     </div>
-                    <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')}>
+                    <Tooltip content={t('shareGroupModal.closeButtonAriaLabel')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'

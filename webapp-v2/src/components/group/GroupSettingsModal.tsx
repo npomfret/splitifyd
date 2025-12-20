@@ -226,7 +226,7 @@ export function GroupSettingsModal({
                             {t('groupSettingsModal.title')}
                         </h2>
                     </div>
-                    <Tooltip content={t('groupHeader.groupSettingsAriaLabel')}>
+                    <Tooltip content={t('groupHeader.groupSettingsAriaLabel')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'

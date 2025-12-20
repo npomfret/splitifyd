@@ -202,7 +202,7 @@ export function ExpenseDetailModal({ isOpen, onClose, groupId, expenseId, onEdit
                     <Typography variant='heading' id='expense-detail-modal-title'>
                         {expense?.description || t('expenseComponents.expenseDetailModal.title')}
                     </Typography>
-                    <Tooltip content={t('expenseComponents.expenseDetailModal.closeModal')}>
+                    <Tooltip content={t('expenseComponents.expenseDetailModal.closeModal')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'

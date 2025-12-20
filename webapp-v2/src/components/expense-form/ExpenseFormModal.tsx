@@ -83,7 +83,7 @@ export function ExpenseFormModal({ isOpen, onClose, groupId, mode, expenseId, on
                     <Typography variant='heading' id='expense-form-modal-title'>
                         {getModalTitle()}
                     </Typography>
-                    <Tooltip content={t('expenseComponents.expenseFormModal.closeModal')}>
+                    <Tooltip content={t('expenseComponents.expenseFormModal.closeModal')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'

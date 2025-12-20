@@ -407,7 +407,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                     <Typography variant='heading' id='settlement-form-title'>
                         {editMode ? t('settlementForm.updateSettlement') : t('settlementForm.recordSettlement')}
                     </Typography>
-                    <Tooltip content={t('settlementForm.closeModal')}>
+                    <Tooltip content={t('settlementForm.closeModal')} showOnFocus={false}>
                         <Clickable
                             as='button'
                             type='button'
