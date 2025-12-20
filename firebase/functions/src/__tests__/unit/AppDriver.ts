@@ -224,6 +224,9 @@ export class AppDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
             '/user/profile',           // Allow profile updates (language, display name)
             '/user/email',             // Email change (needs verification)
             '/user/email-preferences', // Email preferences
+            '/user/change-password',   // Password change (user must know current password)
+            '/groups/join',            // Join group via share link (share link provides authorization)
+            '/groups/preview',         // Preview group before joining (part of join flow)
         ];
 
         function isEmailVerificationAllowlisted(path: string): boolean {
