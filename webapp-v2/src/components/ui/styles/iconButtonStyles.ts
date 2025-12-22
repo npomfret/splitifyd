@@ -12,7 +12,7 @@
  */
 
 /** Base icon button styles - always apply these */
-export const iconButtonBase = 'p-1.5 transition-colors';
+const iconButtonBase = 'p-1.5 transition-colors';
 
 /** Ghost icon button - subtle background on hover */
 export const iconButton = {

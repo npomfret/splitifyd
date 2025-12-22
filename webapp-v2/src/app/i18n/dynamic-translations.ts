@@ -221,7 +221,7 @@ export function translateProfileRole(role: string, t: TFunction): string {
 //
 // The keys are listed as string literals so the test can detect them.
 
-export const SERVER_SIDE_TRANSLATION_KEYS = [
+const SERVER_SIDE_TRANSLATION_KEYS = [
     'sharing.ogDescription', // Used in SharingHandlers.ts for OG meta description
     'sharing.joinTitle', // Used in SharingHandlers.ts for OG meta title
 ] as const;

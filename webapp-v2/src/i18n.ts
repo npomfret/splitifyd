@@ -47,7 +47,7 @@ i18n
 /**
  * Dynamically loads a language bundle if not already loaded.
  */
-export const loadLanguageBundle = async (lng: SupportedLanguage): Promise<void> => {
+const loadLanguageBundle = async (lng: SupportedLanguage): Promise<void> => {
     if (i18n.hasResourceBundle(lng, 'translation')) {
         return;
     }

@@ -4,7 +4,7 @@ import { ErrorDetail, Errors } from '../errors';
 /**
  * Result of validating and resolving request host information.
  */
-export interface ValidatedHostInfo {
+interface ValidatedHostInfo {
     /**
      * Normalized host without port (used for validation and tenant lookup).
      */

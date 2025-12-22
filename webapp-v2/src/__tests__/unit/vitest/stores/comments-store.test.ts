@@ -11,7 +11,6 @@ vi.mock('@/app/apiClient', () => ({
 }));
 
 vi.mock('@/utils/browser-logger', () => ({
-    logInfo: vi.fn(),
     logError: vi.fn(),
 }));
 

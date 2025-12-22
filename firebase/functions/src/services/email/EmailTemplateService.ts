@@ -6,7 +6,7 @@ import { logger } from '../../logger';
 /**
  * Password reset email template translations
  */
-export interface PasswordResetEmailTranslations {
+interface PasswordResetEmailTranslations {
     subject: string;
     ignoreNotice: string;
     greeting: string;
@@ -19,7 +19,7 @@ export interface PasswordResetEmailTranslations {
 /**
  * Welcome email template translations
  */
-export interface WelcomeEmailTranslations {
+interface WelcomeEmailTranslations {
     subject: string;
     greeting: string;
     welcomeMessage: string;
@@ -30,7 +30,7 @@ export interface WelcomeEmailTranslations {
 /**
  * Email verification email template translations
  */
-export interface EmailVerificationEmailTranslations {
+interface EmailVerificationEmailTranslations {
     subject: string;
     ignoreNotice: string;
     greeting: string;
@@ -43,7 +43,7 @@ export interface EmailVerificationEmailTranslations {
 /**
  * Email change email template translations
  */
-export interface EmailChangeEmailTranslations {
+interface EmailChangeEmailTranslations {
     subject: string;
     ignoreNotice: string;
     greeting: string;
@@ -56,7 +56,7 @@ export interface EmailChangeEmailTranslations {
 /**
  * Generated email content (text and HTML versions)
  */
-export interface EmailContent {
+interface EmailContent {
     subject: string;
     textBody: string;
     htmlBody: string;

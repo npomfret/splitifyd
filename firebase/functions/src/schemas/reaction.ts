@@ -5,7 +5,7 @@ import { z } from 'zod';
  * Schema for validating reaction emojis.
  * Only allows the fixed set of quick reaction emojis.
  */
-export const ReactionEmojiSchema = z.enum([
+const ReactionEmojiSchema = z.enum([
     ReactionEmojis.THUMBS_UP,
     ReactionEmojis.HEART,
     ReactionEmojis.LAUGH,

@@ -1,6 +1,6 @@
 import type { TenantData } from '../types';
 
-export interface SectionProps {
+interface SectionProps {
     formData: TenantData;
     update: (partial: Partial<TenantData>) => void;
     isSaving: boolean;

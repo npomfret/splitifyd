@@ -28,39 +28,39 @@ interface BaseFieldDef<K extends keyof TenantData> {
     gridCols?: 1 | 2 | 3 | 4 | 5;
 }
 
-export interface ColorFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface ColorFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'color';
     tokenPath: string;
     default: '';
 }
 
-export interface RgbaFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface RgbaFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'rgba';
     tokenPath: string;
     default: '';
 }
 
-export interface StringFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface StringFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'string';
     tokenPath: string;
     default: '';
     monospace?: boolean;
 }
 
-export interface NumberFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface NumberFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'number';
     tokenPath: string;
     default: number;
 }
 
-export interface BooleanFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface BooleanFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'boolean';
     tokenPath: string;
     default: boolean;
     description?: string;
 }
 
-export interface ColorArrayFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface ColorArrayFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'colorArray';
     tokenPath: string;
     default: string[];
@@ -68,14 +68,14 @@ export interface ColorArrayFieldDef<K extends keyof TenantData> extends BaseFiel
     maxColors: number;
 }
 
-export interface SelectFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
+interface SelectFieldDef<K extends keyof TenantData> extends BaseFieldDef<K> {
     type: 'select';
     tokenPath: string;
     default: string;
     options: string[];
 }
 
-export type FieldDef<K extends keyof TenantData = keyof TenantData> =
+type FieldDef<K extends keyof TenantData = keyof TenantData> =
     | ColorFieldDef<K>
     | RgbaFieldDef<K>
     | StringFieldDef<K>

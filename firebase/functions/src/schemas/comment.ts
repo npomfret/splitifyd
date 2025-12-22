@@ -8,7 +8,7 @@ import { ReactionCountsSchema, UserReactionsMapSchema } from './reaction';
  * Schema for comment attachment references stored in Firestore.
  * Matches CommentAttachmentRef from shared types.
  */
-export const CommentAttachmentRefSchema = z.object({
+const CommentAttachmentRefSchema = z.object({
     attachmentId: z.string().min(1).transform(toAttachmentId),
     fileName: z.string().min(1),
     contentType: z.string().min(1),

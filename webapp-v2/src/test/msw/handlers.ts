@@ -206,14 +206,3 @@ export function loginFailureHandler(
     );
 }
 
-export function passwordResetSuccessHandler(options: HandlerOptions = {}): SerializedMswHandler {
-    return createJsonHandler(
-        'POST',
-        '/api/password-reset',
-        undefined,
-        {
-            status: 204,
-            ...options,
-        },
-    );
-}

@@ -22,4 +22,4 @@ export const surfaces = {
     subtle: 'bg-surface-subtle',
 } as const;
 
-export type SurfaceVariant = keyof typeof surfaces;
+type SurfaceVariant = keyof typeof surfaces;

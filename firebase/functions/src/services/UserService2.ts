@@ -36,7 +36,7 @@ export interface RegisterUserResult {
  * Result of validating an email change request.
  * Contains the information needed to send a verification email.
  */
-export interface ValidatedEmailChange {
+interface ValidatedEmailChange {
     currentEmail: Email;
     newEmail: Email;
     displayName: string;

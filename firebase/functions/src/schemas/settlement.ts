@@ -38,4 +38,4 @@ const { DocumentSchema: SettlementDocumentSchema, ReadDocumentSchema: Settlement
  * const settlement = SettlementReadDocumentSchema.parse(doc.data());
  * ```
  */
-export { SettlementDocumentSchema, SettlementReadDocumentSchema };
+export { SettlementDocumentSchema };

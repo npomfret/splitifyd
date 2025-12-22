@@ -16,7 +16,6 @@ vi.mock('@/app/apiClient', async (importOriginal) => {
 });
 
 vi.mock('@/utils/browser-logger', () => ({
-    logInfo: vi.fn(),
     logError: vi.fn(),
     logWarning: vi.fn(),
 }));

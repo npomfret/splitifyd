@@ -1,7 +1,7 @@
 import type { SectionId } from './field-registry';
 import type { TenantData } from './types';
 
-export interface SectionConfig {
+interface SectionConfig {
     id: SectionId;
     title: string;
     description: string;
@@ -12,7 +12,7 @@ export interface SectionConfig {
     gridCols?: number;
 }
 
-export const SECTION_CONFIG: SectionConfig[] = [
+const SECTION_CONFIG: SectionConfig[] = [
     {
         id: 'palette',
         title: 'Palette Colors',
@@ -128,21 +128,3 @@ export function getSectionConfig(sectionId: SectionId): SectionConfig | undefine
     return SECTION_CONFIG.find((s) => s.id === sectionId);
 }
 
-export function getVisibleSections(
-    formData: TenantData,
-    editorMode: 'basic' | 'advanced',
-): SectionConfig[] {
-    return SECTION_CONFIG.filter((section) => {
-        // Check advanced-only restriction
-        if (section.advancedOnly && editorMode === 'basic') {
-            return false;
-        }
-
-        // Check conditional visibility
-        if (section.condition && !section.condition(formData)) {
-            return false;
-        }
-
-        return true;
-    });
-}
