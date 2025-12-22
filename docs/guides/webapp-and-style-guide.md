@@ -81,6 +81,19 @@ Layered style constants enforce consistency. Import and compose these instead of
 3. Error states: `aria-invalid`, `aria-describedby`, `role="alert"`
 4. Forward refs for components needing hooks
 
+### Common Mistakes
+
+| Mistake | Correct approach |
+|---------|------------------|
+| Raw `<img>` for user-uploaded content | `AuthenticatedImage` (handles auth tokens for private URLs) |
+| Inline currency formatting | `CurrencyAmount` component (handles locale, symbols) |
+| Inline date formatting | `RelativeTime` component or `formatDate` utility |
+| `console.error()` for errors | `logError()` from `utils/browser-logger` |
+| `window.confirm()` for destructive actions | `ConfirmDialog` component |
+| Direct imports from Heroicons | Import from `@/components/ui/icons` |
+| Importing individual UI components | Import from `@/components/ui` barrel export |
+| `Modal` for simple yes/no confirmations | `ConfirmDialog` (simpler API, consistent styling) |
+
 ### Icons
 
 **Location:** `components/ui/icons/`
@@ -177,6 +190,22 @@ Stores use **Preact Signals** with private class fields for encapsulation. See `
 
 **Rule:** Prefer `useLocalSignal` over manual `useState(() => signal(...))` pattern.
 
+### Form Submission Pattern
+
+For forms with API calls, use `useAsyncAction`:
+
+1. Define the action with `useAsyncAction(async () => { ... })`
+2. Bind `execute` to form submit
+3. Use `isLoading` for button state
+4. Use `error` for displaying errors via `Alert` or `FieldError`
+
+**See:** `CommentInput.tsx`, `SettlementForm.tsx` for examples.
+
+**Rules:**
+- Never call `refreshAll()` after mutations—activity feed handles it
+- Close modals in `onSuccess` callback, not after `await`
+- Use `ConfirmDialog` for destructive actions, not `window.confirm()`
+
 ### Real-Time Data Refresh via Activity Feed
 
 The app uses **activity feed events** (via Firestore real-time subscriptions) to trigger automatic UI refresh. Do NOT add manual `refreshAll()` calls after mutations.
@@ -220,6 +249,56 @@ See `app/i18n/dynamic-translations.ts` for handling dynamic keys.
 - **Location:** `app/apiClient.ts`
 - **Pattern:** Singleton with runtime response validation via Zod
 - **Schemas:** `@billsplit-wl/shared/schemas/apiSchemas.ts`
+
+---
+
+## Import Conventions
+
+### Preferred import sources
+
+| What | Import from | Not from |
+|------|-------------|----------|
+| UI components | `@/components/ui` | Individual component files |
+| Icons | `@/components/ui/icons` | `@heroicons/react/*` |
+| Style primitives | `@/components/ui/styles` | Individual style files |
+| Shared types | `@billsplit-wl/shared` | Duplicating types locally |
+| Hooks | `@/app/hooks` | Individual hook files |
+
+### Path aliases
+
+- `@/` → `webapp-v2/src/`
+- `@billsplit-wl/shared` → `packages/shared/src/`
+
+### Import order
+
+1. External packages (`preact`, `react-i18next`)
+2. Shared packages (`@billsplit-wl/shared`)
+3. Internal aliases (`@/components`, `@/app`)
+4. Relative imports (`./`, `../`)
+
+---
+
+## File Organization
+
+### Where to put new files
+
+| Type | Location | Notes |
+|------|----------|-------|
+| New page | `pages/` | Add route in `App.tsx`, wrap with `ProtectedRoute` if auth required |
+| Feature component | `components/{feature}/` | Group by feature, not by type |
+| Reusable UI component | `components/ui/` | Export from `index.ts` |
+| New icon | `components/ui/icons/` | Export from `index.ts` |
+| Layout component | `components/layout/` | For page structure patterns |
+| Store | `app/stores/` | Follow `auth-store.ts` pattern |
+| Hook | `app/hooks/` | Export from `index.ts` |
+| Utility | `utils/` | Pure functions only |
+
+### Naming conventions
+
+- Components: `PascalCase.tsx`
+- Hooks: `useCamelCase.ts`
+- Utilities: `kebab-case.ts`
+- Tests: `ComponentName.test.tsx` (co-located in `__tests__/`)
 
 ---
 
