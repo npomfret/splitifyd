@@ -39,10 +39,8 @@ interface GroupGeneralTabContentProps {
 /**
  * Section header component
  */
-function SectionHeader({ title }: { title: string }) {
-    return (
-        <h3 className='text-sm font-semibold text-text-primary mb-4'>{title}</h3>
-    );
+function SectionHeader({ title }: { title: string; }) {
+    return <h3 className='text-sm font-semibold text-text-primary mb-4'>{title}</h3>;
 }
 
 export function GroupGeneralTabContent({

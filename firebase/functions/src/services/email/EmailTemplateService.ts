@@ -1,6 +1,6 @@
+import type { EmailChangeEmailVariables, EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { EmailChangeEmailVariables, EmailVerificationEmailVariables, PasswordResetEmailVariables, WelcomeEmailVariables } from '@billsplit-wl/shared';
 import { logger } from '../../logger';
 
 /**
@@ -65,7 +65,7 @@ export interface EmailContent {
 // Hardcoded fallback if translations can't be loaded
 const FALLBACK_PASSWORD_RESET_TRANSLATIONS: PasswordResetEmailTranslations = {
     subject: '{{appName}}: Reset your password',
-    ignoreNotice: "Ignore this email if you didn't request a password reset via {{domain}}.",
+    ignoreNotice: 'Ignore this email if you didn\'t request a password reset via {{domain}}.',
     greeting: 'Hi there,',
     instruction: 'We received a request to reset your password for your {{appName}} account.',
     buttonText: 'Reset Password',
@@ -76,14 +76,14 @@ const FALLBACK_PASSWORD_RESET_TRANSLATIONS: PasswordResetEmailTranslations = {
 const FALLBACK_WELCOME_TRANSLATIONS: WelcomeEmailTranslations = {
     subject: 'Welcome to {{appName}}!',
     greeting: 'Hi {{displayName}},',
-    welcomeMessage: "Thanks for signing up for {{appName}}! We're excited to have you on board.",
+    welcomeMessage: 'Thanks for signing up for {{appName}}! We\'re excited to have you on board.',
     instruction: 'With {{appName}}, you can easily split expenses with friends, family, and roommates. Create groups, add expenses, and let us calculate who owes what.',
     buttonText: 'Get Started',
 };
 
 const FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS: EmailVerificationEmailTranslations = {
     subject: '{{appName}}: Verify your email address',
-    ignoreNotice: "Ignore this email if you didn't create an account on {{domain}}.",
+    ignoreNotice: 'Ignore this email if you didn\'t create an account on {{domain}}.',
     greeting: 'Hi {{displayName}},',
     instruction: 'Please verify your email address to complete your {{appName}} registration.',
     buttonText: 'Verify Email',
@@ -93,7 +93,7 @@ const FALLBACK_EMAIL_VERIFICATION_TRANSLATIONS: EmailVerificationEmailTranslatio
 
 const FALLBACK_EMAIL_CHANGE_TRANSLATIONS: EmailChangeEmailTranslations = {
     subject: '{{appName}}: Verify your new email address',
-    ignoreNotice: "Ignore this email if you didn't request an email change on {{domain}}.",
+    ignoreNotice: 'Ignore this email if you didn\'t request an email change on {{domain}}.',
     greeting: 'Hi {{displayName}},',
     instruction: 'We received a request to change the email address for your {{appName}} account to this address.',
     buttonText: 'Verify New Email',
@@ -174,7 +174,8 @@ export class EmailTemplateService {
             `${this.interpolate(t.buttonText, vars)}: ${vars.verificationLink}`,
             '',
             this.interpolate(t.expiryNotice, vars),
-        ].join('\n');
+        ]
+            .join('\n');
     }
 
     private generateVerificationHtmlBody(
@@ -220,7 +221,8 @@ export class EmailTemplateService {
         ${this.interpolate(t.expiryNotice, escapedVars)}
     </p>
 </body>
-</html>`.trim();
+</html>`
+            .trim();
     }
 
     private verificationToRecord(vars: EmailVerificationEmailVariables): Record<string, string> {
@@ -261,7 +263,8 @@ export class EmailTemplateService {
             `${this.interpolate(t.buttonText, vars)}: ${vars.verificationLink}`,
             '',
             this.interpolate(t.expiryNotice, vars),
-        ].join('\n');
+        ]
+            .join('\n');
     }
 
     private generateEmailChangeHtmlBody(
@@ -307,7 +310,8 @@ export class EmailTemplateService {
         ${this.interpolate(t.expiryNotice, escapedVars)}
     </p>
 </body>
-</html>`.trim();
+</html>`
+            .trim();
     }
 
     private emailChangeToRecord(vars: EmailChangeEmailVariables): Record<string, string> {
@@ -331,7 +335,8 @@ export class EmailTemplateService {
             this.interpolate(t.instruction, vars),
             '',
             `${this.interpolate(t.buttonText, vars)}: ${vars.dashboardLink}`,
-        ].join('\n');
+        ]
+            .join('\n');
     }
 
     private generateWelcomeHtmlBody(
@@ -365,7 +370,8 @@ export class EmailTemplateService {
         </a>
     </p>
 </body>
-</html>`.trim();
+</html>`
+            .trim();
     }
 
     private welcomeToRecord(vars: WelcomeEmailVariables): Record<string, string> {
@@ -390,7 +396,8 @@ export class EmailTemplateService {
             `${this.interpolate(t.buttonText, vars)}: ${vars.resetLink}`,
             '',
             this.interpolate(t.expiryNotice, vars),
-        ].join('\n');
+        ]
+            .join('\n');
     }
 
     private generatePasswordResetHtmlBody(
@@ -437,7 +444,8 @@ export class EmailTemplateService {
         ${this.interpolate(t.expiryNotice, escapedVars)}
     </p>
 </body>
-</html>`.trim();
+</html>`
+            .trim();
     }
 
     private interpolate(template: string, variables: Record<string, string>): string {
@@ -487,7 +495,7 @@ export class EmailTemplateService {
             if (fs.existsSync(translationPath)) {
                 try {
                     const content = fs.readFileSync(translationPath, 'utf-8');
-                    const parsed = JSON.parse(content) as { email?: EmailTranslations };
+                    const parsed = JSON.parse(content) as { email?: EmailTranslations; };
                     if (parsed.email?.passwordReset) {
                         logger.info('email-translations-loaded', { path: translationPath, lang });
                         return parsed.email;

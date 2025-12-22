@@ -240,7 +240,10 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             // Email is processed by Postmark but not actually delivered
             await expect(
                 apiDriver.sendPasswordResetEmail({ email: userData.email }),
-            ).resolves.not.toThrow();
+            )
+                .resolves
+                .not
+                .toThrow();
         });
     });
 
@@ -273,7 +276,10 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
             // Email is processed by Postmark but not actually delivered
             await expect(
                 apiDriver.sendEmailVerification({ email: userData.email }),
-            ).resolves.not.toThrow();
+            )
+                .resolves
+                .not
+                .toThrow();
         });
     });
 
@@ -292,7 +298,10 @@ describe('Authentication and Registration - Integration Tests (Essential Firebas
                     { currentPassword: toPassword(user.password), newEmail },
                     user.token,
                 ),
-            ).resolves.not.toThrow();
+            )
+                .resolves
+                .not
+                .toThrow();
         });
     });
 });

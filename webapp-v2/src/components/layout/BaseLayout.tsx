@@ -17,7 +17,9 @@ interface BaseLayoutProps {
     showHeaderAuth?: boolean;
 }
 
-export function BaseLayout({ children, title, description, canonical, ogImage, structuredData, headerVariant = 'default', showHeader = true, showFooter = true, showHeaderAuth = true }: BaseLayoutProps) {
+export function BaseLayout(
+    { children, title, description, canonical, ogImage, structuredData, headerVariant = 'default', showHeader = true, showFooter = true, showHeaderAuth = true }: BaseLayoutProps,
+) {
     const { t } = useTranslation();
 
     return (

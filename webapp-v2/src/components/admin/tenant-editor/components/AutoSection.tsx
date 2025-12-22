@@ -1,8 +1,8 @@
 import { AdminFormSection, SubsectionHeader } from '@/components/admin/forms';
-import type { CreationMode, TenantData } from '../types';
 import type { AnyFieldDef, SectionId } from '../field-registry';
 import { getFieldsBySection } from '../field-registry';
 import { getSectionConfig } from '../section-config';
+import type { CreationMode, TenantData } from '../types';
 import { FieldRenderer } from './FieldRenderer';
 
 interface AutoSectionProps {
@@ -83,8 +83,8 @@ function renderFieldGrid(fields: AnyFieldDef[], formData: TenantData, update: (p
 
     // Otherwise, render in order preserving original layout
     // Group consecutive fields with same gridCols
-    const gridGroups: Array<{ cols: number; fields: AnyFieldDef[] }> = [];
-    let currentGridGroup: { cols: number; fields: AnyFieldDef[] } | null = null;
+    const gridGroups: Array<{ cols: number; fields: AnyFieldDef[]; }> = [];
+    let currentGridGroup: { cols: number; fields: AnyFieldDef[]; } | null = null;
 
     for (const field of fields) {
         const cols = field.gridCols || 2;
@@ -145,21 +145,23 @@ export function AutoSection({ sectionId, formData, update, isSaving, mode, creat
                     <div key={groupIdx}>
                         {group.subsection && <SubsectionHeader title={group.subsection} />}
 
-                        {allBoolean || group.fields.every((f) => f.type === 'boolean') ? (
-                            <div className='space-y-3'>
-                                {group.fields.map((field) => (
-                                    <FieldRenderer
-                                        key={field.key}
-                                        field={field}
-                                        formData={formData}
-                                        update={update}
-                                        isSaving={isSaving}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            renderFieldGrid(group.fields, formData, update, isSaving)
-                        )}
+                        {allBoolean || group.fields.every((f) => f.type === 'boolean')
+                            ? (
+                                <div className='space-y-3'>
+                                    {group.fields.map((field) => (
+                                        <FieldRenderer
+                                            key={field.key}
+                                            field={field}
+                                            formData={formData}
+                                            update={update}
+                                            isSaving={isSaving}
+                                        />
+                                    ))}
+                                </div>
+                            )
+                            : (
+                                renderFieldGrid(group.fields, formData, update, isSaving)
+                            )}
                     </div>
                 ))}
             </div>

@@ -48,7 +48,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 logError('Failed to update user profile', error);
                 return error instanceof Error ? error.message : t('admin.userEditor.errors.profileUpdate');
             },
-        }
+        },
     );
 
     // Async action for saving role
@@ -68,7 +68,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 logError('Failed to update user role', error);
                 return error instanceof Error ? error.message : t('admin.userEditor.errors.roleUpdate');
             },
-        }
+        },
     );
 
     // Async action for loading Firebase Auth data
@@ -80,7 +80,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 logError('Failed to load Firebase Auth data', error);
                 setFirebaseAuthData({ error: t('admin.userEditor.errors.loadData') });
             },
-        }
+        },
     );
 
     // Async action for loading Firestore data
@@ -92,7 +92,7 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
                 logError('Failed to load Firestore data', error);
                 setFirestoreData({ error: t('admin.userEditor.errors.loadData') });
             },
-        }
+        },
     );
 
     // Derived loading state for save operations
@@ -102,20 +102,24 @@ export function UserEditorModal({ open, onClose, onSave, user, isCurrentUser }: 
     const displayError = errorMessage || saveProfileAction.error || saveRoleAction.error;
 
     // Reset form when modal opens or user changes
-    useModalOpenOrChange(open, user.uid, useCallback(() => {
-        setDisplayName(String(user.displayName ?? ''));
-        setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
-        setErrorMessage('');
-        setSuccessMessage('');
-        setFirebaseAuthData(null);
-        setFirestoreData(null);
-        setActiveTab('profile');
-        // Reset async action states
-        saveProfileAction.reset();
-        saveRoleAction.reset();
-        loadAuthAction.reset();
-        loadFirestoreAction.reset();
-    }, [user.displayName, user.role, saveProfileAction, saveRoleAction, loadAuthAction, loadFirestoreAction]));
+    useModalOpenOrChange(
+        open,
+        user.uid,
+        useCallback(() => {
+            setDisplayName(String(user.displayName ?? ''));
+            setSelectedRole(user.role ?? SystemUserRoles.SYSTEM_USER);
+            setErrorMessage('');
+            setSuccessMessage('');
+            setFirebaseAuthData(null);
+            setFirestoreData(null);
+            setActiveTab('profile');
+            // Reset async action states
+            saveProfileAction.reset();
+            saveRoleAction.reset();
+            loadAuthAction.reset();
+            loadFirestoreAction.reset();
+        }, [user.displayName, user.role, saveProfileAction, saveRoleAction, loadAuthAction, loadFirestoreAction]),
+    );
 
     const handleSaveProfile = async () => {
         setErrorMessage('');

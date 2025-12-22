@@ -1,4 +1,4 @@
-import { Errors, ErrorDetail } from '../../../errors';
+import { ErrorDetail, Errors } from '../../../errors';
 import { logger } from '../../../logger';
 import { POSTMARK_API_KEYS_JSON } from '../../../params';
 
@@ -66,4 +66,3 @@ export class PostmarkTokenProvider {
         return result;
     }
 }
-

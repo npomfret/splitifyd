@@ -1,7 +1,7 @@
 import { AdminFormInput, AdminFormToggle } from '@/components/admin/forms';
 import { ColorInput, RgbaColorInput } from '@/components/ui';
-import type { TenantData } from '../types';
 import type { AnyFieldDef } from '../field-registry';
+import type { TenantData } from '../types';
 
 interface FieldRendererProps {
     field: AnyFieldDef;
@@ -115,7 +115,7 @@ export function FieldRenderer({ field, formData, update, isSaving }: FieldRender
 }
 
 interface ColorArrayFieldProps {
-    field: AnyFieldDef & { type: 'colorArray' };
+    field: AnyFieldDef & { type: 'colorArray'; };
     value: string[];
     onChange: (value: string[]) => void;
     isSaving: boolean;

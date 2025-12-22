@@ -8,8 +8,8 @@
  *   import { formInput, surfaces, states } from './styles';
  */
 
-export * from './surfaces';
-export * from './states';
 export * from './formStyles';
 export * from './iconButtonStyles';
 export * from './listItemStyles';
+export * from './states';
+export * from './surfaces';

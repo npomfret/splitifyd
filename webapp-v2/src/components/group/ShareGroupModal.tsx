@@ -75,18 +75,22 @@ export function ShareGroupModal({ isOpen, onClose, groupId, groupName }: ShareGr
     }, []);
 
     // Reset state when modal opens or group changes
-    useModalOpenOrChange(isOpen, groupId, useCallback(() => {
-        if (copiedTimerRef.current) {
-            clearTimeout(copiedTimerRef.current);
-            copiedTimerRef.current = null;
-        }
+    useModalOpenOrChange(
+        isOpen,
+        groupId,
+        useCallback(() => {
+            if (copiedTimerRef.current) {
+                clearTimeout(copiedTimerRef.current);
+                copiedTimerRef.current = null;
+            }
 
-        shareLinkSignal.value = '';
-        expiresAtSignal.value = null;
-        errorSignal.value = null;
-        copiedSignal.value = false;
-        selectedExpirationIdSignal.value = DEFAULT_EXPIRATION_OPTION_ID;
-    }, []));
+            shareLinkSignal.value = '';
+            expiresAtSignal.value = null;
+            errorSignal.value = null;
+            copiedSignal.value = false;
+            selectedExpirationIdSignal.value = DEFAULT_EXPIRATION_OPTION_ID;
+        }, []),
+    );
 
     useEffect(() => {
         if (!isOpen || !groupId) {

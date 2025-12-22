@@ -1,5 +1,14 @@
 import type { AdminUpsertTenantRequest, BrandingMarketingFlags, BrandingTokens, TenantBranding, TenantDomainName, TenantId } from '@billsplit-wl/shared';
-import { toShowMarketingContentFlag, toShowPricingPageFlag, toTenantAccentColor, toTenantDefaultFlag, toTenantDomainName, toTenantId, toTenantPrimaryColor, toTenantSecondaryColor } from '@billsplit-wl/shared';
+import {
+    toShowMarketingContentFlag,
+    toShowPricingPageFlag,
+    toTenantAccentColor,
+    toTenantDefaultFlag,
+    toTenantDomainName,
+    toTenantId,
+    toTenantPrimaryColor,
+    toTenantSecondaryColor,
+} from '@billsplit-wl/shared';
 
 /**
  * Builder for creating AdminUpsertTenantRequest for admin API endpoints.
@@ -261,7 +270,7 @@ export class AdminTenantRequestBuilder {
         return this;
     }
 
-    withMarketingFlags(flags: { showMarketingContent?: boolean; showPricingPage?: boolean }): this {
+    withMarketingFlags(flags: { showMarketingContent?: boolean; showPricingPage?: boolean; }): this {
         const brandedFlags: Partial<BrandingMarketingFlags> = {};
         if (flags.showMarketingContent !== undefined) {
             brandedFlags.showMarketingContent = toShowMarketingContentFlag(flags.showMarketingContent);

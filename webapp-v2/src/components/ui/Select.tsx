@@ -4,7 +4,7 @@ import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
 import { ChevronDownIcon } from './icons';
-import { formSelect, formLabel } from './styles';
+import { formLabel, formSelect } from './styles';
 
 interface SelectOption {
     value: string;

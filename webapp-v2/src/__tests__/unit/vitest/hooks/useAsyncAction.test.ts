@@ -13,9 +13,7 @@ describe('useAsyncAction', () => {
 
     describe('initial state', () => {
         it('starts with isLoading false and no error', () => {
-            const { result } = renderHook(() =>
-                useAsyncAction(async () => 'result'),
-            );
+            const { result } = renderHook(() => useAsyncAction(async () => 'result'));
 
             expect(result.current.isLoading).toBe(false);
             expect(result.current.error).toBeNull();
@@ -26,9 +24,10 @@ describe('useAsyncAction', () => {
         it('sets isLoading to true during execution', async () => {
             let resolvePromise: (value: string) => void;
             const action = vi.fn(
-                () => new Promise<string>((resolve) => {
-                    resolvePromise = resolve;
-                }),
+                () =>
+                    new Promise<string>((resolve) => {
+                        resolvePromise = resolve;
+                    }),
             );
 
             const { result } = renderHook(() => useAsyncAction(action));
@@ -66,9 +65,7 @@ describe('useAsyncAction', () => {
             const action = vi.fn(async () => 'result');
             const onSuccess = vi.fn();
 
-            const { result } = renderHook(() =>
-                useAsyncAction(action, { onSuccess }),
-            );
+            const { result } = renderHook(() => useAsyncAction(action, { onSuccess }));
 
             await act(async () => {
                 await result.current.execute();
@@ -79,7 +76,8 @@ describe('useAsyncAction', () => {
         });
 
         it('clears previous error on new execution', async () => {
-            const action = vi.fn()
+            const action = vi
+                .fn()
                 .mockRejectedValueOnce(new Error('First error'))
                 .mockResolvedValueOnce('success');
 
@@ -138,9 +136,7 @@ describe('useAsyncAction', () => {
 
             const onError = vi.fn(() => 'Custom error message');
 
-            const { result } = renderHook(() =>
-                useAsyncAction(action, { onError }),
-            );
+            const { result } = renderHook(() => useAsyncAction(action, { onError }));
 
             await act(async () => {
                 await result.current.execute();
@@ -157,9 +153,7 @@ describe('useAsyncAction', () => {
 
             const onError = vi.fn(() => undefined);
 
-            const { result } = renderHook(() =>
-                useAsyncAction(action, { onError }),
-            );
+            const { result } = renderHook(() => useAsyncAction(action, { onError }));
 
             await act(async () => {
                 await result.current.execute();
@@ -188,9 +182,10 @@ describe('useAsyncAction', () => {
         it('prevents execution while already loading', async () => {
             let resolvePromise: (value: string) => void;
             const action = vi.fn(
-                () => new Promise<string>((resolve) => {
-                    resolvePromise = resolve;
-                }),
+                () =>
+                    new Promise<string>((resolve) => {
+                        resolvePromise = resolve;
+                    }),
             );
 
             const { result } = renderHook(() => useAsyncAction(action));
@@ -245,16 +240,15 @@ describe('useAsyncAction', () => {
         it('ignores result from stale request after reset', async () => {
             let resolvePromise: (value: string) => void;
             const action = vi.fn(
-                () => new Promise<string>((resolve) => {
-                    resolvePromise = resolve;
-                }),
+                () =>
+                    new Promise<string>((resolve) => {
+                        resolvePromise = resolve;
+                    }),
             );
 
             const onSuccess = vi.fn();
 
-            const { result } = renderHook(() =>
-                useAsyncAction(action, { onSuccess }),
-            );
+            const { result } = renderHook(() => useAsyncAction(action, { onSuccess }));
 
             // Start execution
             act(() => {
@@ -320,9 +314,10 @@ describe('useAsyncAction', () => {
         it('clears error and sets isLoading to false', async () => {
             let resolvePromise: (value: string) => void;
             const action = vi.fn(
-                () => new Promise<string>((resolve) => {
-                    resolvePromise = resolve;
-                }),
+                () =>
+                    new Promise<string>((resolve) => {
+                        resolvePromise = resolve;
+                    }),
             );
 
             const { result } = renderHook(() => useAsyncAction(action));

@@ -3,7 +3,7 @@ import type { Ref } from 'preact';
 import { useCallback } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { FieldError } from './FieldError';
-import { formTextarea, formLabel } from './styles';
+import { formLabel, formTextarea } from './styles';
 
 interface TextareaProps {
     label?: string;

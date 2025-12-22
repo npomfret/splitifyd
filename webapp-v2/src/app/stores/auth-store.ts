@@ -27,7 +27,16 @@ interface AuthState {
 
 interface AuthActions {
     login: (email: Email, password: Password, rememberMe?: boolean) => Promise<void>;
-    register: (email: Email, password: Password, displayName: DisplayName, termsAccepted: boolean, cookiePolicyAccepted: boolean, privacyPolicyAccepted: boolean, adminEmailsAccepted: boolean, marketingEmailsAccepted: boolean) => Promise<void>;
+    register: (
+        email: Email,
+        password: Password,
+        displayName: DisplayName,
+        termsAccepted: boolean,
+        cookiePolicyAccepted: boolean,
+        privacyPolicyAccepted: boolean,
+        adminEmailsAccepted: boolean,
+        marketingEmailsAccepted: boolean,
+    ) => Promise<void>;
     logout: () => Promise<void>;
     resetPassword: (email: Email) => Promise<void>;
     updateUserProfile: (updates: { displayName?: DisplayName; marketingEmailsAccepted?: boolean; }) => Promise<void>;

@@ -89,9 +89,7 @@ describe('useLocalSignal', () => {
         });
 
         it('supports object mutation', () => {
-            const { result } = renderHook(() =>
-                useLocalSignal({ count: 0, items: [] as string[] }),
-            );
+            const { result } = renderHook(() => useLocalSignal({ count: 0, items: [] as string[] }));
 
             act(() => {
                 result.current.value = { count: 5, items: ['a', 'b'] };

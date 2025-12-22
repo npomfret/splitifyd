@@ -8,10 +8,10 @@ import { HTTP_STATUS } from './constants';
 import { ApiError } from './errors';
 import { logger } from './logger';
 import { disableETags } from './middleware/cache-control';
+import { POSTMARK_API_KEYS_JSON } from './params';
 import { createRouteDefinitions } from './routes/route-config';
 import { logMetrics } from './scheduled/metrics-logger';
 import { applyStandardMiddleware } from './utils/middleware';
-import { POSTMARK_API_KEYS_JSON } from './params';
 
 let app: express.Application | null = null;
 

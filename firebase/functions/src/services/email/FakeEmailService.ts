@@ -11,4 +11,3 @@ export class FakeEmailService implements IEmailService {
         return this.sentMessages;
     }
 }
-

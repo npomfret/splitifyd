@@ -35,9 +35,7 @@ export function PageHeader({ label, title, description, actions }: PageHeaderPro
                 <Typography variant='display' className='font-semibold'>
                     {title}
                 </Typography>
-                {description && (
-                    <p className='max-w-2xl help-text sm:text-base'>{description}</p>
-                )}
+                {description && <p className='max-w-2xl help-text sm:text-base'>{description}</p>}
             </Stack>
             {actions && <div className='shrink-0'>{actions}</div>}
         </div>

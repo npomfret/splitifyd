@@ -221,7 +221,7 @@ class PermissionsStore {
             this.currentGroup,
             this.currentMembers,
             this.currentUserId,
-            this.currentEmailVerified
+            this.currentEmailVerified,
         );
 
         this.permissionsSignal.value = permissions;

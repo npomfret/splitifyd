@@ -1,19 +1,6 @@
-import {
-    calculateEqualSplits,
-    toAmount,
-    toEmail,
-    toGroupName,
-    toPassword,
-    toUserId,
-    USD,
-} from '@billsplit-wl/shared';
+import { calculateEqualSplits, toAmount, toEmail, toGroupName, toPassword, toUserId, USD } from '@billsplit-wl/shared';
 import type { UserId } from '@billsplit-wl/shared';
-import {
-    CreateExpenseRequestBuilder,
-    CreateGroupRequestBuilder,
-    CreateSettlementRequestBuilder,
-    UserRegistrationBuilder,
-} from '@billsplit-wl/test-support';
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, CreateSettlementRequestBuilder, UserRegistrationBuilder } from '@billsplit-wl/test-support';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AppDriver } from '../AppDriver';
 
@@ -233,7 +220,10 @@ describe('email verification restriction', () => {
             // This should not throw EMAIL_NOT_VERIFIED
             await expect(
                 appDriver.sendEmailVerification({ email: toEmail('unverified@example.com') }),
-            ).resolves.not.toThrow();
+            )
+                .resolves
+                .not
+                .toThrow();
         });
 
         it('should allow unverified user to login', async () => {

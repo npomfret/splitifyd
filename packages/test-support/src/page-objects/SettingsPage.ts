@@ -408,9 +408,14 @@ export class SettingsPage extends BasePage {
      */
     protected getAvatarOrInitials(): Locator {
         // Profile summary card contains the avatar - scope by visible profile overview text
-        return this.page.locator('section, div').filter({
-            has: this.page.getByText(translation.settingsPage.profileSummaryTitle),
-        }).getByRole('img').first();
+        return this
+            .page
+            .locator('section, div')
+            .filter({
+                has: this.page.getByText(translation.settingsPage.profileSummaryTitle),
+            })
+            .getByRole('img')
+            .first();
     }
 
     /**
@@ -687,7 +692,7 @@ export class SettingsPage extends BasePage {
      */
     protected getMarketingEmailsCheckbox(): Locator {
         return this.getEmailPreferencesSection().getByLabel(
-            translation.settingsPage.emailPreferences.marketingEmails.label
+            translation.settingsPage.emailPreferences.marketingEmails.label,
         );
     }
 
@@ -696,7 +701,7 @@ export class SettingsPage extends BasePage {
      */
     protected getMarketingEmailsDescription(): Locator {
         return this.getEmailPreferencesSection().getByText(
-            translation.settingsPage.emailPreferences.marketingEmails.description
+            translation.settingsPage.emailPreferences.marketingEmails.description,
         );
     }
 

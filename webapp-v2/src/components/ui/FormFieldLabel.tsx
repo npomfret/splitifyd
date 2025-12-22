@@ -57,9 +57,7 @@ export function FormFieldLabel({
             className={`flex items-center gap-1.5 text-sm font-medium text-text-primary mb-2 ${className}`}
         >
             {label}
-            {required && (
-                <span className='text-semantic-error'>{t('common.required')}</span>
-            )}
+            {required && <span className='text-semantic-error'>{t('common.required')}</span>}
             {helpText && (
                 <Tooltip content={helpText} placement='top'>
                     <Clickable

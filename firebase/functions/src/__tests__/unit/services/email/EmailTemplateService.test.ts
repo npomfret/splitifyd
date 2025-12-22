@@ -1,10 +1,5 @@
+import { EmailChangeEmailVariablesBuilder, EmailVerificationEmailVariablesBuilder, PasswordResetEmailVariablesBuilder, WelcomeEmailVariablesBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
-import {
-    EmailChangeEmailVariablesBuilder,
-    EmailVerificationEmailVariablesBuilder,
-    PasswordResetEmailVariablesBuilder,
-    WelcomeEmailVariablesBuilder,
-} from '@billsplit-wl/test-support';
 import { EmailTemplateService } from '../../../../services/email/EmailTemplateService';
 
 describe('EmailTemplateService', () => {
@@ -110,12 +105,12 @@ describe('EmailTemplateService', () => {
 
         it('escapes single quotes', () => {
             const variables = new PasswordResetEmailVariablesBuilder()
-                .withAppName("Tom's App")
+                .withAppName('Tom\'s App')
                 .build();
 
             const result = service.generatePasswordResetEmail(variables);
 
-            expect(result.htmlBody).toContain("Tom&#x27;s App");
+            expect(result.htmlBody).toContain('Tom&#x27;s App');
         });
     });
 
@@ -262,12 +257,12 @@ describe('EmailTemplateService', () => {
 
         it('escapes single quotes', () => {
             const variables = new WelcomeEmailVariablesBuilder()
-                .withDisplayName("Tom's Account")
+                .withDisplayName('Tom\'s Account')
                 .build();
 
             const result = service.generateWelcomeEmail(variables);
 
-            expect(result.htmlBody).toContain("Tom&#x27;s Account");
+            expect(result.htmlBody).toContain('Tom&#x27;s Account');
         });
     });
 
@@ -395,12 +390,12 @@ describe('EmailTemplateService', () => {
 
         it('escapes single quotes', () => {
             const variables = new EmailVerificationEmailVariablesBuilder()
-                .withDisplayName("Tom's Account")
+                .withDisplayName('Tom\'s Account')
                 .build();
 
             const result = service.generateEmailVerificationEmail(variables);
 
-            expect(result.htmlBody).toContain("Tom&#x27;s Account");
+            expect(result.htmlBody).toContain('Tom&#x27;s Account');
         });
     });
 
@@ -534,12 +529,12 @@ describe('EmailTemplateService', () => {
 
         it('escapes single quotes', () => {
             const variables = new EmailChangeEmailVariablesBuilder()
-                .withDisplayName("Tom's Account")
+                .withDisplayName('Tom\'s Account')
                 .build();
 
             const result = service.generateEmailChangeEmail(variables);
 
-            expect(result.htmlBody).toContain("Tom&#x27;s Account");
+            expect(result.htmlBody).toContain('Tom&#x27;s Account');
         });
     });
 

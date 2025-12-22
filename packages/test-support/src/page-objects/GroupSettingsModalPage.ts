@@ -71,7 +71,8 @@ export class GroupSettingsModalPage extends BasePage {
             // Verify tab switched successfully
             await expect(groupNameInput).toBeVisible({ timeout: 500 });
             await expect(groupNameInput).toBeEditable({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     async ensureIdentityTab(): Promise<void> {
@@ -94,7 +95,8 @@ export class GroupSettingsModalPage extends BasePage {
             // Verify tab switched successfully
             await expect(displayNameInput).toBeVisible({ timeout: 500 });
             await expect(displayNameInput).toBeEditable({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     async ensureSecurityTab(): Promise<void> {
@@ -115,7 +117,8 @@ export class GroupSettingsModalPage extends BasePage {
 
             // Verify tab switched successfully
             await expect(presetButton).toBeVisible({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     // ============================================================================
@@ -1287,7 +1290,8 @@ export class GroupSettingsModalPage extends BasePage {
             // Verify group is currently unlocked and toggle is visible
             await expect(toggle).toBeVisible({ timeout: 500 });
             await expect(toggle).not.toBeChecked({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
 
         // Click the visible label to toggle
         await label.scrollIntoViewIfNeeded();
@@ -1318,7 +1322,8 @@ export class GroupSettingsModalPage extends BasePage {
             // Verify group is currently locked and toggle is visible
             await expect(toggle).toBeVisible({ timeout: 500 });
             await expect(toggle).toBeChecked({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
 
         // Click the visible label to toggle
         await label.scrollIntoViewIfNeeded();
@@ -1340,7 +1345,8 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(async () => {
             await this.ensureGeneralTab();
             await expect(this.getGroupLockToggle()).toBeVisible({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**
@@ -1358,7 +1364,8 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(async () => {
             await this.ensureGeneralTab();
             await expect(this.getLockedGroupToggle()).toBeChecked({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**
@@ -1369,7 +1376,8 @@ export class GroupSettingsModalPage extends BasePage {
         await expect(async () => {
             await this.ensureGeneralTab();
             await expect(this.getUnlockedGroupToggle()).not.toBeChecked({ timeout: 500 });
-        }).toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
+        })
+            .toPass({ timeout: TEST_TIMEOUTS.MODAL_TRANSITION, intervals: [100, 200, 500] });
     }
 
     /**

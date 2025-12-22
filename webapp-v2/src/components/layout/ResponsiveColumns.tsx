@@ -64,7 +64,7 @@ export function ResponsiveColumns({
 
     // Generate mobile order indices
     const mobileOrderMap = Object.fromEntries(
-        mobileOrder.map((slot, index) => [slot, index])
+        mobileOrder.map((slot, index) => [slot, index]),
     ) as Record<SlotName, number>;
 
     // Render slots

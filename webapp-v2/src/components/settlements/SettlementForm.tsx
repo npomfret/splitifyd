@@ -1,17 +1,17 @@
-import {apiClient} from '@/app/apiClient.ts';
-import {useAsyncAction} from '@/app/hooks';
-import {useAuthRequired} from '@/app/hooks/useAuthRequired.ts';
-import {useModalOpen} from '@/app/hooks/useModalOpen';
-import {CurrencyService} from '@/app/services/currencyService.ts';
-import {enhancedGroupDetailStore} from '@/app/stores/group-detail-store-enhanced.ts';
-import {Clickable} from '@/components/ui/Clickable';
-import {XIcon} from '@/components/ui/icons';
-import {Modal, ModalContent, ModalHeader} from '@/components/ui/Modal';
-import {formatCurrency} from '@/utils/currency';
-import {getAmountPrecisionError} from '@/utils/currency-validation.ts';
-import {getUTCMidnight, isDateInFuture} from '@/utils/dateUtils.ts';
-import {getGroupDisplayName} from '@/utils/displayName';
-import {translateApiError} from '@/utils/error-translation';
+import { apiClient } from '@/app/apiClient.ts';
+import { useAsyncAction } from '@/app/hooks';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
+import { useModalOpen } from '@/app/hooks/useModalOpen';
+import { CurrencyService } from '@/app/services/currencyService.ts';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
+import { Clickable } from '@/components/ui/Clickable';
+import { XIcon } from '@/components/ui/icons';
+import { Modal, ModalContent, ModalHeader } from '@/components/ui/Modal';
+import { formatCurrency } from '@/utils/currency';
+import { getAmountPrecisionError } from '@/utils/currency-validation.ts';
+import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
+import { getGroupDisplayName } from '@/utils/displayName';
+import { translateApiError } from '@/utils/error-translation';
 import {
     amountToSmallestUnit,
     CreateSettlementRequest,
@@ -27,11 +27,11 @@ import {
     UserId,
     ZERO,
 } from '@billsplit-wl/shared';
-import {signal} from '@preact/signals';
-import {useComputed} from '@preact/signals';
-import {useCallback, useEffect, useState} from 'preact/hooks';
-import {useTranslation} from 'react-i18next';
-import {Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography} from '../ui';
+import { signal } from '@preact/signals';
+import { useComputed } from '@preact/signals';
+import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
+import { Button, CurrencyAmount, CurrencyAmountInput, FieldError, Form, Stack, Tooltip, Typography } from '../ui';
 
 /**
  * Get the maximum allowed amount string for a given currency
@@ -47,6 +47,10 @@ function getMaxAmountForCurrency(currency: string): string {
     return `999999.${fractionalPart}`;
 }
 
+function findMember(members: GroupMember[], uid: UserId): GroupMember | undefined {
+    return members.find((m) => m.uid === uid);
+}
+
 interface SettlementFormProps {
     isOpen: boolean;
     onClose: () => void;
@@ -57,8 +61,8 @@ interface SettlementFormProps {
     settlementToEdit?: SettlementWithMembers;
 }
 
-export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit}: SettlementFormProps) {
-    const {t} = useTranslation();
+export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSuccess, editMode = false, settlementToEdit }: SettlementFormProps) {
+    const { t } = useTranslation();
     const authStore = useAuthRequired();
 
     // Validation error for sync validation (form validation before submit)
@@ -206,7 +210,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
         if (currentDebtUnits === 0) {
             const payerName = getMemberName(payerId);
             const payeeName = getMemberName(payeeId);
-            warningMessageSignal.value = t('settlementForm.warnings.noDebt', {payer: payerName, payee: payeeName, currency});
+            warningMessageSignal.value = t('settlementForm.warnings.noDebt', { payer: payerName, payee: payeeName, currency });
             return;
         }
 
@@ -342,7 +346,7 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
             onError: (error) => {
                 return translateApiError(error, t, t('settlementForm.validation.recordPaymentFailed'));
             },
-        }
+        },
     );
 
     const handleSubmit = async (e: Event) => {
@@ -415,9 +419,9 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                             className='text-text-muted hover:text-text-muted'
                             aria-label={t('settlementForm.closeModal')}
                             eventName='modal_close'
-                            eventProps={{modalName: 'settlement_form', method: 'x_button'}}
+                            eventProps={{ modalName: 'settlement_form', method: 'x_button' }}
                         >
-                            <XIcon size={24}/>
+                            <XIcon size={24} />
                         </Clickable>
                     </Tooltip>
                 </div>
@@ -431,47 +435,69 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                             {t('settlementForm.quickSettleLabel')}
                         </label>
                         <div className='flex flex-wrap gap-2 justify-center'>
-                            {quickSettleDebts.value.map((debt: SimplifiedDebt) => {
-                                const payeeMember = members.find((m: GroupMember) => m.uid === debt.to.uid);
-                                if (!payeeMember) return null;
+                            {quickSettleDebts
+                                .value
+                                .map((debt: SimplifiedDebt) => {
+                                    const { from, to, amount: debtAmount, currency: debtCurrency } = debt;
+                                    const payerUid = from
+                                        .uid;
+                                    const payeeUid = to
+                                        .uid;
+                                    const payeeMember = findMember(members, payeeUid);
+                                    if (!payeeMember) {
+                                        return null;
+                                    }
 
-                                return (
-                                    <button
-                                        key={`${debt.to.uid}-${debt.currency}`}
-                                        type='button'
-                                        onClick={() => {
-                                            payerIdSignal.value = debt.from.uid;
-                                            payeeIdSignal.value = debt.to.uid;
-                                            amountSignal.value = debt.amount;
-                                            currencySignal.value = debt.currency;
-                                            dateSignal.value = new Date().toISOString().split('T')[0];
-                                            noteSignal.value = '';
-                                            recalculatePrecisionError(debt.amount, debt.currency);
-                                        }}
-                                        className='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
-                                        title={`${formatCurrency(debt.amount, toCurrencyISOCode(debt.currency))} → ${getGroupDisplayName(payeeMember)}`}
-                                    >
-                                        {/* Avatar */}
-                                        <div
-                                            className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
-                                            style={{backgroundColor: payeeMember.themeColor?.light || '#6366f1'}}
+                                    return (
+                                        <button
+                                            key={`${payeeUid}-${debtCurrency}`}
+                                            type='button'
+                                            onClick={() => {
+                                                payerIdSignal.value = payerUid;
+                                                payeeIdSignal
+                                                    .value = payeeUid;
+                                                amountSignal
+                                                    .value = debtAmount;
+                                                currencySignal
+                                                    .value = debtCurrency;
+                                                dateSignal
+                                                    .value = new Date()
+                                                        .toISOString()
+                                                        .split('T')[0];
+                                                noteSignal
+                                                    .value = '';
+                                                recalculatePrecisionError(debtAmount, debtCurrency);
+                                            }}
+                                            className='inline-flex items-center justify-start gap-2 px-4 py-2 bg-interactive-primary/10 border border-border-default rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted hover:border-interactive-primary transition-colors focus:outline-hidden focus:ring-2 focus-visible:ring-interactive-primary w-full sm:w-[280px]'
+                                            title={`${formatCurrency(debtAmount, toCurrencyISOCode(debtCurrency))} → ${getGroupDisplayName(payeeMember)}`}
                                         >
-                                            {getGroupDisplayName(payeeMember).charAt(0).toUpperCase()}
-                                        </div>
-                                        {/* Amount and Name */}
-                                        <CurrencyAmount
-                                            amount={debt.amount}
-                                            currency={debt.currency}
-                                            displayOptions={{includeCurrencyCode: false}}
-                                            className='font-semibold text-text-primary whitespace-nowrap'
-                                        />
-                                        <span className='text-text-muted'>→</span>
-                                        <span className='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
-                                            {getGroupDisplayName(payeeMember)}
-                                        </span>
-                                    </button>
-                                );
-                            })}
+                                            {/* Avatar */}
+                                            <div
+                                                className='w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-text-inverted'
+                                                style={{
+                                                    backgroundColor: payeeMember
+                                                        .themeColor
+                                                        ?.light || '#6366f1',
+                                                }}
+                                            >
+                                                {getGroupDisplayName(payeeMember)
+                                                    .charAt(0)
+                                                    .toUpperCase()}
+                                            </div>
+                                            {/* Amount and Name */}
+                                            <CurrencyAmount
+                                                amount={debtAmount}
+                                                currency={debtCurrency}
+                                                displayOptions={{ includeCurrencyCode: false }}
+                                                className='font-semibold text-text-primary whitespace-nowrap'
+                                            />
+                                            <span className='text-text-muted'>→</span>
+                                            <span className='text-text-primary truncate max-w-[120px] whitespace-nowrap'>
+                                                {getGroupDisplayName(payeeMember)}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                         </div>
                     </div>
                 )}
@@ -632,8 +658,8 @@ export function SettlementForm({isOpen, onClose, groupId, preselectedDebt, onSuc
                                         ? t('settlementForm.updatingButton')
                                         : t('settlementForm.recordingButton')
                                     : editMode
-                                        ? t('settlementForm.updateSettlement')
-                                        : t('settlementForm.recordSettlement')}
+                                    ? t('settlementForm.updateSettlement')
+                                    : t('settlementForm.recordSettlement')}
                             </Button>
                         </div>
                     </Stack>

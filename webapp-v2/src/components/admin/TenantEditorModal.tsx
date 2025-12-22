@@ -83,39 +83,43 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
     }, [creationMode, selectedSourceTenantId, existingTenants]);
 
     // Reset form when modal opens or tenant changes
-    useModalOpenOrChange(open, tenant?.tenant.tenantId, useCallback(() => {
-        if (mode === 'edit' && tenant) {
-            const tokens = tenant.tenant.brandingTokens?.tokens;
-            const branding = tenant.tenant.branding;
-            if (tokens) {
-                const tokenData = extractFormDataFromTokens(tokens);
-                setFormData({
-                    ...EMPTY_TENANT_DATA,
-                    ...tokenData,
-                    tenantId: tenant.tenant.tenantId,
-                    showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
-                    showAppNameInHeader: branding?.showAppNameInHeader ?? true,
-                    domains: tenant.domains ?? [],
-                });
-            } else {
-                setFormData({
-                    ...EMPTY_TENANT_DATA,
-                    tenantId: tenant.tenant.tenantId,
-                    showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
-                    showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
-                    showAppNameInHeader: branding?.showAppNameInHeader ?? true,
-                    domains: tenant.domains ?? [],
-                });
+    useModalOpenOrChange(
+        open,
+        tenant?.tenant.tenantId,
+        useCallback(() => {
+            if (mode === 'edit' && tenant) {
+                const tokens = tenant.tenant.brandingTokens?.tokens;
+                const branding = tenant.tenant.branding;
+                if (tokens) {
+                    const tokenData = extractFormDataFromTokens(tokens);
+                    setFormData({
+                        ...EMPTY_TENANT_DATA,
+                        ...tokenData,
+                        tenantId: tenant.tenant.tenantId,
+                        showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
+                        showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
+                        showAppNameInHeader: branding?.showAppNameInHeader ?? true,
+                        domains: tenant.domains ?? [],
+                    });
+                } else {
+                    setFormData({
+                        ...EMPTY_TENANT_DATA,
+                        tenantId: tenant.tenant.tenantId,
+                        showMarketingContent: tenant.tenant.marketingFlags?.showMarketingContent ?? false,
+                        showPricingPage: tenant.tenant.marketingFlags?.showPricingPage ?? false,
+                        showAppNameInHeader: branding?.showAppNameInHeader ?? true,
+                        domains: tenant.domains ?? [],
+                    });
+                }
+            } else if (mode === 'create') {
+                setFormData({ ...EMPTY_TENANT_DATA });
+                setCreationMode('empty');
+                setSelectedSourceTenantId('');
             }
-        } else if (mode === 'create') {
-            setFormData({ ...EMPTY_TENANT_DATA });
-            setCreationMode('empty');
-            setSelectedSourceTenantId('');
-        }
-        setErrorMessage('');
-        setSuccessMessage('');
-    }, [mode, tenant]));
+            setErrorMessage('');
+            setSuccessMessage('');
+        }, [mode, tenant]),
+    );
 
     useEffect(() => {
         if (successMessage || errorMessage) {
@@ -170,7 +174,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 logError('Failed to save tenant', error);
                 return getErrorMessage(error, 'admin.tenantEditor.errors.saveFailed');
             },
-        }
+        },
     );
 
     // Async action for publishing theme
@@ -186,7 +190,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 logError('Failed to publish tenant theme', error);
                 return getErrorMessage(error, 'admin.tenantEditor.errors.publishFailed');
             },
-        }
+        },
     );
 
     // Async action for uploading logo
@@ -204,7 +208,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 logError('Failed to upload logo', error);
                 return (error as any).message || t('admin.tenantEditor.errors.uploadFailed', { type: 'logo' });
             },
-        }
+        },
     );
 
     // Async action for uploading favicon
@@ -222,7 +226,7 @@ export function TenantEditorModal({ open, onClose, onSave, tenant, mode }: Tenan
                 logError('Failed to upload favicon', error);
                 return (error as any).message || t('admin.tenantEditor.errors.uploadFailed', { type: 'favicon' });
             },
-        }
+        },
     );
 
     // Derived loading states

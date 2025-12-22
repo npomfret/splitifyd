@@ -1,7 +1,7 @@
+import { useAsyncAction } from '@/app/hooks';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAsyncAction } from '@/app/hooks';
 import { Button, Tooltip } from '../ui';
 
 interface CommentInputProps {
@@ -35,7 +35,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder, classNam
                 if (err instanceof Error) return err.message;
                 return t('comments.commentInput.addFailed');
             },
-        }
+        },
     );
 
     // Auto-resize textarea based on content

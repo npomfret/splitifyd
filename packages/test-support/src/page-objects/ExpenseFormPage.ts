@@ -415,8 +415,10 @@ export class ExpenseFormPage extends BasePage {
      * @param mode - The expected form mode: 'add', 'edit', or 'copy'
      */
     async waitForPageToLoad(mode: 'add' | 'edit' | 'copy'): Promise<void> {
-        const heading = mode === 'add' ? this.getAddExpenseHeading()
-            : mode === 'edit' ? this.getEditExpenseHeading()
+        const heading = mode === 'add'
+            ? this.getAddExpenseHeading()
+            : mode === 'edit'
+            ? this.getEditExpenseHeading()
             : this.getCopyExpenseHeading();
         await expect(heading).toBeVisible({ timeout: TEST_TIMEOUTS.ELEMENT_VISIBLE });
     }
@@ -960,8 +962,10 @@ export class ExpenseFormPage extends BasePage {
      * @param mode - The expected form mode: 'add', 'edit', or 'copy'
      */
     async verifyPageLoaded(mode: 'add' | 'edit' | 'copy'): Promise<void> {
-        const heading = mode === 'add' ? this.getAddExpenseHeading()
-            : mode === 'edit' ? this.getEditExpenseHeading()
+        const heading = mode === 'add'
+            ? this.getAddExpenseHeading()
+            : mode === 'edit'
+            ? this.getEditExpenseHeading()
             : this.getCopyExpenseHeading();
         await expect(heading).toBeVisible();
         await expect(this.getDescriptionInput()).toBeVisible();

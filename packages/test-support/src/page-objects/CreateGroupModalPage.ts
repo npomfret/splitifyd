@@ -92,7 +92,8 @@ export class CreateGroupModalPage extends BasePage {
      * Scoped: find label containing group name text, then info icon within.
      */
     protected getGroupNameInfoIcon(): Locator {
-        return this.getModalContainer()
+        return this
+            .getModalContainer()
             .locator('label')
             .filter({ hasText: translation.createGroupModal.groupNameLabel })
             .getByLabel(translation.common.moreInfo);
@@ -103,7 +104,8 @@ export class CreateGroupModalPage extends BasePage {
      * Scoped: find label containing description text, then info icon within.
      */
     protected getGroupDescriptionInfoIcon(): Locator {
-        return this.getModalContainer()
+        return this
+            .getModalContainer()
             .locator('label')
             .filter({ hasText: translation.createGroupModal.groupDescriptionLabel })
             .getByLabel(translation.common.moreInfo);
@@ -114,7 +116,8 @@ export class CreateGroupModalPage extends BasePage {
      * Scoped: find label containing display name text, then info icon within.
      */
     protected getGroupDisplayNameInfoIcon(): Locator {
-        return this.getModalContainer()
+        return this
+            .getModalContainer()
             .locator('label')
             .filter({ hasText: translation.createGroupModal.groupDisplayNameLabel })
             .getByLabel(translation.common.moreInfo);

@@ -16,22 +16,18 @@
  */
 
 /** Base list item container - includes hover effects and group for action reveal */
-export const listItemBase =
-    'border border-border-default/50 rounded-lg px-4 py-3 bg-surface-subtle ' +
-    'backdrop-blur-xs transition-all duration-200 relative group ' +
-    'hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-md';
+export const listItemBase = 'border border-border-default/50 rounded-lg px-4 py-3 bg-surface-subtle '
+    + 'backdrop-blur-xs transition-all duration-200 relative group '
+    + 'hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-md';
 
 /** Clickable list item - adds cursor and hover background */
-export const listItemClickable =
-    'cursor-pointer hover:bg-surface-muted';
+export const listItemClickable = 'cursor-pointer hover:bg-surface-muted';
 
 /** Deleted state - reduced opacity and muted background */
-export const listItemDeleted =
-    'opacity-60 bg-surface-muted';
+export const listItemDeleted = 'opacity-60 bg-surface-muted';
 
 /** Strikethrough text for deleted items */
-export const listItemDeletedText =
-    'line-through text-text-muted';
+export const listItemDeletedText = 'line-through text-text-muted';
 
 /**
  * Combined list item styles for common use cases.

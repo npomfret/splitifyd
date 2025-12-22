@@ -1,5 +1,5 @@
-import type { TenantData } from './types';
 import type { SectionId } from './field-registry';
+import type { TenantData } from './types';
 
 export interface SectionConfig {
     id: SectionId;

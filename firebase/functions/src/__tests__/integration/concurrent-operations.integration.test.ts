@@ -612,7 +612,9 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Verify the failure is due to display name conflict
             const failure = failures[0] as PromiseRejectedResult;
-            interface ApiErrorResponse { error?: { code?: string; detail?: string; }; }
+            interface ApiErrorResponse {
+                error?: { code?: string; detail?: string; };
+            }
             const errorResponse = (failure.reason as { response?: ApiErrorResponse; }).response;
             expect(errorResponse?.error?.detail || errorResponse?.error?.code).toBe('DISPLAY_NAME_TAKEN');
 

@@ -112,8 +112,7 @@ export function useAsyncAction<TArgs extends unknown[], TResult>(
                         setError(customMessage);
                     } else {
                         // Default error message extraction
-                        const defaultMessage =
-                            err instanceof Error ? err.message : 'An error occurred';
+                        const defaultMessage = err instanceof Error ? err.message : 'An error occurred';
                         setError(defaultMessage);
                     }
                 }

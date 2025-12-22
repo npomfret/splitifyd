@@ -788,9 +788,11 @@ describe('user, policy and notification tests', () => {
                             .build(),
                         user1,
                     ),
-                ).rejects.toMatchObject({
-                    code: 'INVALID_REQUEST',
-                });
+                )
+                    .rejects
+                    .toMatchObject({
+                        code: 'INVALID_REQUEST',
+                    });
             });
         });
     });

@@ -1,10 +1,10 @@
-import { useAuth } from '@/app/hooks/useAuth';
 import { apiClient } from '@/app/apiClient';
+import { useAuth } from '@/app/hooks/useAuth';
 import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { Button } from './Button';
-import { WarningIcon, CheckCircleIcon } from './icons';
+import { CheckCircleIcon, WarningIcon } from './icons';
 
 type BannerState = 'idle' | 'sending' | 'success' | 'error';
 
@@ -49,17 +49,13 @@ export function EmailVerificationBanner() {
             >
                 <div className='max-w-7xl mx-auto flex items-center justify-center gap-4 flex-wrap'>
                     <div className='flex items-center gap-2'>
-                        {state === 'success' ? (
-                            <CheckCircleIcon size={20} className='text-semantic-success shrink-0' />
-                        ) : (
-                            <WarningIcon size={20} className='text-semantic-warning shrink-0' />
-                        )}
+                        {state === 'success' ? <CheckCircleIcon size={20} className='text-semantic-success shrink-0' /> : <WarningIcon size={20} className='text-semantic-warning shrink-0' />}
                         <span className='text-sm font-medium text-text-primary'>
                             {state === 'success'
                                 ? t('emailVerification.banner.resendSuccess')
                                 : state === 'error'
-                                  ? t('emailVerification.banner.resendError')
-                                  : t('emailVerification.banner.message')}
+                                ? t('emailVerification.banner.resendError')
+                                : t('emailVerification.banner.message')}
                         </span>
                     </div>
                     {state !== 'success' && (

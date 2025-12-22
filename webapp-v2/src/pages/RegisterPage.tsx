@@ -1,6 +1,6 @@
+import { PolicyViewModal } from '@/components/policy/PolicyViewModal';
 import { Button, Checkbox } from '@/components/ui';
 import { FloatingInput } from '@/components/ui/FloatingInput';
-import { PolicyViewModal } from '@/components/policy/PolicyViewModal';
 import { navigationService } from '@/services/navigation.service';
 import { PolicyIds, RegisterRequestSchema, toDisplayName, toEmail, toPassword } from '@billsplit-wl/shared';
 import type { PolicyId } from '@billsplit-wl/shared';
@@ -220,8 +220,8 @@ export function RegisterPage() {
                                     onClick={() => openPolicyModal(PolicyIds.TERMS_OF_SERVICE, t('registerPage.termsOfService'))}
                                 >
                                     {t('registerPage.termsOfService')}
-                                </button>
-                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
+                                </button>{' '}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToTerms}
@@ -241,8 +241,8 @@ export function RegisterPage() {
                                     onClick={() => openPolicyModal(PolicyIds.COOKIE_POLICY, t('registerPage.cookiePolicy'))}
                                 >
                                     {t('registerPage.cookiePolicy')}
-                                </button>
-                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
+                                </button>{' '}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToCookies}
@@ -262,8 +262,8 @@ export function RegisterPage() {
                                     onClick={() => openPolicyModal(PolicyIds.PRIVACY_POLICY, t('registerPage.privacyPolicy'))}
                                 >
                                     {t('registerPage.privacyPolicy')}
-                                </button>
-                                {' '}<span className='text-semantic-error'>{t('common.required')}</span>
+                                </button>{' '}
+                                <span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToPrivacy}
@@ -276,8 +276,7 @@ export function RegisterPage() {
                     <Checkbox
                         label={
                             <span className='text-sm text-text-primary'>
-                                {t('registerPage.adminEmails.label')}{' '}
-                                <span className='text-semantic-error'>{t('common.required')}</span>
+                                {t('registerPage.adminEmails.label')} <span className='text-semantic-error'>{t('common.required')}</span>
                             </span>
                         }
                         checked={agreeToAdminEmails}

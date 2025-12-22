@@ -77,9 +77,7 @@ export function MemberDisplay({
                     {isCurrentUser && <span className='text-text-muted ml-1'>({t('common.you')})</span>}
                     {suffix}
                 </span>
-                {secondaryText && (
-                    <span className='help-text-xs leading-tight'>{secondaryText}</span>
-                )}
+                {secondaryText && <span className='help-text-xs leading-tight'>{secondaryText}</span>}
             </div>
         </div>
     );

@@ -1,5 +1,5 @@
 import { useClickOutside } from '@/app/hooks/useClickOutside';
-import { render, cleanup } from '@testing-library/preact';
+import { cleanup, render } from '@testing-library/preact';
 import { useRef } from 'preact/hooks';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -23,13 +23,13 @@ function TestComponent({
 
     return (
         <div>
-            <div ref={containerRef} data-testid="container">
-                <span data-testid="inside">Inside content</span>
+            <div ref={containerRef} data-testid='container'>
+                <span data-testid='inside'>Inside content</span>
             </div>
-            <button ref={excludeRef} data-testid="exclude-button">
+            <button ref={excludeRef} data-testid='exclude-button'>
                 Toggle
             </button>
-            <div data-testid="outside">Outside content</div>
+            <div data-testid='outside'>Outside content</div>
         </div>
     );
 }

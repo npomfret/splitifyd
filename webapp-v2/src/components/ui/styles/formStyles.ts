@@ -10,8 +10,8 @@
  *   const classes = cx(...formInput.base, error && formInput.error, disabled && formInput.disabled);
  */
 
+import { disabledState, errorState, states } from './states';
 import { surfaces } from './surfaces';
-import { states, errorState, disabledState } from './states';
 
 /** Form input styling (for input, textarea, select) */
 export const formInput = {

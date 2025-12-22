@@ -60,7 +60,7 @@ import { ApiError, ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
 import { measureDb } from '../../monitoring/measure';
 import { LoggerContext } from '../../utils/logger-context';
-import { EmailTemplateService, type EmailMessage, type IEmailService } from '../email';
+import { type EmailMessage, EmailTemplateService, type IEmailService } from '../email';
 import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 import { validateCreateUser, validateCustomClaims, validateEmailAddress, validateIdToken, validateUpdateUser, validateUserId } from './auth-validation';
 import type { EmailChangeEmailContext, EmailVerificationEmailContext, PasswordResetEmailContext, WelcomeEmailContext } from './IAuthService';

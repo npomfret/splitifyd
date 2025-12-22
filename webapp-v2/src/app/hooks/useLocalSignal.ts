@@ -33,7 +33,7 @@ export function useLocalSignal<T>(initialValue: T | (() => T)): Signal<T> {
             typeof initialValue === 'function'
                 ? (initialValue as () => T)()
                 : initialValue,
-        ),
+        )
     );
     return sig;
 }

@@ -51,15 +51,16 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense, emailNotVeri
                         <SkeletonCard />
                     </div>
                 )}
-                renderEmpty={() => showArchived
-                    ? (
-                        <EmptyState
-                            icon={<ArchiveBoxIcon size={64} />}
-                            title={t('dashboardComponents.groupsList.noArchivedTitle')}
-                            description={t('dashboardComponents.groupsList.noArchivedDescription')}
-                        />
-                    )
-                    : <EmptyGroupsState onCreateGroup={onCreateGroup} emailNotVerified={emailNotVerified} />}
+                renderEmpty={() =>
+                    showArchived
+                        ? (
+                            <EmptyState
+                                icon={<ArchiveBoxIcon size={64} />}
+                                title={t('dashboardComponents.groupsList.noArchivedTitle')}
+                                description={t('dashboardComponents.groupsList.noArchivedDescription')}
+                            />
+                        )
+                        : <EmptyGroupsState onCreateGroup={onCreateGroup} emailNotVerified={emailNotVerified} />}
                 onRetry={handleRetry}
             >
                 {(groups) => (

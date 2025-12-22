@@ -12,4 +12,3 @@ export interface EmailMessage {
 export interface IEmailService {
     sendEmail(message: EmailMessage): Promise<void>;
 }
-

@@ -1,7 +1,7 @@
-import { Errors, ErrorDetail } from '../../errors';
+import { ErrorDetail, Errors } from '../../errors';
 import { logger } from '../../logger';
-import type { PostmarkTokenProvider } from './postmark/PostmarkTokenProvider';
 import type { EmailMessage, IEmailService } from './IEmailService';
+import type { PostmarkTokenProvider } from './postmark/PostmarkTokenProvider';
 
 interface PostmarkSendEmailRequest {
     From: string;
@@ -80,4 +80,3 @@ export class PostmarkEmailService implements IEmailService {
             : Errors.unavailable(ErrorDetail.EMAIL_SERVICE_ERROR);
     }
 }
-

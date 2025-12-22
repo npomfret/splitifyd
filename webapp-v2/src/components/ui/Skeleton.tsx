@@ -223,7 +223,7 @@ interface SkeletonListProps {
     /** Number of skeleton items to render. Defaults to 3. */
     count?: number;
     /** The skeleton item component to render, or a render function */
-    children: ComponentType<{ className?: string }> | (() => ComponentChildren);
+    children: ComponentType<{ className?: string; }> | (() => ComponentChildren);
     /** Stack spacing between items. Defaults to 'sm'. */
     spacing?: 'xs' | 'sm' | 'md' | 'lg';
     /** Additional class names for the container */
@@ -270,7 +270,7 @@ export function SkeletonList({
             return <div key={index}>{(children as () => ComponentChildren)()}</div>;
         } else {
             // Component type: SkeletonExpenseItem
-            const Component = children as ComponentType<{ className?: string }>;
+            const Component = children as ComponentType<{ className?: string; }>;
             return <Component key={index} />;
         }
     });

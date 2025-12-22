@@ -317,9 +317,7 @@ export class FirestoreReader implements IFirestoreReader {
 
         try {
             // Build document references for batch fetch
-            const refs = groupIds.map((groupId) =>
-                this.db.collection(FirestoreCollections.BALANCES).doc(groupId),
-            );
+            const refs = groupIds.map((groupId) => this.db.collection(FirestoreCollections.BALANCES).doc(groupId));
 
             // Single network round trip using Firestore's native batch read
             const docs = await this.db.getAll(...refs);
