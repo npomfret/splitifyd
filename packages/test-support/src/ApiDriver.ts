@@ -204,7 +204,13 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
         }
 
         try {
-            const { uid, token } = await this.firebaseSignIn(userRegistration);
+            const { uid } = await this.firebaseSignIn(userRegistration);
+
+            // Auto-verify email so tests can perform write operations without extra setup
+            await this.markEmailVerified(uid);
+
+            // Re-authenticate to get a fresh token with updated emailVerified claim
+            const { token } = await this.firebaseSignIn(userRegistration);
 
             return {
                 uid,
@@ -218,6 +224,14 @@ export class ApiDriver implements PublicAPI, API<AuthToken>, AdminAPI<AuthToken>
 
             throw signInError;
         }
+    }
+
+    /**
+     * Mark a user's email as verified using the test endpoint (emulator only).
+     * @param uid - The user's UID
+     */
+    async markEmailVerified(uid: UserId | string): Promise<void> {
+        await this.apiRequest('/test/verify-email', 'POST', { uid });
     }
 
     async borrowTestUser(): Promise<PooledTestUser> {

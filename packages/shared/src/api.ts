@@ -477,4 +477,14 @@ export interface TestAPI {
      * @returns PooledTestUser with uid, email, password, and authentication token
      */
     createAdminUser(request: CreateAdminUserRequest): Promise<PooledTestUser>;
+
+    /**
+     * Mark a user's email as verified.
+     * Used to bypass email verification requirements in integration tests.
+     *
+     * Test environments only - endpoint returns 403 in production
+     *
+     * @param uid - User ID to mark as email verified
+     */
+    markEmailVerified(uid: UserId): Promise<void>;
 }

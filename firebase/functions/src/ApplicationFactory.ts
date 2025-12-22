@@ -213,6 +213,29 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
         }
     };
 
+    const verifyEmail: RequestHandler = async (req, res) => {
+        const { uid } = req.body;
+
+        if (!uid) {
+            res.status(400).json({ error: { code: 'BAD_REQUEST', message: 'User ID required' } });
+            return;
+        }
+
+        try {
+            await authService.updateUser(toUserId(uid), { emailVerified: true });
+            res.status(204).send();
+        } catch (error: any) {
+            logger.error('Failed to verify email', error);
+            res.status(500).json({
+                error: {
+                    code: 'INTERNAL_ERROR',
+                    message: 'Failed to verify email',
+                    details: error.message,
+                },
+            });
+        }
+    };
+
     const createAdminUser: RequestHandler = async (req, res) => {
         const { email, password, displayName } = req.body as CreateAdminUserRequest;
 
@@ -585,6 +608,7 @@ export function createHandlerRegistry(componentBuilder: ComponentBuilder): Recor
                 promoteTestUserToAdmin,
                 createAdminUser,
                 clearUserPolicyAcceptances,
+                verifyEmail,
             }
             : {}),
 

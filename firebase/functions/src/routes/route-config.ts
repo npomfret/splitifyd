@@ -169,6 +169,12 @@ const routeDefinitions: RouteDefinition[] = [
         handlerName: 'clearUserPolicyAcceptances',
         category: 'test',
     },
+    {
+        method: 'POST',
+        path: '/test/verify-email',
+        handlerName: 'verifyEmail',
+        category: 'test',
+    },
 
     // === User & Policy Management ===
     {
