@@ -54,6 +54,71 @@ Layered style constants enforce consistency. Import and compose these instead of
 
 ---
 
+## Avoiding Long Class Strings
+
+Long inline class strings are hard to maintain and lead to inconsistency. **Extract by default.**
+
+### The Rule
+
+**If the classes represent a "thing", extract them.** A card style, a text treatment, a hover effect, an input style—these are concepts that deserve a name. Don't wait to see if the pattern repeats.
+
+**Threshold:** More than 3 classes that work together → extract. Even `text-sm text-text-muted` became `help-text`.
+
+### Abstraction Hierarchy
+
+| Level | When to use | Location |
+|-------|-------------|----------|
+| **Component** | UI pattern with behavior/props | `components/ui/` |
+| **Style primitive** | Conditional composition needed | `components/ui/styles/` |
+| **Utility class** | Static class combination | `styles/global.css` with `@utility` |
+| **Inline classes** | Truly one-off, ≤3 classes | Directly in TSX |
+
+### Decision flow
+
+1. **Check existing utilities first** — see table below
+2. **No match? Create a utility class** — name it semantically (what it's for, not what it looks like)
+3. **Need conditionals?** — create a style primitive instead
+4. **Complex with behavior?** — create a component
+
+### Creating utility classes
+
+Add to `styles/global.css` using Tailwind v4's `@utility` directive:
+
+```css
+@utility card-hover {
+  @apply transition-all hover:border-interactive-primary/40 hover:-translate-y-0.5 hover:shadow-md;
+}
+```
+
+Then use as single class: `className="card-hover"`
+
+### Existing utility classes
+
+| Category | Classes |
+|----------|---------|
+| **Typography** | `help-text`, `help-text-xs`, `field-error`, `eyebrow`, `hero-text`, `code-text` |
+| **Badges** | `badge`, `badge-primary`, `badge-success`, `badge-warning`, `badge-error`, `badge-deleted` |
+| **Modal** | `modal-header`, `modal-content`, `modal-footer` |
+| **Effects** | `glass-panel`, `btn-gradient`, `btn-polished`, `focus-glow`, `magnetic-glow` |
+| **Animation** | `fade-up`, `fade-up-visible` |
+| **Grid** | `grid-auto-fit`, `grid-auto-fit-sm`, `grid-auto-fit-md`, `grid-auto-fit-lg` |
+
+### Anti-pattern: anonymous class soup
+
+```tsx
+// ❌ Hard to maintain, duplicated across files
+<div className="flex items-center gap-2 p-4 bg-surface-raised border border-border-default
+                rounded-lg hover:bg-surface-muted transition-colors cursor-pointer">
+
+// ✅ Use existing primitive or extract new utility
+<div className={cx(listItem.clickable)}>
+
+// ✅ Or create utility class if pattern repeats
+<div className="card-interactive">
+```
+
+---
+
 ## Component Patterns
 
 **Location:** `components/ui/`
@@ -439,3 +504,4 @@ Every selector should be **unambiguous**. If multiple elements could match, scop
 | Custom "load more" buttons | `<LoadMoreButton onClick={...} loading={...} />` |
 | Raw `<textarea>` | `Textarea` component |
 | Raw `<select>` with manual styling | `Select` component |
+| Inline class strings (4+ classes) | Extract to `@utility` or style primitive |
