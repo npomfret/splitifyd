@@ -4,12 +4,12 @@ import { navigationService } from '@/services/navigation.service';
 import { SystemUserRoles } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useAuthRequired } from '@/app/hooks';
 import { AdminDiagnosticsTab } from '../components/admin/AdminDiagnosticsTab';
 import { AdminTenantConfigTab } from '../components/admin/AdminTenantConfigTab';
 import { AdminTenantsTab } from '../components/admin/AdminTenantsTab';
 import { AdminUsersTab } from '../components/admin/AdminUsersTab';
-import { AdminLayout } from '../components/layout/AdminLayout';
+import { AdminLayout } from '@/components/layout';
 
 type AdminTab = 'tenants' | 'diagnostics' | 'tenant-config' | 'users';
 

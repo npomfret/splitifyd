@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next';
 import type { TenantData } from '../types';
-import { FIELD_REGISTRY, getRequiredFields } from './registry';
+import { getRequiredFields } from './registry';
 
 export function validateTenantData(formData: TenantData, t: TFunction): string | null {
     const required = (field: string) => t('validation.required', { field });

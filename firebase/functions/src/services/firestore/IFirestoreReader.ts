@@ -13,7 +13,7 @@
  * - Real-time subscription management
  */
 
-import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, ReactionEmoji, TenantDomainName, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
+import type { ActivityFeedItem, CommentId, ExpenseId, ISOString, MemberStatus, TenantDomainName, TenantId, TenantImageDTO, TenantImageId, UserId } from '@billsplit-wl/shared';
 import type { IDocumentReference, IDocumentSnapshot, IQuerySnapshot, ITransaction } from 'ts-firebase-simulator';
 import type { FirestoreAuditMetadata } from '../../schemas/common';
 

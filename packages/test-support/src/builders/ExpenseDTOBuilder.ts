@@ -1,4 +1,4 @@
-import type { ExpenseDTO, ExpenseLabel, ReactionCounts, ReactionEmoji, UserId, UserReactionsMap } from '@billsplit-wl/shared';
+import type { ExpenseDTO, ExpenseLabel, ReactionCounts, UserId, UserReactionsMap } from '@billsplit-wl/shared';
 import { Amount, toExpenseLabel } from '@billsplit-wl/shared';
 import { GroupId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';

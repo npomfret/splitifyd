@@ -1,6 +1,6 @@
 import { EmailChangeEmailVariablesBuilder, EmailVerificationEmailVariablesBuilder, PasswordResetEmailVariablesBuilder, WelcomeEmailVariablesBuilder } from '@billsplit-wl/test-support';
 import { describe, expect, it } from 'vitest';
-import { EmailTemplateService } from '../../../../services/email/EmailTemplateService';
+import { EmailTemplateService } from '../../../../services/email';
 
 describe('EmailTemplateService', () => {
     const service = new EmailTemplateService();

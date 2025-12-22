@@ -12,7 +12,7 @@ import { CreateGroupRequest, CurrencyISOCode, GroupId, toCurrencyISOCode, toDisp
 import { signal, useComputed } from '@preact/signals';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { Button, Form, FormFieldLabel, Input, Select, Stack, Switch, Textarea, Tooltip, Typography } from '../ui';
+import { Form, FormFieldLabel, Input, Select, Stack, Switch, Textarea, Tooltip, Typography } from '../ui';
 
 interface CreateGroupModalProps {
     isOpen: boolean;

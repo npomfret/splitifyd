@@ -32,7 +32,6 @@ import {
     MemberStatuses,
     type PolicyDTO,
     PolicyId,
-    type ReactionEmoji,
     type SettlementDTO,
     SettlementId,
     type UserId,

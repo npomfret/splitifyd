@@ -27,7 +27,6 @@ import { PolicyTextHandlers } from './policies/PolicyTextHandlers';
 import { UserHandlers as PolicyUserHandlers } from './policies/UserHandlers';
 import { ReactionHandlers } from './reactions/ReactionHandlers';
 import { SettlementHandlers } from './settlements/SettlementHandlers';
-import { SharingHandlers } from './sharing/SharingHandlers';
 import { TenantAdminHandlers } from './tenant/TenantAdminHandlers';
 import { TenantImageLibraryHandlers } from './tenant/TenantImageLibraryHandlers';
 import { ThemeHandlers } from './theme/ThemeHandlers';

@@ -1,5 +1,5 @@
 import { StubStorage } from 'ts-firebase-simulator';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { CloudTenantAssetStorage } from '../../../../services/storage/TenantAssetStorage';
 
 describe('TenantAssetStorage', () => {

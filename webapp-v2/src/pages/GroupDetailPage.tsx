@@ -23,12 +23,12 @@ import { MemberRoles, MemberStatuses, toExpenseId } from '@billsplit-wl/shared';
 import { useComputed, useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { useGroupModals } from '../app/hooks/useGroupModals';
+import { useAuthRequired } from '@/app/hooks';
+import { useGroupModals } from '@/app/hooks';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
-import { BaseLayout } from '../components/layout/BaseLayout';
-import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
+import { BaseLayout } from '@/components/layout';
+import { GroupDetailGrid } from '@/components/layout';
 import { logError, logWarning } from '../utils/browser-logger';
 
 interface GroupDetailPageProps {

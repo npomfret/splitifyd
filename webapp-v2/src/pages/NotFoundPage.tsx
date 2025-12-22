@@ -2,7 +2,7 @@ import { Clickable } from '@/components/ui/Clickable';
 import { navigationService } from '@/services/navigation.service';
 import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../app/hooks/useAuth';
+import { useAuth } from '@/app/hooks';
 
 interface NotFoundPageProps {
     path?: string;

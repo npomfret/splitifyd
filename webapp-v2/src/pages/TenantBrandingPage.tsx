@@ -6,8 +6,8 @@ import type { TenantSettingsResponse, UpdateTenantBrandingRequest } from '@bills
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { useAuthRequired } from '@/app/hooks';
+import { BaseLayout } from '@/components/layout';
 
 /**
  * Tenant Branding Editor Page

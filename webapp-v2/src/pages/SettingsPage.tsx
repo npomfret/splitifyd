@@ -9,8 +9,8 @@ import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '../app/apiClient';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { BaseLayout, FormSection, PageHeader, TwoColumnLayout } from '../components/layout';
+import { useAuthRequired } from '@/app/hooks';
+import { BaseLayout, FormSection, PageHeader, TwoColumnLayout } from '@/components/layout';
 
 interface PasswordChangeData {
     currentPassword: string;

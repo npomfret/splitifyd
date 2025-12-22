@@ -1,5 +1,5 @@
 import { DashboardPage, GroupDetailPage } from '@billsplit-wl/test-support';
-import { expect, simpleTest } from '../../fixtures';
+import { simpleTest } from '../../fixtures';
 
 async function navigateToDashboardFromGroup(groupDetailPage: GroupDetailPage): Promise<DashboardPage> {
     await groupDetailPage.header.navigateToDashboard();

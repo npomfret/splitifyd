@@ -1,4 +1,4 @@
-import type { CommentAttachmentRef, CommentDTO, CommentText, ISOString, ReactionCounts, ReactionEmoji, UserReactionsMap } from '@billsplit-wl/shared';
+import type { CommentAttachmentRef, CommentDTO, CommentText, ISOString, ReactionCounts, UserReactionsMap } from '@billsplit-wl/shared';
 import type { CommentId, UserId } from '@billsplit-wl/shared';
 import { toCommentId, toCommentText } from '@billsplit-wl/shared';
 import { toUserId } from '@billsplit-wl/shared';

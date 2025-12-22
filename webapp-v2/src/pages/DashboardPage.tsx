@@ -6,11 +6,11 @@ import { GroupId, GroupName } from '@billsplit-wl/shared';
 import { toGroupId, toGroupName } from '@billsplit-wl/shared';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useAuthRequired } from '@/app/hooks';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { CreateGroupModal } from '../components/dashboard/CreateGroupModal';
 import { GroupsList } from '../components/dashboard/GroupsList';
-import { BaseLayout, PageSection } from '../components/layout';
+import { BaseLayout, PageSection } from '@/components/layout';
 
 export function DashboardPage() {
     const { t } = useTranslation();

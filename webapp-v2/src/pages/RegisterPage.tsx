@@ -7,7 +7,7 @@ import type { PolicyId } from '@billsplit-wl/shared';
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useAuthRequired } from '@/app/hooks';
 import { AuthForm } from '../components/auth/AuthForm';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { EmailInput } from '../components/auth/EmailInput';

@@ -1,5 +1,5 @@
 import { useModalOpen, useModalOpenOrChange } from '@/app/hooks/useModalOpen';
-import { act, renderHook } from '@testing-library/preact';
+import { renderHook } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('useModalOpen', () => {

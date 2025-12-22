@@ -13,12 +13,12 @@ import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/ou
 import { useComputed } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useAuthRequired } from '@/app/hooks';
 import { joinGroupStore } from '../app/stores/join-group-store';
 import { GroupPreview } from '../components/join-group/GroupPreview';
 import { JoinButton } from '../components/join-group/JoinButton';
 import { MembersPreview } from '../components/join-group/MembersPreview';
-import { BaseLayout } from '../components/layout/BaseLayout';
+import { BaseLayout } from '@/components/layout';
 
 interface JoinGroupPageProps {
     linkId?: string;

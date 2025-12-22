@@ -1,6 +1,6 @@
 import { ComponentChildren } from 'preact';
 import { useTranslation } from 'react-i18next';
-import { BaseLayout } from '../layout/BaseLayout';
+import { BaseLayout } from '@/components/layout';
 import { Typography } from '../ui';
 
 interface AuthLayoutProps {

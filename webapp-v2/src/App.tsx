@@ -3,7 +3,7 @@ import Router, { Route } from 'preact-router';
 import { lazy, Suspense } from 'preact/compat';
 import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from './app/hooks/useAuth';
+import { useAuth } from '@/app/hooks';
 import { TokenRefreshIndicator } from './components/auth/TokenRefreshIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';

@@ -1,5 +1,5 @@
 import { useAsyncAction } from '@/app/hooks/useAsyncAction';
-import { act, renderHook, waitFor } from '@testing-library/preact';
+import { act, renderHook } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('useAsyncAction', () => {

@@ -1,4 +1,4 @@
-import type { ReactionCounts, ReactionEmoji, SettlementDTO, UserId, UserReactionsMap } from '@billsplit-wl/shared';
+import type { ReactionCounts, SettlementDTO, UserId, UserReactionsMap } from '@billsplit-wl/shared';
 import { Amount, GroupId, SettlementId, toGroupId, toSettlementId, toUserId } from '@billsplit-wl/shared';
 import type { CurrencyISOCode } from '@billsplit-wl/shared';
 import type { ISOString } from '@billsplit-wl/shared';
